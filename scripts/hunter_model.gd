@@ -5,6 +5,7 @@ const Skinning = preload("res://scripts/hunter_skin.gd")
 const Hand = preload("res://scripts/hunter_hand.gd")
 const Outfit = preload("res://scripts/hunter_outfit.gd")
 const Motion = preload("res://scripts/hunter_motion.gd")
+const JointCloth = preload("res://scripts/hunter_joint_cloth.gd")
 
 static func tapered(parent: Node3D, pos: Vector3, top: float, bottom: float, height: float, color: Color) -> MeshInstance3D:
 	var mesh := MeshInstance3D.new()
@@ -56,6 +57,14 @@ static func create(parent: Node3D) -> Dictionary:
 	var rig := {"root":root,"torso":torso,"joints":joints,"arms":arms,"legs":legs,"skirts":costume.skirts,"weapon":V.trident(root)}
 	rig.weapon.name = "Trident"
 	pose_arms(rig,false,0)
+	rig.soft_joints = []
+	for side in [-1,1]:
+		var arm: Dictionary = arms[side]
+		var elbow_cloth := JointCloth.create(root,"JointClothElbow"+str(side),arm.shoulder.position,arm.elbow.position,arm.hand.position,0.066)
+		rig.soft_joints.append({"source":elbow_cloth,"upper":arm.upper,"lower":arm.lower})
+		var leg: Dictionary = legs[side]
+		var knee_cloth := JointCloth.create(root,"JointClothKnee"+str(side),Skinning.relative_transform(leg.hip,root).origin,Skinning.relative_transform(leg.knee,root).origin,Skinning.relative_transform(leg.ankle,root).origin,0.081)
+		rig.soft_joints.append({"source":knee_cloth,"upper":leg.thigh,"lower":leg.shin})
 	Fabric.apply(root)
 	rig.skinning = Skinning.bind(rig)
 	if ResourceLoader.exists("res://resources/animations/trident_library.tres"):

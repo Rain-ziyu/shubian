@@ -23,12 +23,17 @@ func run() -> void:
 			check(child.skin!=null and child.skin.get_bind_count()==skeleton.get_bone_count(),"skin binds available")
 			var arrays: Array = child.mesh.surface_get_arrays(0)
 			check(arrays[Mesh.ARRAY_BONES].size()==arrays[Mesh.ARRAY_VERTEX].size()*4,"vertex bone indices stored")
-			var sum := 0.0
-			for weight in arrays[Mesh.ARRAY_WEIGHTS]: sum += weight
+			var valid_weights := true
+			var weights: PackedFloat32Array = arrays[Mesh.ARRAY_WEIGHTS]
+			for vertex in arrays[Mesh.ARRAY_VERTEX].size():
+				var total := 0.0
+				for slot in 4: total += weights[vertex*4+slot]
+				# Two-bone blends can lose one 16-bit step when ArrayMesh packs weights.
+				valid_weights = valid_weights and absf(total-1)<=1.1/65535
 			if child.get_meta("source_part","")=="Undercoat":
 				for weight in arrays[Mesh.ARRAY_WEIGHTS]:
 					if weight>0.01 and weight<0.99: blended_waist = true
-			check(is_equal_approx(sum,float(arrays[Mesh.ARRAY_VERTEX].size())),"weights normalized")
+			check(valid_weights,"every vertex weight sum is normalized within packed precision")
 			bound += 1
 	check(bound>20 and descendants>=8,"arm hand and leg foot hierarchy with bound meshes")
 	check(skeleton.find_bone("Spine")>=0,"saved spine bone exists")

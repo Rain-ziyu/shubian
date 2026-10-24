@@ -24,7 +24,7 @@ func run() -> void:
 		check(valid,"cloth UV coordinates cover every vertex and remain normalized")
 		check(binding.rendered.mesh.surface_get_arrays(0)[Mesh.ARRAY_TEX_UV]==uv,"skinned cloth preserves authored UV")
 		check(binding.rendered.material_override==material,"rendered cloth uses intended fabric material")
-	check(count==11,"all eleven garment pieces receive fabric treatment")
+	check(count==15,"eleven garments and four flexible joints receive fabric treatment")
 	check(rig.root.get_node("Torso/Head").material_override is StandardMaterial3D,"face retains original skin material")
 	check(rig.arms[-1].lower.material_override is StandardMaterial3D,"bracer retains armor material")
 	check(rig.legs[-1].boot.material_override is StandardMaterial3D,"boots retain colored sole material")
@@ -41,7 +41,7 @@ func run() -> void:
 		if material!=null and material.shader.resource_path.ends_with("hunter_fabric.gdshader"):
 			saved_count += 1
 			check(mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_TEX_UV].size()>0,"saved cloth retains UV")
-	check(saved_count==11,"saved model retains all fabric materials")
+	check(saved_count==15,"saved model retains all fifteen fabric materials")
 	print("HUNTER_FABRIC_CHECKS: ",checks," FAILURES: ",failures)
 	holder.queue_free()
 	await process_frame

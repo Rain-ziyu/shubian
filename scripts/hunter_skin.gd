@@ -1,5 +1,5 @@
 extends RefCounted
-## Segmented skeletal skin with a blended waist; final organic topology remains unfinished.
+## Segmented skeletal skin with blended waist and flexible joint cloth.
 static func bind(rig: Dictionary) -> Dictionary:
 	var root: Node3D = rig.root
 	var sources: Array[MeshInstance3D] = []
@@ -97,6 +97,23 @@ static func bind(rig: Dictionary) -> Dictionary:
 		var shin: int = indices[leg.shin.get_instance_id()]
 		var boot: int = indices[leg.boot.get_instance_id()]
 		for pair in [[shin,thigh],[boot,shin]]: parent_bone(skeleton,pair[0],pair[1],rests)
+	for joint in rig.get("soft_joints",[]):
+		for binding in bindings:
+			if binding.source!=joint.source: continue
+			var arrays: Array = binding.rendered.mesh.surface_get_arrays(0)
+			var positions: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+			var bones := PackedInt32Array()
+			var weights := PackedFloat32Array()
+			var uv: PackedVector2Array = arrays[Mesh.ARRAY_TEX_UV]
+			for vertex in positions.size():
+				var lower_weight := smoothstep(0,1,uv[vertex].y)
+				bones.append_array(PackedInt32Array([indices[joint.upper.get_instance_id()],indices[joint.lower.get_instance_id()],0,0]))
+				weights.append_array(PackedFloat32Array([1-lower_weight,lower_weight,0,0]))
+			arrays[Mesh.ARRAY_BONES] = bones
+			arrays[Mesh.ARRAY_WEIGHTS] = weights
+			var mesh := ArrayMesh.new()
+			mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+			binding.rendered.mesh = mesh
 	return {"skeleton":skeleton,"skin":skin,"bindings":bindings,"spine":spine}
 
 static func parent_bone(skeleton: Skeleton3D, child: int, parent: int, rests: Dictionary) -> void:
