@@ -54,6 +54,26 @@ func run() -> void:
 	p._input(event)
 	p._exit_tree()
 	check(not Input.is_action_pressed("move_forward"),"scene teardown releases virtual movement")
+	event.physical_keycode = KEY_PAUSE
+	event.keycode = KEY_Q
+	event.pressed = true
+	p.combat.set_action("idle")
+	p._unhandled_input(event)
+	check(p.combat.action=="guard","observed injected Q with unmapped Pause physical code starts guard")
+	world.combat_hud.help.hide()
+	event.keycode = KEY_F1
+	world.combat_hud._unhandled_key_input(event)
+	check(world.combat_hud.help.visible,"observed injected F1 with Pause physical code opens help")
+	event.keycode = KEY_W
+	p._input(event)
+	check(Input.is_action_pressed("move_forward"),"unmapped special physical code falls back to mapped logical movement")
+	event.pressed = false
+	p._input(event)
+	check(not Input.is_action_pressed("move_forward"),"fallback release clears mapped movement")
+	event.physical_keycode = KEY_Z
+	event.keycode = KEY_W
+	p._input(event)
+	check(not Input.is_action_pressed("move_forward") and p.InputKeys.code(event)==KEY_Z,"printable physical layout differences retain their original meaning")
 	print("LOGICAL_KEY_CHECKS: ",checks," FAILURES: ",failures)
 	world.queue_free()
 	await process_frame
