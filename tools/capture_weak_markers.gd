@@ -6,6 +6,7 @@ func run() -> void:
 	root.content_scale_size = root.size
 	var stage := Node3D.new()
 	root.add_child(stage)
+	var defeated := "--defeat" in OS.get_cmdline_user_args()
 	var env := WorldEnvironment.new()
 	env.environment = Environment.new()
 	env.environment.background_mode = Environment.BG_COLOR
@@ -17,6 +18,10 @@ func run() -> void:
 	var sun := DirectionalLight3D.new()
 	sun.rotation = Vector3(-0.8,-0.6,0)
 	stage.add_child(sun)
+	if defeated:
+		var floor_mesh := Monster.Visuals.piece(stage,Vector3(0,-0.2,0),Vector3(80,0.4,80),Color("748174"))
+		floor_mesh.create_trimesh_collision()
+		floor_mesh.get_child(0).collision_layer = 2
 	var camera := Camera3D.new()
 	stage.add_child(camera)
 	camera.current = true
@@ -38,11 +43,17 @@ func run() -> void:
 		m.exposed = 1
 		m.mesh.get_node("Neck").rotation.y = 0.4
 		m.mesh.get_node("Tail").rotation.y = -0.5
+		if defeated:
+			m.health = 0
+			for tick in 75:
+				m._physics_process(1.0/60)
+				await physics_frame
 		var s: float = m.data.size
 		camera.position = Vector3(s*2.4,s*1.5,s*2.7)
 		if m.data.id=="mistfrill": camera.position.z = -s*2.7
 		camera.look_at(Vector3(0,s*0.6,0))
 		title.text = "SHUBIAN / "+str(m.data.name)+"\nOPEN WEAK POINT"
+		if defeated: title.text = "SHUBIAN / "+str(m.data.name)+"\nDEFEAT / FLAT FLOOR STUDY"
 		for frame in 3: await process_frame
 		await RenderingServer.frame_post_draw
 		var image := root.get_texture().get_image()
@@ -50,7 +61,7 @@ func run() -> void:
 		sheet.blit_rect(image,Rect2i(0,0,600,500),Vector2i(i*600,0))
 		m.queue_free()
 		await process_frame
-	sheet.save_png(ProjectSettings.globalize_path("res://../Shubian-weak-markers.png"))
+	sheet.save_png(ProjectSettings.globalize_path("res://../Shubian-creature-defeat.png" if defeated else "res://../Shubian-weak-markers.png"))
 	stage.queue_free()
 	await process_frame
 	quit()

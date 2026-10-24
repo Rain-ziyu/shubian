@@ -5,6 +5,8 @@ const Hazard = preload("res://scripts/hazard.gd")
 const CreatureModel = preload("res://scripts/creature_model.gd")
 const Parts = preload("res://scripts/monster_parts.gd")
 const StaggerPose = preload("res://scripts/creature_stagger_pose.gd")
+const Defeat = preload("res://scripts/creature_defeat.gd")
+var defeat = Defeat.new()
 var stagger_pose = StaggerPose.new()
 var was_staggering := false
 var stagger_recovery := false
@@ -193,7 +195,7 @@ func _physics_process(delta: float) -> void:
 			move_actor()
 			if is_on_floor(): collision_mask = 0
 		for marker in weak_markers: marker.hide()
-		mesh.rotation.z = lerpf(mesh.rotation.z,1.35,delta*3)
+		defeat.update(self,delta)
 		tell.visible = false
 		label.text = str(data.name)+" 已击退"
 		return
