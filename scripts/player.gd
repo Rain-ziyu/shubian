@@ -11,6 +11,9 @@ const Projectile = preload("res://scripts/trident_projectile.gd")
 const HunterModel = preload("res://scripts/hunter_model.gd")
 const Parts = preload("res://scripts/monster_parts.gd")
 const HitFeedback = preload("res://scripts/hit_feedback.gd")
+const WeaponTrail = preload("res://scripts/weapon_trail.gd")
+var weapon_trail: MeshInstance3D
+var trail_epoch := 0
 const TeleportFeedback = preload("res://scripts/teleport_feedback.gd")
 const HunterVisibility = preload("res://scripts/hunter_visibility.gd")
 var combat = Combat.new()
@@ -60,6 +63,9 @@ func _ready() -> void:
 	col.position.y = 0.9
 	add_child(col)
 	rig = HunterModel.create(self)
+	weapon_trail = WeaponTrail.new()
+	weapon_trail.name = "WeaponTrail"
+	add_child(weapon_trail)
 	var visibility := HunterVisibility.new()
 	visibility.name = "OcclusionVisibility"
 	add_child(visibility)
@@ -168,6 +174,7 @@ func on_action_changed(next: String) -> void:
 	clear_body_turn()
 	if next!="idle": heavy_held = -1
 	strike_windows.clear()
+	if next=="hurt" and is_instance_valid(weapon_trail): weapon_trail.clear_trail()
 	if next=="hurt" and is_instance_valid(projectile): projectile.cancel_arrival()
 	if not is_instance_valid(lock_target) and next not in ["idle","hurt","dodge","wait","counter_window"]:
 		rig.root.rotation.y = yaw
@@ -460,11 +467,17 @@ func weapon_contact_points(action: String, beat: int) -> PackedVector3Array:
 	return points
 
 func update_weapon_contacts() -> void:
+	if motion_epoch!=trail_epoch or combat.health<=0:
+		weapon_trail.clear_trail()
+		trail_epoch = motion_epoch
 	for window in strike_windows.duplicate():
 		if window.action!=combat.action or combat.elapsed>float(window.ends) or combat.health<=0:
 			strike_windows.erase(window)
 			continue
 		var points := weapon_contact_points(window.action,window.beat)
+		if not (window.action=="finisher" and window.beat==1):
+			var labels: Array = ["ButtContact","ButtNeckContact"] if window.action=="reply" else (["LeftHookContact","RightHookContact"] if window.action=="pull" else ["TipContact","HeadBaseContact"])
+			weapon_trail.add_sample(rig.weapon.get_node(labels[0]).global_position,rig.weapon.get_node(labels[1]).global_position,window.action+str(window.beat),window.action in ["flash","fourfold","spin","finisher"])
 		var previous: PackedVector3Array = window.previous
 		if previous.is_empty(): previous = points
 		var radius := 0.16 if window.action=="finisher" and window.beat==1 else 0.075
