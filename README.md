@@ -126,3 +126,5 @@ WASD 移动，鼠标转视角，Shift 奔跑，空格闪避，中键锁定，Tab
 跨系统检查：`python tools/verify_regressions.py`；实际渲染专项可用 `python tools/verify_regressions.py --native --only test_hunter_visibility test_forest_art`。每项有超时和完成标记检查，报告保存在项目旁 verification 目录；无窗口结果不证明 GPU 画面或人工手感。
 
 窗口键码诊断：以 Godot 运行 `--path . --script res://tools/trace_window_input.gd`，会打开独立诊断窗口，将该窗口收到的键码和鼠标按钮事件写入项目旁 verification/window-input-*.jsonl，直到关闭窗口。仅排查输入时显式使用；正常试玩不启用记录。
+
+输入分发连携回放：Godot 参数 `--path . --fixed-fps 60 --script res://tests/replay_input_sequence.gd --quit-after 6000`，可加 `--headless`。须同时看到 INPUT_SEQUENCE 与 WEAPON_SEQUENCE 的 passed=true。移动和招式经引擎按键/鼠标事件分发，仍由读取怪物状态的控制器选择时机；报告为项目旁 Shubian-input-sequence.json，不是人工难度验证。

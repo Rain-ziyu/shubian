@@ -45,40 +45,46 @@ func control() -> void:
 	elapsed += 1.0/60.0
 	var c = fighter.combat
 	if reply_push_until>elapsed and monster.global_position.distance_to(reply_start)>0.15: reply_push_seen = true
-	for action in ["move_left","move_right","move_forward","move_back","sprint"]: Input.action_release(action)
 	if c.health<=0 or monster.health<=0 or elapsed>=90 or (stage==3 and c.action=="idle"):
+		set_movement(Vector3.ZERO)
 		finish_sequence()
 		return
 	var away: Vector3 = fighter.global_position-monster.global_position
 	away.y = 0
 	var movement := -away.normalized() if away.length()>1.75 else Vector3.ZERO
 	var local := movement.rotated(Vector3.UP,-fighter.yaw)
+	set_movement(local)
+	previous_shadows = c.shadow_lifetimes.size()
+	if c.action=="wait":
+		if monster.phase=="windup" and monster.clock>float(monster.data.windup)-0.22: request_action("counter_window")
+		return
+	if c.action in ["hurt","dodge","plant","counter_window","finisher","fourfold","spin"]: return
+	if stage==2 and not c.shadow_lifetimes.is_empty():
+		request_action("plant")
+		return
+	if not c.shadow_lifetimes.is_empty():
+		request_action("fourfold" if stage==0 else "spin")
+	elif c.guard_reward>0:
+		guard_count += 1
+		events.append({"time":snappedf(elapsed,0.001),"event":"guard_success","health":c.health})
+		request_action("reply")
+	elif c.flash_window>0:
+		request_action("flash")
+	elif monster.phase=="windup" and monster.clock>float(monster.data.windup)-0.32:
+		request_action("guard")
+
+func request_action(action: String) -> void:
+	fighter.combat.request(action)
+
+func set_movement(local: Vector3) -> void:
+	for action in ["move_left","move_right","move_forward","move_back","sprint"]: Input.action_release(action)
 	if local.x>0.1: Input.action_press("move_right")
 	if local.x< -0.1: Input.action_press("move_left")
 	if local.z>0.1: Input.action_press("move_back")
 	if local.z< -0.1: Input.action_press("move_forward")
-	previous_shadows = c.shadow_lifetimes.size()
-	if c.action=="wait":
-		if monster.phase=="windup" and monster.clock>float(monster.data.windup)-0.22: c.request("counter_window")
-		return
-	if c.action in ["hurt","dodge","plant","counter_window","finisher","fourfold","spin"]: return
-	if stage==2 and not c.shadow_lifetimes.is_empty():
-		c.request("plant")
-		return
-	if not c.shadow_lifetimes.is_empty():
-		c.request("fourfold" if stage==0 else "spin")
-	elif c.guard_reward>0:
-		guard_count += 1
-		events.append({"time":snappedf(elapsed,0.001),"event":"guard_success","health":c.health})
-		c.request("reply")
-	elif c.flash_window>0:
-		c.request("flash")
-	elif monster.phase=="windup" and monster.clock>float(monster.data.windup)-0.32:
-		c.request("guard")
 
-func finish_sequence() -> void:
-	result_saved = true
-	var checks := {
+func sequence_checks() -> Dictionary:
+	return {
 		"natural_guard_chain":guard_count>=3,
 		"reply_contacts":int(hit_counts.get("reply",0))>=3,
 		"flash_contacts":int(hit_counts.get("flash",0))>=3,
@@ -91,6 +97,10 @@ func finish_sequence() -> void:
 		"finisher_two_contacts":int(hit_counts.get("finisher",0))==2,
 		"alive":fighter.combat.health>0
 	}
+
+func finish_sequence() -> void:
+	result_saved = true
+	var checks := sequence_checks()
 	var passed := true
 	for value in checks.values(): passed = passed and value
 	var result := {"passed":passed,"checks":checks,"seconds":snappedf(elapsed,0.01),"player_health":fighter.combat.health,"monster_health":monster.health,"contacts":hit_counts,"events":events,"scope":"live single monster; privileged state-aware controller; no injected health shadows or hit confirmations; not difficulty acceptance"}
