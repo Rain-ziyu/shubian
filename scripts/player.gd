@@ -14,6 +14,7 @@ const HitFeedback = preload("res://scripts/hit_feedback.gd")
 const WeaponTrail = preload("res://scripts/weapon_trail.gd")
 var weapon_trail: MeshInstance3D
 var trail_epoch := 0
+var action_audio_beats := {}
 const TeleportFeedback = preload("res://scripts/teleport_feedback.gd")
 const HunterVisibility = preload("res://scripts/hunter_visibility.gd")
 var combat = Combat.new()
@@ -47,6 +48,7 @@ var shake_time := 0.0
 var shake_strength := 0.0
 
 func _ready() -> void:
+	CombatAudio.warmup_actions()
 	var keys := {"move_forward":KEY_W,"move_back":KEY_S,"move_left":KEY_A,"move_right":KEY_D,"sprint":KEY_SHIFT}
 	for label in keys:
 		if not InputMap.has_action(label):
@@ -174,6 +176,7 @@ func on_action_changed(next: String) -> void:
 	clear_body_turn()
 	if next!="idle": heavy_held = -1
 	strike_windows.clear()
+	action_audio_beats.clear()
 	if next=="hurt" and is_instance_valid(weapon_trail): weapon_trail.clear_trail()
 	if next=="hurt" and is_instance_valid(projectile): projectile.cancel_arrival()
 	if not is_instance_valid(lock_target) and next not in ["idle","hurt","dodge","wait","counter_window"]:
@@ -229,6 +232,7 @@ func _physics_process(delta: float) -> void:
 	if combat.health<=0: heavy_held = -1
 	elif heavy_held>=0: heavy_held += delta
 	combat.advance(delta)
+	update_action_audio()
 	if is_instance_valid(lock_target) and (lock_target.health<=0 or global_position.distance_to(lock_target.global_position)>30): lock_target = null
 	var axis := Input.get_vector("move_left","move_right","move_forward","move_back")
 	var input := Vector3(axis.x,0,axis.y)
@@ -262,6 +266,19 @@ func _physics_process(delta: float) -> void:
 	if global_position.y < -15:
 		global_position = Vector3(0,2,8)
 		motion_epoch += 1
+
+func update_action_audio() -> void:
+	if combat.health<=0 or not Combat.MOVES.has(combat.action): return
+	var hits: Array = Combat.MOVES[combat.action].hits
+	for beat in hits.size():
+		var time: float = hits[beat]
+		if action_audio_beats.has(beat) or combat.elapsed<time-0.07: continue
+		action_audio_beats[beat] = true
+		if combat.elapsed>time+0.10: continue
+		var kind := "thrust" if combat.action in ["light","flash","fourfold","reply"] else "sweep"
+		if combat.action=="throw": kind = "throw"
+		elif combat.action=="finisher" and beat==1: kind = "kick"
+		CombatAudio.emit_at(get_parent(),kind,global_position+Vector3.UP*1.1)
 
 func animate(delta: float, speed: float) -> void:
 	clear_body_turn()
