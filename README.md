@@ -125,6 +125,8 @@ WASD 移动，鼠标转视角，Shift 奔跑，空格闪避，中键锁定，Tab
 
 原生战斗帧时间测量：使用 Godot 图形程序运行 `--path . --script res://tools/benchmark_combat.gd --quit-after 30000`。不要添加 `--headless`、`--fixed-fps` 或录屏参数；等待 COMBAT_PERFORMANCE 与 WEAPON_SEQUENCE 两个结束标记。报告保存在项目旁的 verification 目录。本工具关闭垂直同步和帧率限制，仅测单怪连携；不会保存这些显示设置。
 
+整图实时帧时间测量：使用图形程序运行 `--path . --script res://tools/benchmark_forest_hunt.gd --quit-after 250000`。五只 AI 全程启用，正常出生、移动和持续资源结算，约四分钟完成；必须同时看到 FOREST_PERFORMANCE 报告和 FOREST_HUNT 的 passed=true。不接受无窗口、固定模拟帧率或录屏参数；本次进程关闭垂直同步和帧率上限，不保存设置。报告位于项目旁 verification/forest-performance-*.json，包含启动阶段、两秒后帧分布和卡顿时的目标/阶段；只代表本机与本次路线。
+
 跨系统检查：`python tools/verify_regressions.py`；实际渲染专项可用 `python tools/verify_regressions.py --native --only test_hunter_visibility test_forest_art`。每项有超时和完成标记检查，报告保存在项目旁 verification 目录；无窗口结果不证明 GPU 画面或人工手感。
 
 窗口键码诊断：以 Godot 运行 `--path . --script res://tools/trace_window_input.gd`，会打开独立诊断窗口，将该窗口收到的键码和鼠标按钮事件写入项目旁 verification/window-input-*.jsonl，直到关闭窗口。仅排查输入时显式使用；正常试玩不启用记录。
