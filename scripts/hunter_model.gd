@@ -118,6 +118,8 @@ static func pose_torso(rig: Dictionary, action: String, elapsed: float, gait: fl
 
 static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bool, gait: float, speed: float, delta: float, ground: Callable = Callable(), ground_normal: Callable = Callable()) -> void:
 	var drop := 0.09 if armed else 0.015
+	var walking := action=="idle" and speed>0.1
+	if walking: drop = 0.12
 	if action in ["guard","reply"]: drop = 0.13
 	if action in ["plant","wait","counter_window"]: drop = 0.18
 	if action=="dodge": drop = 0.22
@@ -138,6 +140,16 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 		if speed>0.1 and action!="dodge":
 			stance = sin(gait)*side*minf(0.28,speed*0.055)
 			lift = maxf(0,cos(gait)*side)*minf(0.14,speed*0.025)
+		if walking:
+			var phase := wrapf(gait+(PI if side==1 else 0),0,TAU)
+			var stride := PI/(4*2.6)
+			if phase<PI/2:
+				stance = lerpf(-stride,stride,phase/(PI/2))
+				lift = 0
+			else:
+				var swing := (phase-PI/2)/(TAU-PI/2)
+				stance = lerpf(stride,-stride,smoothstep(0,1,swing))
+				lift = sin(swing*PI)*0.14
 		if action=="turn":
 			var turning := smoothstep(0.10,0.58,elapsed)
 			lift += maxf(0,sin(turning*TAU*2+(PI if side==1 else 0)))*0.09
@@ -154,13 +166,18 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 			target.y += lerpf(0.55,0.62,extension)*weight
 			target.z = lerpf(target.z,lerpf(-0.18,-0.72,extension),weight)
 		var planted: bool = action=="turn" and elapsed>=0.10 and elapsed<0.58 and lift<0.001 and ground.is_valid()
+		var walk_planted: bool = walking and lift<0.001 and ground.is_valid()
+		var anchor_key := "walk_plant_world" if walking else "turn_plant_world"
+		var inactive_key := "turn_plant_world" if walking else "walk_plant_world"
+		if leg.hip.has_meta(inactive_key): leg.hip.remove_meta(inactive_key)
+		planted = planted or walk_planted
 		var anchored := false
-		if leg.hip.has_meta("turn_plant_world"):
-			var anchor: Vector3 = body.to_local(leg.hip.get_meta("turn_plant_world"))
+		if leg.hip.has_meta(anchor_key):
+			var anchor: Vector3 = body.to_local(leg.hip.get_meta(anchor_key))
 			if planted and Vector2(anchor.x-leg.hip.position.x,anchor.z).length()<0.32 and (anchor-leg.hip.position).length()<0.78:
 				target = anchor
 				anchored = true
-			else: leg.hip.remove_meta("turn_plant_world")
+			else: leg.hip.remove_meta(anchor_key)
 		planting[side] = planted
 		# Keep the attacking foot on its authored arc; sample support/swing feet only.
 		if ground.is_valid() and not (action=="finisher" and side==1 and elapsed>=0.60 and elapsed<1.32):
@@ -182,8 +199,9 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 			var extension := smoothstep(0.80,0.95,elapsed)*(1-smoothstep(1.02,1.32,elapsed))
 			normals[side] = Vector3.UP.rotated(Vector3.RIGHT,PI/4*extension)
 		pose_sole(leg,normals[side])
-		if planting[side] and not leg.hip.has_meta("turn_plant_world"):
-			leg.hip.set_meta("turn_plant_world",leg.ankle.global_position)
+		var anchor_key := "walk_plant_world" if walking else "turn_plant_world"
+		if planting[side] and not leg.hip.has_meta(anchor_key) and (not walking or (target-leg.hip.position).length()<0.78):
+			leg.hip.set_meta(anchor_key,leg.ankle.global_position)
 		if rig.has("skirts"):
 			rig.skirts[side].rotation.x = clampf(leg.hip.rotation.x,0,1.3)*0.7
 
