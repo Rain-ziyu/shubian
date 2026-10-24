@@ -250,7 +250,12 @@ func _physics_process(delta: float) -> void:
 		velocity.x = combat_forward().x*13
 		velocity.z = combat_forward().z*13
 	if not is_on_floor(): velocity.y -= 24*delta
+	var movement_start := global_position
 	move_and_slide()
+	var travelled := Vector2(global_position.x-movement_start.x,global_position.z-movement_start.z).length()
+	var animation_speed := minf(direction.length()*speed,travelled/maxf(delta,0.000001))
+	# Authored evasions/lunges retain their dedicated leg poses rather than becoming a fast walk.
+	if combat.action in ["dodge","flash"]: animation_speed = direction.length()*speed
 	update_lock_camera(delta)
 	if combat.health>0 and is_instance_valid(lock_target):
 		var offset := lock_target.global_position-global_position
@@ -261,7 +266,7 @@ func _physics_process(delta: float) -> void:
 	# Keep the orbit above the floor while the nearby weapon aims at elevated parts.
 	var orbit_pitch := pitch*0.2 if pitch>0 else pitch
 	mount.rotation = Vector3(orbit_pitch,yaw,0)
-	animate(delta,direction.length()*speed)
+	animate(delta,animation_speed)
 	update_weapon_contacts()
 	if global_position.y < -15:
 		global_position = Vector3(0,2,8)
