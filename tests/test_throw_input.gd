@@ -65,6 +65,15 @@ func run() -> void:
 	p.combat.advance(0.7)
 	mouse(p,false)
 	check(p.combat.action=="throw","charge begun during prior move survives its normal recovery")
+	p.combat.set_action("throw")
+	p.combat.elapsed = 0.38
+	p.animate(0,0)
+	mouse(p,true)
+	p.heavy_held = 0.6
+	p.on_strike(0)
+	check(p.heavy_held<0,"weapon departure clears a second right-button hold begun during throw preparation")
+	mouse(p,false)
+	check(p.heavy_held<0,"release ignored during flight cannot preserve stale charge")
 	print("THROW_INPUT_CHECKS: ",checks," FAILURES: ",failures)
 	world.queue_free()
 	await process_frame

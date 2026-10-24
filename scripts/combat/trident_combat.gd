@@ -2,6 +2,7 @@ extends RefCounted
 ## Authoritative combat clock, independent of presentation and input devices.
 signal action_changed(action: String)
 signal strike(beat: int)
+const THROW_HOLD_TIME := 0.45
 
 const MOVES := {
 	"light": {"duration": 0.66, "hits": [0.25], "chain": 0.37, "damage": 26.0, "reach": 3.1},

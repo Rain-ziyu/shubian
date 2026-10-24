@@ -39,10 +39,18 @@ func run() -> void:
 	p.heavy_held = 0.2
 	ui.update_state(p,2)
 	check("继续按住" in ui.context.text,"short heavy hold explains throw preparation")
+	check(ui.throw_charge.visible and is_equal_approx(ui.throw_charge.value,0.2) and "投枪蓄力" in ui.throw_charge_text.text,"held input displays actual charge progress")
 	p.heavy_held = 0.5
 	ui.update_state(p,2)
 	check("投枪就绪" in ui.context.text,"charged throw cue switches at threshold")
+	check(ui.throw_charge.value==c.THROW_HOLD_TIME and "蓄力完成" in ui.throw_charge_text.text,"charge fill caps at the shared input threshold")
+	c.set_action("guard")
+	p.heavy_held = 0.5
+	ui.update_state(p,2)
+	check("蓄力完成" in ui.throw_charge_text.text and "等待收势" in ui.context.text,"completed charge does not promise an illegal release during guard")
 	p.heavy_held = -1
+	ui.update_state(p,2)
+	check(not ui.throw_charge.visible and not ui.throw_charge_text.visible,"releasing or cancelling clears charge presentation")
 	c.set_action("wait")
 	c.elapsed = 12
 	ui.update_state(p,2)
@@ -73,6 +81,9 @@ func run() -> void:
 	c.health = 0
 	ui.update_state(p,5)
 	check("任务失败" in ui.status.text and "任务失败" in ui.context.text,"death has priority over victory")
+	p.heavy_held = 0.6
+	ui.update_state(p,5)
+	check(not ui.throw_charge.visible,"failure hides stale held input")
 	check(ui.surface.mouse_filter==Control.MOUSE_FILTER_IGNORE and ui.health.mouse_filter==Control.MOUSE_FILTER_IGNORE,"overlay does not capture combat mouse input")
 	print("COMBAT_HUD_CHECKS: ",checks," FAILURES: ",failures)
 	world.queue_free()

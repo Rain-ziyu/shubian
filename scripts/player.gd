@@ -139,7 +139,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				if event.ctrl_pressed: combat.request("spin")
 				else: heavy_held = 0
 			elif heavy_held>=0:
-				combat.request("throw" if heavy_held>=0.45 else "heavy")
+				combat.request("throw" if heavy_held>=Combat.THROW_HOLD_TIME else "heavy")
 				heavy_held = -1
 
 func apply_look(relative: Vector2) -> void:
@@ -437,6 +437,7 @@ func on_strike(_beat: int) -> void:
 	var action: String = combat.action
 	if action=="throw":
 		if is_instance_valid(projectile): return
+		heavy_held = -1
 		var shot := Projectile.new()
 		shot.shooter = self
 		shot.direction = combat_forward()

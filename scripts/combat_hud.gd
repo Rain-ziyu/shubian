@@ -17,6 +17,8 @@ var target_text: Label
 var target_health: ProgressBar
 var target_hint: Label
 var notice: Label
+var throw_charge: ProgressBar
+var throw_charge_text: Label
 func text_at(position: Vector2, size: int) -> Label:
 	var label := Label.new()
 	label.position = position
@@ -63,6 +65,17 @@ func _ready() -> void:
 	context.anchor_top = 1
 	context.anchor_bottom = 1
 	context.offset_top = -78
+	throw_charge_text = text_at(Vector2(22,0),16)
+	throw_charge_text.anchor_top = 1
+	throw_charge_text.anchor_bottom = 1
+	throw_charge_text.offset_top = -139
+	throw_charge = bar_at(Vector2(22,0),Vector2(248,8),1,Color("83bdb1"))
+	throw_charge.anchor_top = 1
+	throw_charge.anchor_bottom = 1
+	throw_charge.offset_top = -109
+	throw_charge.offset_bottom = -101
+	throw_charge.hide()
+	throw_charge_text.hide()
 	var hints := text_at(Vector2(22,0),15)
 	hints.anchor_top = 1
 	hints.anchor_bottom = 1
@@ -98,13 +111,18 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and InputKeys.code(event)==KEY_F1:
 		help.visible = not help.visible
 		get_viewport().set_input_as_handled()
+static func can_release_throw(c) -> bool:
+	return c.action=="idle" or (c.action not in ["guard","plant","wait","counter_window","hurt","dodge","finisher","throw"] and c.elapsed>=float(c.MOVES[c.action].chain))
+
 static func followup(c, held: float) -> String:
 	if c.health<=0: return "任务失败 · F5 重试"
 	if c.action=="wait": return "插地等待 %ds · 按 Ctrl 迎击" % ceili(maxf(0,30-c.elapsed))
 	if c.action=="counter_window": return "迎击架势 · 接住来袭攻击"
 	if c.guard_reward>0: return "格挡成功 · 左键枪尾反击"
 	if c.flash_window>0: return "追击机会 · Ctrl+左键闪刺"
-	if held>=0: return "投枪就绪 · 松开右键" if held>=0.45 else "松开右键横扫 · 继续按住准备投枪"
+	if held>=0:
+		if held<c.THROW_HOLD_TIME: return "松开右键横扫 · 继续按住准备投枪"
+		return "投枪就绪 · 松开右键" if can_release_throw(c) else "蓄力完成 · 等待收势再松开"
 	if c.action=="guard":
 		return "耐力不足 · 收势后走位恢复" if c.stamina<15 else "架势中不恢复耐力 · 格挡后左键反击"
 	if not c.drawn: return "背负待机 · 左键或右键拔枪出招"
@@ -112,6 +130,17 @@ static func followup(c, held: float) -> String:
 	return "Q 架势 → 左键反击 → Ctrl+左键闪刺获得枪影"
 func update_state(fighter, defeated: int) -> void:
 	var c = fighter.combat
+	var charging: bool = fighter.heavy_held>=0 and c.health>0 and defeated<5 and not is_instance_valid(fighter.projectile)
+	throw_charge.visible = charging
+	throw_charge_text.visible = charging
+	throw_charge.max_value = c.THROW_HOLD_TIME
+	throw_charge.value = maxf(0,fighter.heavy_held)
+	if charging:
+		throw_charge_text.add_theme_color_override("font_color",Color("e6c57c") if fighter.heavy_held>=c.THROW_HOLD_TIME else Color("ede9da"))
+		if fighter.heavy_held<c.THROW_HOLD_TIME:
+			throw_charge_text.text = "投枪蓄力 %d%%" % floori(fighter.heavy_held/c.THROW_HOLD_TIME*100)
+		else:
+			throw_charge_text.text = "投枪蓄力完成"
 	health.value = c.health
 	stamina.value = c.stamina
 	health_text.text = "生命 %d / 240" % ceili(c.health)

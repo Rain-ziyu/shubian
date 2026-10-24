@@ -7,9 +7,23 @@ func run() -> void:
 	world.hunter.set_physics_process(false)
 	for monster in get_nodes_in_group("monsters"): monster.set_physics_process(false)
 	world.hunter.lock_target = get_nodes_in_group("monsters")[0]
+	var charging := "--charge" in OS.get_cmdline_user_args()
+	if charging:
+		world.hunter.heavy_held = 0.225
 	world.combat_hud.update_state(world.hunter,0)
 	await RenderingServer.frame_post_draw
-	var first := root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-combat-hud.png"))
+	var first := root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-throw-charge.png" if charging else "res://../Shubian-combat-hud.png"))
+	if charging:
+		world.hunter.heavy_held = world.hunter.Combat.THROW_HOLD_TIME
+		world.combat_hud.update_state(world.hunter,0)
+		await process_frame
+		await RenderingServer.frame_post_draw
+		var ready := root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-throw-ready.png"))
+		print("THROW_CHARGE_CAPTURE: ",first," / ",ready)
+		world.queue_free()
+		await process_frame
+		quit(0 if first==OK and ready==OK else 1)
+		return
 	var key := InputEventKey.new()
 	key.physical_keycode = KEY_F1
 	key.pressed = true
