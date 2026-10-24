@@ -27,6 +27,7 @@ var motion_epoch := 0
 var body_turn_applied := 0.0
 var body_turn_pose := 0.0
 var walk_clock := 0.0
+var locomotion_motion := Vector3.ZERO
 var heavy_held := -1.0
 var lock_target: Node3D
 var message := "观察金色预警后躲避或格挡。"
@@ -252,6 +253,8 @@ func _physics_process(delta: float) -> void:
 	if not is_on_floor(): velocity.y -= 24*delta
 	var movement_start := global_position
 	move_and_slide()
+	locomotion_motion = global_position-movement_start
+	locomotion_motion.y = 0
 	var travelled := Vector2(global_position.x-movement_start.x,global_position.z-movement_start.z).length()
 	var animation_speed := minf(direction.length()*speed,travelled/maxf(delta,0.000001))
 	# Authored evasions/lunges retain their dedicated leg poses rather than becoming a fast walk.
@@ -311,7 +314,8 @@ func animate(delta: float, speed: float) -> void:
 	rig.root.rotation.y += body_turn_applied
 	for side in [-1,1]:
 		rig.joints["arm"+str(side)].rotation.x = -0.85 if combat.drawn else -sin(walk_clock)*side*minf(speed*0.08,0.3)
-	HunterModel.pose_legs(rig,combat.action,combat.elapsed,combat.drawn,walk_clock,speed,delta,foot_ground_height if is_on_floor() else Callable(),foot_ground_normal if is_on_floor() else Callable())
+	var leg_travel: Vector3 = rig.root.global_basis.inverse()*locomotion_motion
+	HunterModel.pose_legs(rig,combat.action,combat.elapsed,combat.drawn,walk_clock,speed,delta,foot_ground_height if is_on_floor() else Callable(),foot_ground_normal if is_on_floor() else Callable(),leg_travel)
 	var w: Node3D = rig.weapon
 	w.visible = not is_instance_valid(projectile)
 	w.position = Vector3(0,1.20,-0.32) if combat.drawn else Vector3(0,1.05,0.26)

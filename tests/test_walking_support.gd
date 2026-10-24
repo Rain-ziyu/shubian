@@ -2,6 +2,9 @@ extends SceneTree
 const Player = preload("res://scripts/player.gd")
 var checks := 0
 var failures := 0
+class FacingTarget:
+	extends Node3D
+	var health := 100
 func check(ok: bool, label: String) -> void:
 	checks += 1
 	if not ok:
@@ -64,6 +67,50 @@ func run() -> void:
 		else:
 			Player.HunterModel.pose_legs(p.rig,"guard",0.2,true,0,4.5,0,func(_point: Vector3): return 0.0)
 		check(not p.rig.legs[-1].hip.has_meta("walk_plant_world"),"airborne and combat transitions release walking anchors")
+	var facing := FacingTarget.new()
+	stage.add_child(facing)
+	p.lock_target = facing
+	p.camera_manual_time = 999
+	for axis in [Vector2(0,1),Vector2(1,0),Vector2(-1,0),Vector2(1,-1).normalized()]:
+		p.position = Vector3(0,0.02,0)
+		p.rig.root.rotation.y = 0
+		p.walk_clock = 0
+		p.combat.set_action("idle")
+		p.combat.drawn = true
+		var action := "move_back" if axis.y>0 else "move_forward"
+		if axis.y!=0: Input.action_press(action,absf(axis.y))
+		if axis.x!=0: Input.action_press("move_right" if axis.x>0 else "move_left",absf(axis.x))
+		var direction := Vector3(axis.x,0,axis.y)
+		var first := Vector3.ZERO
+		var last := Vector3.ZERO
+		var samples := 0
+		var anchors := {}
+		var held := 0
+		var drift := 0.0
+		for frame in 31:
+			# A moving facing fixture isolates strafing from changes in target bearing.
+			facing.position = p.position+Vector3.FORWARD*15
+			p._physics_process(1.0/60)
+			await physics_frame
+			for side in [-1,1]:
+				var leg: Dictionary = p.rig.legs[side]
+				if not leg.hip.has_meta("walk_plant_world"):
+					anchors.erase(side)
+					continue
+				var anchor: Vector3 = leg.hip.get_meta("walk_plant_world")
+				if anchors.has(side) and anchor.distance_to(anchors[side])<0.001:
+					held += 1
+					drift = maxf(drift,leg.ankle.global_position.distance_to(anchor))
+				anchors[side] = anchor
+			var phase := wrapf(p.walk_clock,0,TAU)
+			if phase>PI/2+0.2 and phase<TAU-0.2:
+				var foot: Vector3 = p.rig.legs[-1].ankle.global_position-p.global_position
+				if samples==0: first = foot
+				last = foot
+				samples += 1
+		check(samples>10 and (last-first).dot(direction)>0.35,"locked swing foot advances along actual travel: "+str(axis))
+		check(held>5 and drift<0.002,"locked strafing preserves support foot anchors: "+str(axis))
+		for key in ["move_forward","move_back","move_left","move_right"]: Input.action_release(key)
 	print("WALKING_SUPPORT_CHECKS: ",checks," FAILURES: ",failures)
 	stage.queue_free()
 	await process_frame

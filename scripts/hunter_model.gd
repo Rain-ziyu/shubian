@@ -116,7 +116,7 @@ static func pose_torso(rig: Dictionary, action: String, elapsed: float, gait: fl
 		var arm: Dictionary = rig.arms[side]
 		arm.shoulder.position = rig.torso.transform*(arm.rest_shoulder-Vector3(0,1.08,0))
 
-static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bool, gait: float, speed: float, delta: float, ground: Callable = Callable(), ground_normal: Callable = Callable()) -> void:
+static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bool, gait: float, speed: float, delta: float, ground: Callable = Callable(), ground_normal: Callable = Callable(), travel := Vector3.FORWARD) -> void:
 	var drop := 0.09 if armed else 0.015
 	var walking := action=="idle" and speed>0.1
 	if walking: drop = 0.12
@@ -158,6 +158,11 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 			stance = lerpf(stance,0.08,support)
 			lift = sin(support*PI)*0.035
 		var target := Vector3(leg.hip.position.x,0.10-body.position.y+lift,stance)
+		if walking:
+			var direction := Vector3(travel.x,0,travel.z).normalized()
+			if direction.length_squared()<0.001: direction = Vector3.FORWARD
+			target.x -= direction.x*stance
+			target.z = -direction.z*stance
 		normals[side] = Vector3.UP
 		if action=="finisher" and side==1:
 			var chamber := smoothstep(0.60,0.80,elapsed)
