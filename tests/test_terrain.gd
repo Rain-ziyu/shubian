@@ -33,6 +33,12 @@ func run() -> void:
 	p.combat.set_action("idle")
 	p.finish_throw(Vector3(78,0,0))
 	check(p.global_position.x==72,"unsupported landing cancels displacement")
+	var cached_match := true
+	for x in range(-Terrain.HALF,Terrain.HALF+1,Terrain.STEP):
+		for z in range(-Terrain.HALF,Terrain.HALF+1,Terrain.STEP):
+			cached_match = cached_match and Terrain.grid_height(x,z)==Terrain.height_at(x,z)
+	check(cached_match,"all cached grid heights exactly match the authored surface")
+	check(Terrain.grid_heights.size()==3721,"fixed-grid height cache stays bounded to the map vertices")
 	print("TERRAIN_CHECKS: ",checks," FAILURES: ",failures)
 	world.queue_free()
 	await process_frame

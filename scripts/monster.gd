@@ -12,6 +12,9 @@ var was_staggering := false
 var stagger_recovery := false
 const TailContact = preload("res://scripts/tail_contact.gd")
 const LungeWarning = preload("res://scripts/lunge_warning.gd")
+const HeadWarning = preload("res://scripts/head_sweep_warning.gd")
+var head_warning_hull := PackedVector2Array()
+var head_warning_transform := Transform3D.IDENTITY
 const LEAP_DURATION := 0.65
 const LEAP_HEIGHT := 1.0
 const LEAP_GRAVITY := 8.0*LEAP_HEIGHT/(LEAP_DURATION*LEAP_DURATION)
@@ -70,6 +73,7 @@ func _ready() -> void:
 	mesh = CreatureModel.create(self,data)
 	tail_rings = TailContact.profile(mesh.get_node("Tail/TailSurface").mesh)
 	for part in ["HeadSurface","Jaw"]: head_rings.append(TailContact.profile(mesh.get_node("Neck/"+part).mesh))
+	if data.pattern=="sweep": head_warning_hull = HeadWarning.profile(self)
 	previous_head = mesh.get_node("Neck").global_transform
 	previous_tail = mesh.get_node("Tail").global_transform
 	previous_tail_rings = tail_rings.duplicate()
@@ -277,6 +281,16 @@ func _physics_process(delta: float) -> void:
 			if data.pattern!="pulse": rotation.y = lerp_angle(rotation.y,atan2(-offset.x,-offset.z),delta*2)
 		if data.pattern in ["mist","pulse"]:
 			update_area_warning(target_point if data.pattern=="mist" else global_position,4.0 if data.pattern=="mist" else float(data.reach))
+		if data.pattern=="sweep":
+			tell.top_level = true
+			tell.global_transform = Transform3D.IDENTITY
+			if head_warning_transform!=global_transform or not tell.mesh is ArrayMesh:
+				head_warning_transform = global_transform
+				tell.mesh = HeadWarning.build(self,head_warning_hull)
+			tell.material_override.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			tell.material_override.albedo_color.a = 0.28
+			tell.material_override.cull_mode = BaseMaterial3D.CULL_DISABLED
+			tell.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		if data.pattern in ["charge","leap"]:
 			var heading := target_point-lunge_origin
 			heading.y = 0
@@ -362,6 +376,7 @@ func _physics_process(delta: float) -> void:
 
 func update_area_warning(center: Vector3, radius: float) -> void:
 	# Cache only a stationary world-space disc; actor turning must not rotate its terrain fit.
+	tell.top_level = true
 	tell.global_transform = Transform3D(Basis.IDENTITY,center)
 	if center!=area_warning_center:
 		area_warning_center = center

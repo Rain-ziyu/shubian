@@ -6,6 +6,12 @@ const TailSkin = preload("res://scripts/creature_tail_skin.gd")
 const LegSkin = preload("res://scripts/creature_leg_skin.gd")
 const GAIT_PER_METER := 4.2
 
+static func sweep_angles(phase: String, clock: float, windup: float, recovery: float) -> Vector2:
+	if phase=="windup": return Vector2(-0.20*clampf(clock/windup,0,1),-0.65*smoothstep(0,windup,clock))
+	if phase=="active": return Vector2(-0.20*(1-smoothstep(0,0.30,clock)),lerpf(-0.65,0.85,smoothstep(0,0.40,clock)))
+	if phase=="recover": return Vector2(0,0.85*(1-smoothstep(0,recovery,clock)))
+	return Vector2.ZERO
+
 static func create(parent: Node3D, data: Dictionary) -> Node3D:
 	var root := V.pivot(parent,"CreatureMesh",Vector3.ZERO)
 	var s: float = data.size
@@ -87,14 +93,9 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 		if data.pattern=="pulse": root.position.y = -0.45*(1-smoothstep(0,0.3,clock))
 	else: root.position.y = 0
 	if data.pattern=="sweep":
-		# One continuous pull-back, crossing sweep and follow-through, with no phase snap.
-		if phase=="windup":
-			neck.rotation.y = -0.65*smoothstep(0,float(data.windup),clock)
-		elif phase=="active":
-			neck.rotation.y = lerpf(-0.65,0.85,smoothstep(0,0.40,clock))
-			neck.rotation.x = -0.20*(1-smoothstep(0,0.30,clock))
-		elif phase=="recover":
-			neck.rotation.y = 0.85*(1-smoothstep(0,float(data.recovery),clock))
+		var angles := sweep_angles(phase,clock,float(data.windup),float(data.recovery))
+		neck.rotation.x = angles.x
+		neck.rotation.y = angles.y
 	if data.pattern=="charge":
 		var compression := float(data.size)*0.05
 		if phase=="windup":

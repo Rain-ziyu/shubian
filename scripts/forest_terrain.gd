@@ -8,6 +8,13 @@ const WATER_THICKNESS := 0.03
 const WATER_HALF_WIDTH := 1.7
 const WATER_HALF_LENGTH := 59.0
 var terrain_body: StaticBody3D
+static var grid_heights := {}
+
+static func grid_height(x: float, z: float) -> float:
+	# Only the fixed STEP grid is cached; interpolation and the authored surface stay unchanged.
+	var key := Vector2i(roundi(x),roundi(z))
+	if not grid_heights.has(key): grid_heights[key] = height_at(x,z)
+	return grid_heights[key]
 
 static func height_at(x: float, z: float) -> float:
 	var height := 1.8+sin(x*0.10)*cos(z*0.08)*1.3+sin(z*0.19+x*0.04)*0.4
@@ -26,10 +33,10 @@ static func mesh_height_at(x: float, z: float) -> float:
 	var cell_z := clampf(floor(z/STEP)*STEP,-HALF,HALF-STEP)
 	var u := (x-cell_x)/STEP
 	var v := (z-cell_z)/STEP
-	var b := height_at(cell_x+STEP,cell_z)
-	var c := height_at(cell_x,cell_z+STEP)
-	if u+v<=1: return height_at(cell_x,cell_z)*(1-u-v)+b*u+c*v
-	return b*(1-v)+height_at(cell_x+STEP,cell_z+STEP)*(u+v-1)+c*(1-u)
+	var b := grid_height(cell_x+STEP,cell_z)
+	var c := grid_height(cell_x,cell_z+STEP)
+	if u+v<=1: return grid_height(cell_x,cell_z)*(1-u-v)+b*u+c*v
+	return b*(1-v)+grid_height(cell_x+STEP,cell_z+STEP)*(u+v-1)+c*(1-u)
 
 static func effect_height_at(x: float, z: float) -> float:
 	var height := mesh_height_at(x,z)
