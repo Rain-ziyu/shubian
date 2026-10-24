@@ -67,6 +67,24 @@ func run() -> void:
 		var blocked_pixels := difference(hidden,highlighted)
 		check(blocked_pixels>300,"hidden body is visible through rendered non-collidable geometry")
 		highlighted.save_png(ProjectSettings.globalize_path("res://../Shubian-occlusion-test.png"))
+		box.size = Vector3(3,0.8,0.5)
+		wall.position.y = 1.35
+		cue.material.set_shader_parameter("enabled",false)
+		var partial_base := await capture()
+		cue._physics_process(0)
+		var partial_cue := await capture()
+		var shin: MeshInstance3D = p.rig.legs[-1].shin
+		var leg_screen := Vector2i(camera.unproject_position(shin.to_global(shin.get_aabb().get_center())))
+		var leg_region := Rect2i(leg_screen-Vector2i(6,8),Vector2i(12,16))
+		var leg_pixels := difference(partial_base.get_region(leg_region),partial_cue.get_region(leg_region))
+		check(leg_pixels<20,"upper body obstruction does not highlight unobstructed lower leg")
+		print("OCCLUSION_PARTIAL_LEG_PIXELS: ",leg_pixels)
+		partial_cue.save_png(ProjectSettings.globalize_path("res://../Shubian-partial-occlusion.png"))
+		# Same scene with the former whole-character gate, for a like-for-like diagnostic.
+		for piece in cue.parts: piece.set_instance_shader_parameter("blocked_part",true)
+		var whole_body_cue := await capture()
+		print("OCCLUSION_WHOLE_GATE_LEG_PIXELS: ",difference(partial_base.get_region(leg_region),whole_body_cue.get_region(leg_region)))
+		cue._physics_process(0)
 		wall.visible = false
 		cue.material.set_shader_parameter("enabled",false)
 		var clear := await capture()

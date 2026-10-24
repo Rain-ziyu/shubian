@@ -2,9 +2,10 @@ shader_type spatial;
 render_mode unshaded, blend_mix, depth_draw_never, depth_test_disabled, fog_disabled;
 uniform sampler2D scene_depth : hint_depth_texture, repeat_disable, filter_nearest;
 uniform bool enabled = false;
+instance uniform bool blocked_part = false;
 uniform vec4 cue_color : source_color = vec4(0.66,0.95,0.86,0.42);
 void fragment() {
-	if (!enabled) { discard; }
+	if (!enabled || !blocked_part) { discard; }
 	float depth = texture(scene_depth, SCREEN_UV).r;
 #if CURRENT_RENDERER == RENDERER_COMPATIBILITY
 	vec3 ndc = vec3(SCREEN_UV, depth) * 2.0 - 1.0;
