@@ -115,6 +115,8 @@ WASD 移动，鼠标转视角，Shift 奔跑，空格闪避，中键锁定，Tab
 
 每次生成独立的项目父目录 verification/encounters-* 报告，包含五场日志和 summary.json。验证读取本次运行的控制台结果，不以旧报告或仅成功启动作为通过依据。五场分别为独立单敌战斗，不是五敌同时对战；控制器读取内部状态，不证明人工偏难强度或操作手感。
 
+整图连续狩猎：`./tools/verify_forest_hunt.ps1`。从正常出生点穿过森林，五只 AI 全程启用，不重置生命、耐力或枪影；必须存活并依次击退全部五种巨兽才通过。每次保存独立的 verification/forest-hunt-* 日志、源码提交、控制器散列和受伤记录。它使用读取怪物状态的策略控制器，不是人工难度验收，也不表示五敌在同一地点同时围攻。原生结果画面可用 Godot 参数 `--path . --fixed-fps 60 --script res://tests/replay_forest_hunt.gd --quit-after 40000 -- --capture-victory` 生成，输出在项目旁 Shubian-forest-hunt-result.png。
+
 规则检查和场景集成检查不代表实际操作手感、美术、碰撞精度或完整对战已经验收。
 
 架势内不恢复耐力，每次成功格挡消耗 15 点。耐力不足时会被击破，需收势后走位恢复；已获得的格挡反击机会在零耐力时仍可使用。
