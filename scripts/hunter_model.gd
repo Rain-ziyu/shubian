@@ -60,10 +60,11 @@ static func create(parent: Node3D) -> Dictionary:
 	rig.soft_joints = []
 	for side in [-1,1]:
 		var arm: Dictionary = arms[side]
-		var elbow_cloth := JointCloth.create(root,"JointClothElbow"+str(side),arm.shoulder.position,arm.elbow.position,arm.hand.position,0.066)
+		# Flexible underlayers stay inside the rigid sleeve/trouser openings to avoid intersecting rims.
+		var elbow_cloth := JointCloth.create(root,"JointClothElbow"+str(side),arm.shoulder.position,arm.elbow.position,arm.hand.position,0.054)
 		rig.soft_joints.append({"source":elbow_cloth,"upper":arm.upper,"lower":arm.lower})
 		var leg: Dictionary = legs[side]
-		var knee_cloth := JointCloth.create(root,"JointClothKnee"+str(side),Skinning.relative_transform(leg.hip,root).origin,Skinning.relative_transform(leg.knee,root).origin,Skinning.relative_transform(leg.ankle,root).origin,0.081)
+		var knee_cloth := JointCloth.create(root,"JointClothKnee"+str(side),Skinning.relative_transform(leg.hip,root).origin,Skinning.relative_transform(leg.knee,root).origin,Skinning.relative_transform(leg.ankle,root).origin,0.070)
 		rig.soft_joints.append({"source":knee_cloth,"upper":leg.thigh,"lower":leg.shin})
 	Fabric.apply(root)
 	rig.skinning = Skinning.bind(rig)

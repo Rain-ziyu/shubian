@@ -26,8 +26,10 @@ func run() -> void:
 	floor.mesh.size = Vector2(12,6)
 	floor.material_override = Model.V.mat(Color("bfc6bb"))
 	world.add_child(floor)
+	var holders: Array[Node3D] = []
 	for index in 3:
 		var holder := Node3D.new()
+		holders.append(holder)
 		world.add_child(holder)
 		holder.position.x = (1-index)*1.35
 		var rig := Model.create(holder)
@@ -63,6 +65,16 @@ func run() -> void:
 	await RenderingServer.frame_post_draw
 	var error := root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-character-turnaround.png"))
 	print("CHARACTER_TURNAROUND: ",error)
+	if "--details" in OS.get_cmdline_user_args():
+		layer.visible = false
+		for index in [1,2]: holders[index].hide()
+		for detail in ["knee","elbow"]:
+			camera.position = Vector3(1.35,0.6,-1.6) if detail=="knee" else Vector3(2.1,1.25,-1.6)
+			camera.look_at(Vector3(1.35,0.52,0) if detail=="knee" else Vector3(1.52,1.2,0))
+			camera.fov = 24
+			for frame in 3: await process_frame
+			await RenderingServer.frame_post_draw
+			root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-joint-"+detail+".png"))
 	world.queue_free()
 	await process_frame
 	quit(0 if error==OK else 1)
