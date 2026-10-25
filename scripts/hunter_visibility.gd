@@ -24,37 +24,47 @@ func _physics_process(_delta: float) -> void:
 func update_visibility() -> void:
 	var camera := get_viewport().get_camera_3d()
 	occluded = false
+	var surfaces: Array = collect_surfaces() if is_instance_valid(camera) and hunter.combat.health>0 else []
 	for index in parts.size():
 		var blocked := false
 		if is_instance_valid(camera) and hunter.combat.health>0:
 			var source := sources[index]
 			var center := source.to_global(source.get_aabb().get_center())
-			blocked = foreign_blocks(camera.global_position,center)
+			blocked = foreign_blocks(camera.global_position,center,surfaces)
 		parts[index].set_instance_shader_parameter("blocked_part",blocked)
 		occluded = occluded or blocked
 	material.set_shader_parameter("enabled",occluded)
 	material.set_shader_parameter("hurt_flash",hunter.feedback.hurt_flash/0.22 if hunter.combat.health>0 else 0.0)
 
-func foreign_blocks(camera_position: Vector3, destination: Vector3) -> bool:
-	# Broad actor capsules can extend into empty space around a visible monster.
-	# Use world collision here and articulated visual bounds for monsters below.
-	var query := PhysicsRayQueryParameters3D.create(camera_position,destination,2,[hunter.get_rid()])
-	var hit := hunter.get_world_3d().direct_space_state.intersect_ray(query)
-	if not hit.is_empty() and hit.position.distance_to(destination)>0.15: return true
+func collect_surfaces() -> Array:
+	# Geometry is static, but articulated transforms change each tick. Share this
+	# snapshot across all hunter parts rather than inverting it for every ray.
+	var surfaces := []
 	for monster in get_tree().get_nodes_in_group("monsters"):
 		if not monster.is_visible_in_tree() or monster.global_position.distance_to(hunter.global_position)>24: continue
 		var id: int = monster.get_instance_id()
 		if not visual_bounds.has(id): visual_bounds[id] = monster.mesh.find_children("*","MeshInstance3D",true,false)
 		for mesh in visual_bounds[id]:
 			if not is_instance_valid(mesh) or not mesh.is_visible_in_tree(): continue
-			var local_start: Vector3 = mesh.to_local(camera_position)
-			var local_end: Vector3 = mesh.to_local(destination)
-			if mesh.get_aabb().intersects_segment(local_start,local_end)==null: continue
-			# Empty space inside a large head/body bounding box is not an obstruction.
-			var geometry_id: int = mesh.mesh.get_instance_id()
-			if not triangle_meshes.has(geometry_id): triangle_meshes[geometry_id] = mesh.mesh.generate_triangle_mesh()
-			var triangles: TriangleMesh = triangle_meshes[geometry_id]
-			if triangles==null: continue
-			var contact: Dictionary = triangles.intersect_segment(local_start,local_end)
-			if not contact.is_empty() and mesh.to_global(contact.position).distance_to(destination)>0.15: return true
+			var transform: Transform3D = mesh.global_transform
+			surfaces.append({"bounds":mesh.get_aabb(),"transform":transform,"inverse":transform.affine_inverse(),"geometry":mesh.mesh,"id":mesh.mesh.get_instance_id()})
+	return surfaces
+
+func foreign_blocks(camera_position: Vector3, destination: Vector3, surfaces: Variant = null) -> bool:
+	# Keep direct callers fresh; the normal update supplies one coherent snapshot.
+	var query := PhysicsRayQueryParameters3D.create(camera_position,destination,2,[hunter.get_rid()])
+	var hit := hunter.get_world_3d().direct_space_state.intersect_ray(query)
+	if not hit.is_empty() and hit.position.distance_to(destination)>0.15: return true
+	var candidates: Array = collect_surfaces() if surfaces==null else surfaces
+	for surface in candidates:
+		var local_start: Vector3 = surface.inverse*camera_position
+		var local_end: Vector3 = surface.inverse*destination
+		if surface.bounds.intersects_segment(local_start,local_end)==null: continue
+		# Empty space inside a large head/body bounding box is not an obstruction.
+		var geometry_id: int = surface.id
+		if not triangle_meshes.has(geometry_id): triangle_meshes[geometry_id] = surface.geometry.generate_triangle_mesh()
+		var triangles: TriangleMesh = triangle_meshes[geometry_id]
+		if triangles==null: continue
+		var contact: Dictionary = triangles.intersect_segment(local_start,local_end)
+		if not contact.is_empty() and (surface.transform*contact.position).distance_to(destination)>0.15: return true
 	return false

@@ -113,6 +113,11 @@ func run() -> void:
 	wall.mesh = ring
 	check(not cue.foreign_blocks(Vector3(0,3,0),Vector3.ZERO),"open space inside a mesh bounding box does not create a false obstruction")
 	check(cue.foreign_blocks(Vector3(0.9,3,0),Vector3(0.9,0,0)),"actual foreground mesh surface still blocks the hunter")
+	var snapshot: Array = cue.collect_surfaces()
+	check(not cue.foreign_blocks(Vector3(0,3,0),Vector3.ZERO,snapshot),"shared frame geometry preserves the open mesh hole")
+	check(cue.foreign_blocks(Vector3(0.9,3,0),Vector3(0.9,0,0),snapshot),"shared frame geometry preserves actual surface blocking")
+	wall.position.x = 5
+	check(not cue.foreign_blocks(Vector3(0.9,3,0),Vector3(0.9,0,0),cue.collect_surfaces()),"next frame refresh follows a moving blocker instead of leaving a ghost obstruction")
 	check(part.material_override==original and p.combat.health==hp,"presentation preserves material and health")
 	p.combat.health = 0
 	cue._physics_process(0)
