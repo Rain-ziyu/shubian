@@ -134,6 +134,16 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 		if not quad:
 			var arm := Surface.profile(root,"Forelimb"+str(side),[Vector4(-0.24,0.02,0.03,-0.13),Vector4(-0.12,0.045,0.055,-0.10),Vector4(0.02,0.055,0.07,0)],s,c)
 			arm.position = Vector3(side*s*0.28,y,-s*0.35)
+			if data.id=="stormcrest":
+				# Compact two-toed hands finish the stocky shoulder/forearm silhouette.
+				# They inherit the shoulder and interrupted pose instead of floating at rest.
+				var hand := V.pivot(arm,"Hand",Vector3(0,-s*0.13,-s*0.23))
+				Surface.profile(hand,"Palm",[Vector4(-0.095,0.035,0.025,-0.015),Vector4(-0.055,0.055,0.035,-0.005),Vector4(0.015,0.024,0.030,0)],s,c)
+				for digit in [-1,1]:
+					var finger := V.pivot(hand,"Digit"+str(digit),Vector3(digit*s*0.029,-s*0.012,-s*0.065))
+					finger.rotation.y = -digit*0.16
+					Surface.profile(finger,"Finger",[Vector4(-0.085,0.012,0.016,-0.035),Vector4(-0.045,0.020,0.024,-0.010),Vector4(0.015,0.020,0.022,0)],s,c)
+					Surface.profile(finger,"Talon",[Vector4(-0.145,0.002,0.003,-0.095),Vector4(-0.125,0.006,0.012,-0.060),Vector4(-0.095,0.012,0.018,-0.036),Vector4(-0.065,0.014,0.019,-0.026)],s,Color("b6ba9b"))
 			if data.id=="reedclaw":
 				var wrist := V.pivot(arm,"Wrist",Vector3(0,-s*0.13,-s*0.22))
 				Surface.profile(wrist,"Palm",[Vector4(-0.075,0.036,0.025,-0.01),Vector4(-0.035,0.054,0.035,0),Vector4(0.025,0.024,0.030,0.015)],s,c)
@@ -206,6 +216,16 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 		if arm==null: continue
 		var spread := 0.0
 		var reach := 0.0
+		if data.pattern=="pulse":
+			if phase=="windup":
+				var load := smoothstep(0,float(data.windup),clock)
+				spread = 0.18*load
+				reach = -0.18*load
+			elif phase=="active":
+				var release := smoothstep(0,0.18,clock)
+				var settle := 1-smoothstep(0.18,0.65,clock)
+				spread = lerpf(0.18,0.30,release)*settle
+				reach = lerpf(-0.18,0.24,release)*settle
 		if data.pattern=="leap":
 			if phase=="windup":
 				var load := smoothstep(0,float(data.windup),clock)
