@@ -40,13 +40,21 @@ func run() -> void:
 		check(lowest>= -0.002,"attack keeps feet at or above ground")
 		check(maximum>0.8 if species.pattern=="leap" else maximum<0,"leap rises while charge holds compression")
 		if species.pattern=="leap":
+			var arm: Node3D = model.get_node("Forelimb1")
+			Model.animate(model,species,0,"windup",species.windup,0)
+			var loaded_arm := arm.transform
+			check(absf(arm.rotation.z)>0.4,"leap anticipation spreads front limbs")
+			Model.animate(model,species,0,"active",0,speed)
+			check(arm.transform.is_equal_approx(loaded_arm),"front limb takeoff joins loaded pose")
 			Model.animate(model,species,0.0,"active",0.30,speed,Callable(),Callable(),true)
+			check(arm.rotation.x>0.5,"airborne front limbs reach forward")
 			var tucked := sole(model.get_node("Hind1"))
 			Model.animate(model,species,2.7,"active",0.30,speed,Callable(),Callable(),true)
 			check(sole(model.get_node("Hind1")).distance_to(tucked)<0.002,"airborne leg pose does not depend on running gait")
 			check(tucked.y>0.35 and tucked.z>0.15,"airborne foot folds up and back")
 			Model.animate(model,species,2.7,"active",0.65,speed,Callable(),Callable(),true)
 			check(absf(sole(model.get_node("Hind1")).y)<0.002,"feet extend back to landing support")
+			check(arm.rotation.length()<0.001,"front limbs settle before recovery")
 		Model.animate(model,species,3.0,"active",0.65,speed)
 		var end_body := model.transform
 		var end_neck := neck.transform

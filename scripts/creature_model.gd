@@ -122,6 +122,24 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 	return root
 
 static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, clock: float, speed: float, ground: Callable = Callable(), ground_normal: Callable = Callable(), physical_flight := false, pose_override: Dictionary = {}) -> void:
+	# Front limbs articulate at their shoulder attachment, independently of gait.
+	# Carry the loaded silhouette into takeoff, then reach before landing.
+	for side in [-1,1]:
+		var arm := root.get_node_or_null("Forelimb"+str(side)) as Node3D
+		if arm==null: continue
+		var spread := 0.0
+		var reach := 0.0
+		if data.pattern=="leap":
+			if phase=="windup":
+				var load := smoothstep(0,float(data.windup),clock)
+				spread = 0.55*load
+				reach = -0.30*load
+			elif phase=="active":
+				var release := smoothstep(0.04,0.22,clock)
+				var land := smoothstep(0.43,0.65,clock)
+				spread = lerpf(0.55,0.18,release)*(1-land)
+				reach = lerpf(-0.30,0.65,release)*(1-land)
+		arm.rotation = Vector3(reach,0,-side*spread)
 	var tail := root.get_node("Tail") as Node3D
 	var tail_gait := gait*(1.7/GAIT_PER_METER)
 	tail.rotation.y = sin(tail_gait*0.5)*0.12
