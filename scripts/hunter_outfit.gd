@@ -7,7 +7,7 @@ const SKIN_TONE := Color("bd9b80")
 
 static func loft(parent: Node3D, label: String, rings: Array, color: Color, start := 0.0, end := TAU, segments := 28, caps := true) -> MeshInstance3D:
 	var garment := label in ["Undercoat","TrouserThigh","TrouserShin"]
-	if garment or label in ["Head","NoseBridge"] or label.begins_with("UpperArmSurface") or label.begins_with("RainCape"): rings = Profiles.smooth_profiles(rings)
+	if garment or label in ["Head","NoseBridge","HairKnot"] or label.begins_with("UpperArmSurface") or label.begins_with("RainCape"): rings = Profiles.smooth_profiles(rings)
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_smooth_group(0)
@@ -346,21 +346,30 @@ static func create_hair(root: Node3D) -> void:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_smooth_group(0)
+	var hair_color := Color("252b28")
 	var rows := 16
 	var segments := 64
 	for row in rows:
 		for column in segments:
 			var vertices := []
+			var colors := []
 			for pair in [[row,column],[row+1,column],[row,column+1],[row+1,column+1]]:
 				var fraction: float = float(pair[0])/rows
 				var angle: float = float(pair[1])/segments*TAU
-				var hairline := 1.64+0.15*pow((1-cos(angle))*0.5,2)+0.003*sin(angle*9)
+				var hairline := 1.69+0.10*pow((1-cos(angle))*0.5,2)+0.003*sin(angle*9)
 				var height := lerpf(hairline,1.915,fraction)
 				var radius := 0.145
 				if height>1.79: radius = maxf(0.001,0.145*sqrt(maxf(0,1-pow((height-1.79)/0.125,2))))
-				radius += 0.0025*sin(angle*12+fraction*5)*sin(fraction*PI)
-				vertices.append(Vector3(sin(angle)*radius,height,cos(angle)*radius*0.95+0.015))
-			for index in [0,1,2,2,1,3]: st.add_vertex(vertices[index])
+				var flow := angle*24+fraction*5
+				radius += 0.0035*sin(flow)*sin(fraction*PI)
+				var nape := 0.016*(1-smoothstep(1.69,1.80,height))*maxf(0,cos(angle))
+				vertices.append(Vector3(sin(angle)*radius,height,cos(angle)*radius*0.95+0.015-nape))
+				var strand := pow(0.5+0.5*cos(flow),6)
+				colors.append(hair_color.darkened(0.12).lerp(hair_color.lightened(0.08),strand))
+			for index in [0,1,2,2,1,3]:
+				st.set_color(colors[index])
+				st.add_vertex(vertices[index])
+	st.set_color(hair_color)
 	for side in [-1,1]:
 		var centers := [Vector3(side*0.077,1.81,-0.089),Vector3(side*0.105,1.78,-0.090),Vector3(side*0.128,1.74,-0.075),Vector3(side*0.129,1.695,-0.060),Vector3(side*0.126,1.665,-0.050)]
 		var widths := [0.010,0.008,0.006,0.0035,0.0005]
@@ -381,7 +390,9 @@ static func create_hair(root: Node3D) -> void:
 	var hair := MeshInstance3D.new()
 	hair.name = "HairCap"
 	hair.mesh = st.commit()
-	hair.material_override = V.mat(Color("252b28"))
+	hair.material_override = V.mat(Color.WHITE)
+	hair.material_override.vertex_color_use_as_albedo = true
+	hair.material_override.roughness = 0.65
 	root.add_child(hair)
 	loft(root,"HairKnot",[Vector4(1.80,0.05,0.045,0.13),Vector4(1.86,0.085,0.07,0.15),Vector4(1.93,0.065,0.055,0.15),Vector4(1.96,0.02,0.02,0.14)],Color("282e2a"),0,TAU,24)
 	loft(root,"HairTie",[Vector4(1.82,0.058,0.051,0.13),Vector4(1.835,0.06,0.052,0.13)],Color("71473b"),0,TAU,24)
