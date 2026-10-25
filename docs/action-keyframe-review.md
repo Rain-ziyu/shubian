@@ -269,3 +269,9 @@ Shubian-plant-body-drive.mp4 是 4.10 秒固定帧率冻结 AI 动作研究，�
 - Inspected actual reedclaw overall and three grasp close-ups. Broad dorsal markings and pale flank read more clearly; individual scales are less regular, but the procedural material and overall art remain prototype quality.
 - Native skin-material42/surface148 checks passed (regressions-20261025-185128-2c5d67). Export/normalization produced no model scene diff; the shared shader is the only runtime asset change.
 - Native 1280x720 uncapped OpenGL3 Compatibility / RTX4060 Laptop 30.02s partial sample completed without errors (forest-performance-1792954346-62640.json). After two seconds: 6009 frames, P99 9.143ms, max17.092ms, zero>33.33ms. All6492 frames include one startup50.581ms frame. This short sample is not a full expedition, other-hardware performance proof, or final visual/human difficulty acceptance.
+
+### Mapped-input continuous combat video (2026-10-26)
+- Changed the native combat video fixture to inherit replay_input_sequence rather than the direct-action controller. Kept player input handling enabled, so the recording exercises actual mapped key/mouse events against live AI. No runtime gameplay asset changes.
+- Rendered Shubian-input-combat-20261026.avi, then encoded/decoded a 1280x720 60FPS MP4: 901 frames,15.02s,6598487 bytes. Recording used fixed FPS/movie mode and is not performance evidence.
+- Input report passed: 148 key events,100 mouse events; actual reply3,flash3,fourfold4,spin2,finisher2 contacts; confirmed followup feedback, resource costs, retained counter shadow and two finisher contacts all passed; HP240/14.97s. This is a state-aware input controller, not human input or difficulty acceptance.
+- Inspected decoded mid/late frames. Close-range player/monster silhouette overlap and transparent limb/weapon readability remain visible limitations; the video is review evidence, not final art/animation acceptance. Use it to compare future near-body readability changes.
