@@ -43,6 +43,27 @@ func run() -> void:
 			m.mesh.get_node("Tail").rotation.y += 0.8
 			m.update_weak_markers()
 			check(m.weak_marker.global_position.distance_to(before)>0.2,"tail marker follows articulation")
+			var before_bend: Vector3 = m.weak_marker.global_position
+			var bones: Skeleton3D = m.mesh.get_node("Tail/TailSkeleton")
+			bones.set_bone_pose_rotation(0,Quaternion(Vector3.UP,0.6))
+			bones.force_update_all_bone_transforms()
+			m.update_weak_markers()
+			check(m.weak_marker.global_position.distance_to(before_bend)>0.1,"tail-root indicator follows the skin bones as well as the outer pivot")
+			var rendered: MeshInstance3D = bones.get_node("SkinnedTail")
+			var arrays: Array = rendered.mesh.surface_get_arrays(0)
+			var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+			var vertex := vertices.find(m.tail_marker_anchor)
+			check(vertex>=0,"weakpoint anchor is a real rendered rest vertex")
+			if vertex>=0:
+				var indices: PackedInt32Array = arrays[Mesh.ARRAY_BONES]
+				var weights: PackedFloat32Array = arrays[Mesh.ARRAY_WEIGHTS]
+				var actual := Vector3.ZERO
+				for slot in 4:
+					var bone: int = indices[vertex*4+slot]
+					actual += (bones.get_bone_global_pose(bone)*rendered.skin.get_bind_pose(bone)*vertices[vertex])*weights[vertex*4+slot]
+				var tail: Node3D = bones.get_parent()
+				var expected := tail.to_global(actual)+tail.global_basis.y.normalized()*0.04
+				check(m.weak_marker.global_position.distance_to(expected)<0.002,"marker follows actual rendered skin weights with a four-centimeter surface offset")
 		m.phase = "idle"
 		m.exposed = 0
 		m.stagger = 0

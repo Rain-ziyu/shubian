@@ -26,6 +26,7 @@ var lunge_tell: MeshInstance3D
 var lunge_origin := Vector3.ZERO
 var wall_stun := 0.0
 var tail_rings: Array[Vector4] = []
+var tail_marker_anchor := Vector3.ZERO
 var previous_tail_rings: Array[Vector4] = []
 var head_rings: Array = []
 var previous_head := Transform3D.IDENTITY
@@ -77,6 +78,7 @@ func _ready() -> void:
 	mesh = CreatureModel.create(self,data)
 	if data.pattern in ["charge","leap"]: lunge_contact.configure(self)
 	tail_rings = TailContact.profile(mesh.get_node("Tail/TailSurface").mesh)
+	if data.id=="mossback": tail_marker_anchor = CreatureModel.TailSkin.top_anchor(mesh.get_node("Tail/TailSurface").mesh,float(data.size)*0.18)
 	for part in ["HeadSurface","Jaw"]: head_rings.append(TailContact.profile(mesh.get_node("Neck/"+part).mesh))
 	if data.pattern=="sweep": head_warning_hull = HeadWarning.profile(self)
 	previous_head = mesh.get_node("Neck").global_transform
@@ -143,6 +145,11 @@ func update_weak_markers() -> void:
 		outward.y = 0
 		if outward.length_squared()<0.001: outward = Vector3.UP
 		marker.global_position = part.center+outward.normalized()*float(part.radius)*0.75
+		if data.id=="mossback" and part.id=="tail":
+			var tail: Node3D = mesh.get_node("Tail")
+			var skeleton: Skeleton3D = tail.get_node("TailSkeleton")
+			var surface := CreatureModel.TailSkin.deform(skeleton,tail_marker_anchor,tail_rings)
+			marker.global_position = tail.to_global(surface)+tail.global_basis.y.normalized()*0.04
 		if data.id=="reedclaw" and part.id=="flank":
 			var body: MeshInstance3D = mesh.get_node("BodySurface")
 			if flank_marker_surface==null: flank_marker_surface = body.mesh.generate_triangle_mesh()

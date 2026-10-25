@@ -140,6 +140,17 @@ func run() -> void:
 	var club_hit: Dictionary = detector.cast(moss,center+Vector3.RIGHT*1.2,center-Vector3.RIGHT*1.2)
 	check(not club_hit.is_empty() and club_hit.part=="tail_tip","posed bone club contacts distal tail rather than soft root")
 	check(not moss.weak_part_active("tail_tip") and moss.weak_part_active("tail"),"club does not inherit tail-root weakness")
+	for other in monsters.values():
+		if other!=moss: other.position = Vector3(120+monsters.values().find(other)*12,0,0)
+	moss.position = Vector3.ZERO
+	moss.update_weak_markers()
+	await physics_frame
+	await physics_frame
+	var anchor: Vector3 = moss.weak_marker.global_position
+	health = moss.health
+	shot = fire(anchor+Vector3.UP*2,Vector3.DOWN)
+	check(is_equal_approx(health-moss.health,36*float(moss.data.weak_multiplier)),"aiming at the displayed tail-root marker reaches real weakpoint surface damage")
+	check(confirmed[-1]=="throw:tail","surface marker aim produces a tail-root confirmation rather than a distal club hit")
 	print("PROJECTILE_PART_CHECKS: ",checks," FAILURES: ",failures)
 	stage.queue_free()
 	await process_frame

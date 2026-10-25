@@ -54,6 +54,19 @@ static func deform(skeleton: Skeleton3D, point: Vector3, rings: Array[Vector4]) 
 	var first := skeleton.get_bone_global_pose(int(weight.x))*skeleton.get_bone_global_rest(int(weight.x)).affine_inverse()*point
 	var last := skeleton.get_bone_global_pose(int(weight.y))*skeleton.get_bone_global_rest(int(weight.y)).affine_inverse()*point
 	return first.lerp(last,weight.z)
+static func top_anchor(mesh: Mesh, depth: float) -> Vector3:
+	# Choose an actual rest-surface vertex once; its skin weights remain valid.
+	var anchor := Vector3.ZERO
+	var closest := INF
+	for point: Vector3 in mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+		var distance := absf(point.z-depth)
+		if distance<closest-0.00001:
+			closest = distance
+			anchor = point
+		elif absf(distance-closest)<0.00001 and point.y>anchor.y:
+			anchor = point
+	return anchor
+
 static func contact_profile(tail: Node3D, rings: Array[Vector4]) -> Array[Vector4]:
 	var skeleton: Skeleton3D = tail.get_node("TailSkeleton")
 	var result: Array[Vector4] = []
