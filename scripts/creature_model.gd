@@ -182,8 +182,24 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 	elif data.id=="mistfrill":
 		Surface.frill(neck,s,c.lightened(0.08))
 		for side in [-1,1]:
-			var sac := V.piece(neck,Vector3(side*s*0.13,-s*0.015,-s*0.24),Vector3(s*0.14,s*0.20,s*0.25),Color("8d9e79"),true)
-			sac.name = "MistSac"+str(side)
+			var sac := Surface.profile(neck,"MistSac"+str(side),[Vector4(-0.125,0.006,0.012,0.010),Vector4(-0.09,0.038,0.062,0),Vector4(-0.045,0.065,0.095,-0.005),Vector4(0,0.070,0.100,-0.010),Vector4(0.055,0.055,0.080,-0.005),Vector4(0.095,0.030,0.045,0.005),Vector4(0.125,0.006,0.012,0.010)],s,Color.WHITE)
+			sac.position = Vector3(side*s*0.13,-s*0.015,-s*0.24)
+			var arrays: Array = sac.mesh.surface_get_arrays(0)
+			var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+			var colors := PackedColorArray()
+			var sac_base := Color("8d9e79")
+			var attachment := Color(c.r/sac_base.r,c.g/sac_base.g,c.b/sac_base.b)
+			for point in vertices:
+				var local := point/s
+				var angle := atan2(local.x,local.y+0.010)
+				var fold := pow(0.5+0.5*cos(angle*7+local.z*8),10)
+				var root_blend := smoothstep(0.045,0.115,absf(local.z))
+				colors.append(Color.WHITE.lerp(attachment,root_blend*0.85).darkened(0.06+0.12*fold))
+			arrays[Mesh.ARRAY_COLOR] = colors
+			var membrane := ArrayMesh.new()
+			membrane.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+			sac.mesh = membrane
+			sac.material_override.albedo_color = Color("8d9e79")
 			sac.set_meta("rest_scale",sac.scale)
 	elif data.id=="stormcrest":
 		for i in 5:
