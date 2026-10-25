@@ -53,6 +53,21 @@ func run() -> void:
 		var foot := leg.get_node("Foot") as MeshInstance3D
 		check(absf(leg.position.y+foot.position.y-foot.scale.y*0.5)<0.001,"standing foot sole matches actor floor")
 		check(leg.has_node("LegSurface") and leg.has_node("Claw0"),"curved limbs and toe claws exist")
+		if data.id=="thornhorn":
+			for instance in [model,saved]:
+				var skull: MeshInstance3D = instance.get_node("Neck/HeadSurface")
+				var surface: TriangleMesh = skull.mesh.generate_triangle_mesh()
+				var muzzle_width := 0.0
+				for point: Vector3 in skull.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+					if absf(point.z+float(data.size)*0.69)<0.001: muzzle_width = maxf(muzzle_width,absf(point.x))
+				check(muzzle_width>float(data.size)*0.10,"charging skull has a broad blunt muzzle in live and saved meshes")
+				for side in [-1,1]:
+					for label in ["Eye","Nostril"]:
+						var feature: Node3D = instance.get_node("Neck/"+label+str(side))
+						var point: Vector3 = feature.position
+						var contact := surface.intersect_segment(Vector3(side*float(data.size)*2,point.y,point.z),Vector3(0,point.y,point.z))
+						var clearance: float = absf(point.x)-absf(contact.get("position",Vector3.ZERO).x)
+						check(not contact.is_empty() and clearance>0.003*float(data.size) and clearance<0.02*float(data.size),"facial feature sits at visible skull surface: "+label+str(side))
 		if data.id=="reedclaw":
 			for instance in [model,saved]:
 				var points: PackedVector3Array = instance.get_node("BodySurface").mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]

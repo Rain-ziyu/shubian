@@ -62,7 +62,11 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 	var neck := V.pivot(root,"Neck",Vector3(0,y,-s*0.40))
 	if data.id=="reedclaw": neck.scale = Vector3.ONE*0.88
 	var head_width := 0.78 if data.id in ["reedclaw","mistfrill"] else 1.0
-	Surface.profile(neck,"HeadSurface",[Vector4(-0.715,0.012*head_width,0.008,0.06),Vector4(-0.707,0.025*head_width,0.016,0.06),Vector4(-0.69,0.035*head_width,0.02,0.06),Vector4(-0.61,0.14*head_width,0.065,0.085),Vector4(-0.42,0.19*head_width,0.14,0.14),Vector4(-0.28,0.16*head_width,0.145,0.12),Vector4(-0.09,0.135,0.17,0.08),Vector4(0.12,0.10,0.15,0)],s,c.lightened(0.03))
+	var head_profile := [Vector4(-0.715,0.012*head_width,0.008,0.06),Vector4(-0.707,0.025*head_width,0.016,0.06),Vector4(-0.69,0.035*head_width,0.02,0.06),Vector4(-0.61,0.14*head_width,0.065,0.085),Vector4(-0.42,0.19*head_width,0.14,0.14),Vector4(-0.28,0.16*head_width,0.145,0.12),Vector4(-0.09,0.135,0.17,0.08),Vector4(0.12,0.10,0.15,0)]
+	if data.id=="thornhorn":
+		head_profile = [Vector4(-0.715,0.006,0.004,0.10),Vector4(-0.71,0.065,0.035,0.10),Vector4(-0.69,0.12,0.065,0.10),Vector4(-0.61,0.155,0.09,0.11),Vector4(-0.42,0.22,0.17,0.17),Vector4(-0.28,0.19,0.18,0.14),Vector4(-0.09,0.135,0.17,0.08),Vector4(0.12,0.10,0.15,0)]
+	var head_surface := Surface.profile(neck,"HeadSurface",head_profile,s,c.lightened(0.03))
+	var facial_surface: TriangleMesh = head_surface.mesh.generate_triangle_mesh() if data.id=="thornhorn" else null
 	Surface.profile(neck,"Jaw",[Vector4(-0.68,0.006*head_width,0.004,-0.04),Vector4(-0.66,0.035*head_width,0.015,-0.04),Vector4(-0.58,0.13*head_width,0.035,-0.05),Vector4(-0.30,0.145*head_width,0.055,-0.045),Vector4(-0.12,0.06,0.025,0.01)],s,c.darkened(0.16))
 	var jaw := neck.get_node("Jaw") as MeshInstance3D
 	var hinge := Vector3(0,s*0.01,-s*0.12)
@@ -77,14 +81,24 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 	var mouth_floor := Surface.profile(jaw,"MouthFloor",[Vector4(-0.60,0.075*head_width,0.004,-0.018),Vector4(-0.40,0.12*head_width,0.004,0.012),Vector4(-0.20,0.10*head_width,0.004,0.015),Vector4(-0.12,0.04,0.004,0.012)],s,Color("26352e"))
 	mouth_floor.position = -hinge
 	for side in [-1,1]:
-		var nostril := V.piece(neck,Vector3(side*s*0.075*head_width,s*0.109,-s*0.64),Vector3(s*0.028,s*0.006,s*0.035),Color("26372b"),true)
+		var nose_x := 0.075*head_width
+		var eye_x := 0.158*head_width
+		if facial_surface!=null:
+			var nose_contact := facial_surface.intersect_segment(Vector3(side*2,0.109,-0.64)*s,Vector3(0,0.109,-0.64)*s)
+			var eye_contact := facial_surface.intersect_segment(Vector3(side*2,0.20,-0.43)*s,Vector3(0,0.20,-0.43)*s)
+			if not nose_contact.is_empty(): nose_x = absf(nose_contact.position.x)/s+0.006
+			if not eye_contact.is_empty(): eye_x = absf(eye_contact.position.x)/s+0.006
+		var nostril := V.piece(neck,Vector3(side*s*nose_x,s*0.109,-s*0.64),Vector3(s*0.028,s*0.006,s*0.035),Color("26372b"),true)
 		nostril.name = "Nostril"+str(side)
 		nostril.material_override.albedo_color = Color("142118")
 		nostril.material_override.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		V.piece(neck,Vector3(side*s*0.158*head_width,s*0.20,-s*0.43),Vector3(s*0.028,s*0.02,s*0.045),Color("dba75d"),true)
-		V.piece(neck,Vector3(side*s*0.169*head_width,s*0.20,-s*0.436),Vector3(s*0.006,s*0.018,s*0.012),Color("1c2721"),true)
+		var eye := V.piece(neck,Vector3(side*s*eye_x,s*0.20,-s*0.43),Vector3(s*0.028,s*0.02,s*0.045),Color("dba75d"),true)
+		if data.id=="thornhorn": eye.name = "Eye"+str(side)
+		var pupil := V.piece(neck,Vector3(side*s*(eye_x+0.011*head_width),s*0.20,-s*0.436),Vector3(s*0.006,s*0.018,s*0.012),Color("1c2721"),true)
+		if data.id=="thornhorn": pupil.name = "Pupil"+str(side)
 		var brow := Surface.profile(neck,"EyeRidge"+str(side),[Vector4(-0.51,0.001,0.001,0.225),Vector4(-0.46,0.018,0.012,0.245),Vector4(-0.41,0.028,0.014,0.255),Vector4(-0.35,0.020,0.012,0.245),Vector4(-0.30,0.001,0.001,0.22)],s,c.darkened(0.14))
 		brow.position.x = side*s*0.15*head_width
+		if data.id=="thornhorn": brow.position.x = side*s*(eye_x-0.008)
 		if data.id=="reedclaw":
 			# Seat the ridge against the orbital roof instead of floating above it.
 			brow.position.y = -s*0.025
