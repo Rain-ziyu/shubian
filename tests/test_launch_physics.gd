@@ -31,6 +31,10 @@ func run() -> void:
 				m._physics_process(1.0/60)
 				await physics_frame
 			var start: Vector3 = m.global_position
+			if action=="finisher":
+				m.velocity.x = 3
+				var held: Dictionary = m.receive_strike(10,start+Vector3(0,0,3),action,"body",0)
+				check(held.hit and m.stagger>=0.8 and m.velocity.y<=0 and Vector2(m.velocity.x,m.velocity.z).is_zero_approx(),"staff beat staggers without launching target out of kick reach")
 			var result: Dictionary = m.receive_strike(10,start+Vector3(0,0,3),action,"body")
 			var highest: float = start.y
 			var airborne := false

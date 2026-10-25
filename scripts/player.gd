@@ -340,7 +340,7 @@ func animate(delta: float, speed: float) -> void:
 		var dash := Vector3(velocity.x,0,velocity.z)
 		if dash.is_zero_approx(): dash = combat_forward()
 		leg_travel = rig.root.global_basis.inverse()*dash.normalized()
-	HunterModel.pose_legs(rig,combat.action,combat.elapsed,combat.drawn,walk_clock,speed,delta,foot_ground_height if is_on_floor() else Callable(),foot_ground_normal if is_on_floor() else Callable(),leg_travel,arrival_weight)
+	HunterModel.pose_legs(rig,combat.action,combat.elapsed,combat.drawn,walk_clock,speed,delta,foot_ground_height if is_on_floor() else Callable(),foot_ground_normal if is_on_floor() else Callable(),leg_travel,arrival_weight,motion_epoch)
 	var w: Node3D = rig.weapon
 	w.visible = not is_instance_valid(projectile)
 	w.position = Vector3(0,1.20,-0.32) if combat.drawn else Vector3(0,1.05,0.26)
@@ -578,7 +578,7 @@ func update_weapon_contacts() -> void:
 			query.exclude = [get_rid(),m.get_rid()]
 			if not get_world_3d().direct_space_state.intersect_ray(query).is_empty(): continue
 			window.victims[m.get_instance_id()] = true
-			var result: Dictionary = m.receive_strike(combat.damage(),global_position,window.action,contact.part)
+			var result: Dictionary = m.receive_strike(combat.damage(),global_position,window.action,contact.part,window.beat)
 			if result.hit:
 				combat.confirm_hit()
 				show_hit_feedback(contact.point,result,window.action)

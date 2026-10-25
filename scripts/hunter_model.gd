@@ -6,6 +6,8 @@ const Hand = preload("res://scripts/hunter_hand.gd")
 const Outfit = preload("res://scripts/hunter_outfit.gd")
 const Motion = preload("res://scripts/hunter_motion.gd")
 const JointCloth = preload("res://scripts/hunter_joint_cloth.gd")
+const STANCE_BLEND_SECONDS := 0.10
+const BLENDED_STANCES := ["idle","light","heavy","pull","guard","reply","flash","fourfold","throw"]
 
 static func tapered(parent: Node3D, pos: Vector3, top: float, bottom: float, height: float, color: Color) -> MeshInstance3D:
 	var mesh := MeshInstance3D.new()
@@ -150,7 +152,21 @@ static func pose_torso(rig: Dictionary, action: String, elapsed: float, gait: fl
 		var arm: Dictionary = rig.arms[side]
 		arm.shoulder.position = rig.torso.transform*(arm.rest_shoulder-Vector3(0,1.08,0))
 
-static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bool, gait: float, speed: float, delta: float, ground: Callable = Callable(), ground_normal: Callable = Callable(), travel := Vector3.FORWARD, arrival_weight := 0.0) -> void:
+static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bool, gait: float, speed: float, delta: float, ground: Callable = Callable(), ground_normal: Callable = Callable(), travel := Vector3.FORWARD, arrival_weight := 0.0, motion_epoch := 0) -> void:
+	# Blend only horizontal ordinary stances. Ground height and authored aerial,
+	# stagger, turn and kick poses retain their existing solve and timing.
+	var previous_action: String = rig.get("stance_action","")
+	var discontinuity: bool = rig.get("stance_epoch",motion_epoch)!=motion_epoch
+	if delta<=0 or discontinuity or action not in BLENDED_STANCES or previous_action not in BLENDED_STANCES:
+		rig.stance_age = STANCE_BLEND_SECONDS
+	elif previous_action!=action:
+		rig.stance_from = {}
+		for side in [-1,1]: rig.stance_from[side] = rig.legs[side].ankle.global_position
+		rig.stance_age = 0.0
+	rig.stance_action = action
+	rig.stance_epoch = motion_epoch
+	rig.stance_age = minf(STANCE_BLEND_SECONDS,float(rig.get("stance_age",STANCE_BLEND_SECONDS))+maxf(0,delta))
+	var stance_weight := smoothstep(0,STANCE_BLEND_SECONDS,float(rig.stance_age))
 	var drop := 0.09 if armed else 0.015
 	var walking := action=="idle" and speed>0.1
 	if walking: drop = 0.12
@@ -244,6 +260,10 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 			target.x -= direction.x*stance
 			target.z = -direction.z*stance
 		target.z -= body.position.z
+		if stance_weight<1 and rig.has("stance_from"):
+			var from: Vector3 = body.to_local(rig.stance_from[side])
+			target.x = lerpf(from.x,target.x,stance_weight)
+			target.z = lerpf(from.z,target.z,stance_weight)
 		normals[side] = Vector3.UP
 		if action=="finisher" and side==1:
 			var chamber := smoothstep(0.60,0.80,elapsed)

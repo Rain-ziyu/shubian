@@ -483,7 +483,7 @@ func clear_line_to(point: Vector3) -> bool:
 	query.exclude = [get_rid(),target.get_rid()]
 	return get_world_3d().direct_space_state.intersect_ray(query).is_empty()
 
-func receive_strike(amount: float, origin: Vector3, action: String, part := "") -> Dictionary:
+func receive_strike(amount: float, origin: Vector3, action: String, part := "", beat := 1) -> Dictionary:
 	if health <= 0: return {"hit":false}
 	var toward := (origin-global_position).normalized()
 	var dot_front := toward.dot(-global_basis.z)
@@ -504,7 +504,12 @@ func receive_strike(amount: float, origin: Vector3, action: String, part := "") 
 		if disrupted >= 90:
 			stagger = 2.5
 			disrupted = 0
-	if action in ["spin","finisher"]:
+	if action=="finisher" and beat==0:
+		# The staff hit holds the target for the following physical kick.
+		stagger = maxf(stagger,0.8)
+		velocity.x = 0
+		velocity.z = 0
+	elif action in ["spin","finisher"]:
 		stagger = 1.3 if action=="spin" else 2.2
 		velocity.y = 4.0
 		velocity += -toward*4
