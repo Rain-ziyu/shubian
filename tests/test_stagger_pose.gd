@@ -40,6 +40,7 @@ func run() -> void:
 		m.rear_cooldown = 2
 		m.mesh.get_node("Tail").rotation.y = -0.6
 		var body: Transform3D = m.mesh.transform
+		var surface_pose: Transform3D = m.mesh.get_node("BodySurface").transform
 		var neck: Transform3D = m.mesh.get_node("Neck").transform
 		var jaw: Transform3D = m.mesh.get_node("Neck/Jaw").transform
 		var foot := ankle(m,"Hind1")
@@ -55,6 +56,7 @@ func run() -> void:
 			var crest: StandardMaterial3D = m.mesh.get_node("Crest2").material_override
 			check(m.weak_part_active("spine") and crest.emission.r>crest.emission.b and crest.emission_energy_multiplier>0,"actual stagger shows warm open spine instead of the charging cue")
 		check(m.mesh.transform.is_equal_approx(body) and m.mesh.get_node("Neck").transform.is_equal_approx(neck),"stagger begins from captured body and neck: "+str(m.data.id))
+		check(m.mesh.get_node("BodySurface").transform.is_equal_approx(surface_pose),"stagger begins from actual torso surface pose: "+str(m.data.id))
 		check(m.mesh.get_node("Neck/Jaw").transform.is_equal_approx(jaw),"interruption starts from the actual loaded jaw pose")
 		check(ankle(m,"Hind1").distance_to(foot)<0.003,"stagger entry preserves actual ankle position")
 		check(absf(tail.get_bone_pose_rotation(3).dot(tail_before))>0.99999,"stagger entry preserves deformed tail bone")

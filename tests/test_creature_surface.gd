@@ -80,6 +80,15 @@ func run() -> void:
 			var top := plate.position.y+plate.mesh.get_aabb().end.y
 			var back := body.position.y+body.mesh.get_aabb().end.y
 			check(absf(top-back)<0.05,"central armor shell fits back rather than hovering")
+			for instance in [model,saved]:
+				var trunk: MeshInstance3D = instance.get_node("BodySurface")
+				var attachments := []
+				for index in 5: attachments.append(trunk.global_transform.affine_inverse()*instance.get_node("ArmorPlate"+str(index)).global_transform)
+				for phase in ["windup","active","recover"]:
+					Model.animate(instance,data,0,phase,float(data.windup) if phase=="windup" else 0.0,0)
+					for index in 5:
+						var attached: Transform3D = trunk.global_transform.affine_inverse()*instance.get_node("ArmorPlate"+str(index)).global_transform
+						check(attached.is_equal_approx(attachments[index]),"live and saved shell plates follow the rolling trunk: "+phase)
 	print("CREATURE_SURFACE_CHECKS: ",checks," FAILURES: ",failures)
 	holder.queue_free()
 	await process_frame

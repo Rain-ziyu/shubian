@@ -1717,23 +1717,28 @@ skeleton = NodePath("..")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.962, -1.296)
 material_override = SubResource("StandardMaterial3D_v0krq")
 mesh = SubResource("ArrayMesh_qkyyd")
+metadata/body_bind = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.16200006, -1.296)
 
 [node name="ArmorPlate1" type="MeshInstance3D" parent="." unique_id=646101107]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.962, -0.648)
 material_override = SubResource("StandardMaterial3D_8elgy")
 mesh = SubResource("ArrayMesh_6dcv4")
+metadata/body_bind = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.16200006, -0.648)
 
 [node name="ArmorPlate2" type="MeshInstance3D" parent="." unique_id=626192027]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.962, 0)
 material_override = SubResource("StandardMaterial3D_ci42h")
 mesh = SubResource("ArrayMesh_ikhwq")
+metadata/body_bind = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.16200006, 0)
 
 [node name="ArmorPlate3" type="MeshInstance3D" parent="." unique_id=1437713640]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.962, 0.648)
 material_override = SubResource("StandardMaterial3D_wgxtv")
 mesh = SubResource("ArrayMesh_0gucs")
+metadata/body_bind = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.16200006, 0.648)
 
 [node name="ArmorPlate4" type="MeshInstance3D" parent="." unique_id=792821974]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.962, 1.296)
 material_override = SubResource("StandardMaterial3D_qp8db")
 mesh = SubResource("ArrayMesh_vh7i7")
+metadata/body_bind = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.16200006, 1.296)

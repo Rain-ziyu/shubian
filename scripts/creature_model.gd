@@ -132,6 +132,7 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 			var taper := 1.0-absf(i-2)*0.12
 			var plate := Surface.profile(root,"ArmorPlate"+str(i),[Vector4(-0.13,0.28*taper,0.06*taper,0),Vector4(-0.07,0.37*taper,0.24*taper,0),Vector4(0.09,0.35*taper,0.21*taper,0),Vector4(0.14,0.27*taper,0.05*taper,0)],s,c.darkened(0.16),-PI/2,PI/2,false)
 			plate.position = Vector3(0,y+s*0.045,(i-2)*s*0.18)
+			plate.set_meta("body_bind",body.transform.affine_inverse()*plate.transform)
 			plate.material_override.cull_mode = BaseMaterial3D.CULL_DISABLED
 	elif data.id=="thornhorn":
 		for side in [-1,1]:
@@ -273,9 +274,17 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 	if not pose_override.is_empty():
 		root.position.y = float(pose_override.get("body_y",root.position.y))
 		root.rotation = pose_override.get("body_rotation",root.rotation)
+		root.get_node("BodySurface").rotation = pose_override.get("body_surface_rotation",root.get_node("BodySurface").rotation)
 		neck.rotation = pose_override.get("neck_rotation",neck.rotation)
 		neck.get_node("Jaw").rotation = pose_override.get("jaw_rotation",neck.get_node("Jaw").rotation)
 		tail.rotation.y = float(pose_override.get("tail_y",tail.rotation.y))
+	if data.id=="mossback":
+		var trunk: MeshInstance3D = root.get_node("BodySurface")
+		for index in 5:
+			var plate: MeshInstance3D = root.get_node("ArmorPlate"+str(index))
+			var bind: Transform3D = plate.get_meta("body_bind")
+			var attached := trunk.transform*bind
+			if not plate.transform.is_equal_approx(attached): plate.transform = attached
 	# Bend knees when the torso lowers; solve the planted foot back to actor ground.
 	if phase=="idle": root.position.y -= float(data.size)*0.045*minf(speed/2,1)
 	var limb_speed := speed
