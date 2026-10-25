@@ -39,6 +39,14 @@ func run() -> void:
 			maximum = maxf(maximum,model.position.y)
 		check(lowest>= -0.002,"attack keeps feet at or above ground")
 		check(maximum>0.8 if species.pattern=="leap" else maximum<0,"leap rises while charge holds compression")
+		if species.pattern=="leap":
+			Model.animate(model,species,0.0,"active",0.30,speed,Callable(),Callable(),true)
+			var tucked := sole(model.get_node("Hind1"))
+			Model.animate(model,species,2.7,"active",0.30,speed,Callable(),Callable(),true)
+			check(sole(model.get_node("Hind1")).distance_to(tucked)<0.002,"airborne leg pose does not depend on running gait")
+			check(tucked.y>0.35 and tucked.z>0.15,"airborne foot folds up and back")
+			Model.animate(model,species,2.7,"active",0.65,speed,Callable(),Callable(),true)
+			check(absf(sole(model.get_node("Hind1")).y)<0.002,"feet extend back to landing support")
 		Model.animate(model,species,3.0,"active",0.65,speed)
 		var end_body := model.transform
 		var end_neck := neck.transform

@@ -172,6 +172,8 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 	var limb_speed := speed
 	if data.pattern in ["charge","leap"] and phase=="active":
 		limb_speed *= smoothstep(0,0.12,clock)*(1-smoothstep(0.53,0.65,clock))
+	# A leap has one takeoff and landing, rather than a running cycle in the air.
+	if data.pattern=="leap" and phase=="active": limb_speed = 0.0
 	var hip_height := float(data.size)*(0.50 if "quadruped" in data.body else 0.64)*0.9
 	var targets := []
 	var lowest := 0.0
@@ -191,6 +193,12 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 					target.z = sin(step)*side*minf(float(data.size)*0.16,limb_speed*0.06)
 					lift = maxf(0,cos(step)*side)*minf(float(data.size)*0.10,limb_speed*0.035)
 					target.y += lift
+				if data.pattern=="leap" and phase=="active":
+					var tuck := smoothstep(0.04,0.24,clock)*(1-smoothstep(0.40,0.63,clock))
+					# Slight asymmetry keeps both feet readable in the silhouette.
+					lift = float(data.size)*0.17*tuck
+					target.y += lift
+					target.z = float(data.size)*(0.14 if side==1 else 0.10)*tuck
 				var planting := ground.is_valid() and phase=="idle" and limb_speed>0.1 and lift<0.001
 				var sole_offset := Vector3(0,-float(data.size)*0.05,-float(data.size)*0.10)
 				if leg.has_meta("plant_world"):
