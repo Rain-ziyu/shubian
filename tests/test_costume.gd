@@ -21,6 +21,19 @@ func run() -> void:
 		alignment += Vector3(point.x,0,point.z).normalized().dot(normal)
 	check(alignment/(28*6)>0.9,"profile mesh normals face outward")
 	var rig := Model.create(holder)
+	for label in ["KneePlate","ShinPlate"]:
+		var plate: MeshInstance3D = rig.legs[1].knee.get_node(label)
+		var points: PackedVector3Array = plate.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+		var edges := {}
+		for triangle in range(0,points.size(),3):
+			for edge in 3:
+				var a := str(Vector3i((points[triangle+edge]*1000000).round()))
+				var b := str(Vector3i((points[triangle+(edge+1)%3]*1000000).round()))
+				var key := a+"|"+b if a<b else b+"|"+a
+				edges[key] = int(edges.get(key,0))+1
+		var closed := true
+		for count in edges.values(): closed = closed and count==2
+		check(closed and plate.mesh.get_aabb().size.z>0.03,"leg armor is a closed solid with a raised face: "+label)
 	check(rig.root.has_node("Torso/Head") and rig.root.has_node("Torso/HairCap"),"head and hair are separate editable meshes")
 	check(rig.root.has_node("Torso/RainCape1") and rig.root.has_node("Torso/RainCape-1"),"split cape panels exist")
 	check(rig.weapon.has_node("CenterBlade") and rig.weapon.has_node("Hook1") and rig.weapon.has_node("Hook-1"),"three blade silhouettes exist")

@@ -1,9 +1,13 @@
 extends RefCounted
 ## Original mesh profiles for the approved wet-forest costume. No third-party meshes.
 const V = preload("res://scripts/visuals.gd")
+const Profiles = preload("res://scripts/creature_surface.gd")
+const MetalMesh = preload("res://scripts/trident_mesh.gd")
 const SKIN_TONE := Color("bd9b80")
 
 static func loft(parent: Node3D, label: String, rings: Array, color: Color, start := 0.0, end := TAU, segments := 28, caps := true) -> MeshInstance3D:
+	var garment := label in ["Undercoat","TrouserThigh","TrouserShin"]
+	if garment: rings = Profiles.smooth_profiles(rings)
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_smooth_group(0)
@@ -22,6 +26,7 @@ static func loft(parent: Node3D, label: String, rings: Array, color: Color, star
 			for item in [[a,Vector2(u0,v0)],[c,Vector2(u0,v1)],[b,Vector2(u1,v0)],[b,Vector2(u1,v0)],[c,Vector2(u0,v1)],[d,Vector2(u1,v1)]]:
 				st.set_uv(item[1])
 				var point: Vector3 = item[0]
+				if garment: point = garment_drape(point,label,bottom,span)
 				if label.begins_with("RainCape") or label.begins_with("CapeHem"): point = cape_drape(point)
 				st.add_vertex(point)
 	if caps:
@@ -45,6 +50,19 @@ static func loft(parent: Node3D, label: String, rings: Array, color: Color, star
 
 static func profile_point(ring: Vector4, angle: float) -> Vector3:
 	return Vector3(sin(angle)*ring.y,ring.x,cos(angle)*ring.z+ring.w)
+
+static func garment_drape(point: Vector3, label: String, bottom: float, span: float) -> Vector3:
+	# Broad tension folds are geometry, not animated shader noise. Fade to the
+	# original openings so the belt, knee underlayers and ankle stay registered.
+	var t := clampf((point.y-bottom)/span,0,1)
+	var envelope := pow(sin(t*PI),2)
+	var angle := atan2(point.x,point.z)
+	var trouser := label.begins_with("Trouser")
+	var diagonal := sin(angle*4+t*11)*0.004
+	var gathering := sin(t*TAU*3+sin(angle*2)*0.8)*(0.006 if trouser else 0.004)
+	var slack := 0.004 if trouser else 0.001
+	var fold := (slack+diagonal+gathering)*envelope
+	return point+Vector3(sin(angle)*fold,0,cos(angle)*fold)
 
 static func cape_drape(point: Vector3) -> Vector3:
 	# Cloth falls farther behind the shoulders. The collar stays fixed and
@@ -89,6 +107,35 @@ static func ribbon(parent: Node3D, label: String, points: Array, width: float, c
 		reverse.push_front(points[index]-normal)
 	outline.append_array(reverse)
 	return patch(parent,label,outline,color)
+
+static func armor_plate(parent: Node3D, label: String, points: Array, color: Color) -> MeshInstance3D:
+	var center := Vector3.ZERO
+	for point: Vector3 in points: center += point
+	center /= points.size()
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(-1)
+	for index in points.size():
+		var a: Vector3 = points[index]
+		var b: Vector3 = points[(index+1)%points.size()]
+		var inner_a := a.lerp(center,0.15)+Vector3(0,0,-0.006)
+		var inner_b := b.lerp(center,0.15)+Vector3(0,0,-0.006)
+		MetalMesh.bevel_triangle(st,center+Vector3(0,0,-0.018),inner_a,inner_b,Vector3.FORWARD)
+		MetalMesh.bevel_triangle(st,a,b,inner_a,Vector3.FORWARD)
+		MetalMesh.bevel_triangle(st,b,inner_b,inner_a,Vector3.FORWARD)
+		var edge_out := ((a+b)*0.5-center).normalized()
+		MetalMesh.bevel_triangle(st,a,a+Vector3(0,0,0.012),b,edge_out)
+		MetalMesh.bevel_triangle(st,b,a+Vector3(0,0,0.012),b+Vector3(0,0,0.012),edge_out)
+		MetalMesh.bevel_triangle(st,center+Vector3(0,0,0.012),b+Vector3(0,0,0.012),a+Vector3(0,0,0.012),Vector3.BACK)
+	st.generate_normals()
+	var result := MeshInstance3D.new()
+	result.name = label
+	result.mesh = st.commit()
+	result.material_override = V.mat(color)
+	result.material_override.metallic = 0.45
+	result.material_override.roughness = 0.62
+	parent.add_child(result)
+	return result
 
 static func blob(parent: Node3D, label: String, center: Vector3, size: Vector3, color: Color) -> MeshInstance3D:
 	var result := V.piece(parent,center,size,color,true)
