@@ -7,7 +7,7 @@ const SKIN_TONE := Color("bd9b80")
 
 static func loft(parent: Node3D, label: String, rings: Array, color: Color, start := 0.0, end := TAU, segments := 28, caps := true) -> MeshInstance3D:
 	var garment := label in ["Undercoat","TrouserThigh","TrouserShin"]
-	if garment or label in ["Head","NoseBridge"] or label.begins_with("UpperArmSurface"): rings = Profiles.smooth_profiles(rings)
+	if garment or label in ["Head","NoseBridge"] or label.begins_with("UpperArmSurface") or label.begins_with("RainCape"): rings = Profiles.smooth_profiles(rings)
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_smooth_group(0)
@@ -70,7 +70,9 @@ static func cape_drape(point: Vector3) -> Vector3:
 	var weight := 1-smoothstep(1.20,1.49,point.y)
 	var angle := atan2(point.x,point.z-0.018)
 	var fold := sin(angle*6)*0.012*weight
-	point += Vector3(sin(angle)*fold,-0.055*maxf(0,cos(angle))*weight,cos(angle)*fold)
+	# The shorter front clears the waist-level staff; the back sheds rain below it.
+	var hem_height := -0.055*maxf(0,cos(angle))+0.065*maxf(0,-cos(angle))
+	point += Vector3(sin(angle)*fold,hem_height*weight,cos(angle)*fold)
 	return point
 
 static func patch(parent: Node3D, label: String, points: Array, color: Color) -> MeshInstance3D:
@@ -272,13 +274,13 @@ static func create(root: Node3D) -> Dictionary:
 		var begin := 0.22 if side==1 else -PI+0.22
 		var finish := PI-0.22 if side==1 else -0.22
 		var cape := loft(root,"RainCape"+str(side),[
-			Vector4(1.20,0.355,0.215,0.018),Vector4(1.27,0.34,0.205,0.018),
-			Vector4(1.34,0.31,0.185,0.018),Vector4(1.39,0.285,0.165,0.012),
+			Vector4(1.14,0.43,0.245,0.018),Vector4(1.25,0.385,0.225,0.018),
+			Vector4(1.34,0.335,0.195,0.018),Vector4(1.39,0.30,0.17,0.012),
 			Vector4(1.44,0.245,0.147,0.008),Vector4(1.49,0.10,0.08,0)
 		],green,begin,finish,24,false)
 		cape.material_override.cull_mode = BaseMaterial3D.CULL_DISABLED
 		cape.material_override.roughness = 0.92
-		loft(root,"CapeHem"+str(side),[Vector4(1.201,0.356,0.216,0.018),Vector4(1.214,0.353,0.214,0.018)],hem,begin,finish,24,false).material_override.cull_mode = BaseMaterial3D.CULL_DISABLED
+		loft(root,"CapeHem"+str(side),[Vector4(1.141,0.431,0.246,0.018),Vector4(1.154,0.426,0.244,0.018)],hem,begin,finish,24,false).material_override.cull_mode = BaseMaterial3D.CULL_DISABLED
 		var shoulder := loft(root,"ShoulderPlate"+str(side),[
 			Vector4(-0.08,0.065,0.060,0),Vector4(-0.05,0.095,0.085,0),
 			Vector4(0,0.110,0.095,0),Vector4(0.025,0.095,0.085,0),
