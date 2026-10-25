@@ -178,7 +178,8 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 	if walking: drop = 0.12
 	if action=="guard": drop += 0.04*smoothstep(0,0.18,elapsed)
 	if action=="reply": drop = 0.13+0.035*smoothstep(0,0.12,elapsed)*(1-smoothstep(0.12,0.26,elapsed))
-	if action in ["plant","wait","counter_window"]: drop = 0.18
+	if action=="plant": drop = Motion.interpolate(Motion.PLANT_STANCE,elapsed).y
+	if action in ["wait","counter_window"]: drop = 0.18
 	if action=="dodge":
 		var load := smoothstep(0,0.06,elapsed)
 		var flight := smoothstep(0.06,0.14,elapsed)*(1-smoothstep(0.30,0.42,elapsed))

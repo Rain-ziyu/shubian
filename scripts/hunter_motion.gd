@@ -14,6 +14,8 @@ const FOURFOLD_WEAPON := [Vector4(0,0,0,0),Vector4(0.08,0,0.04,0.06),Vector4(0.1
 const REPLY_WEAPON := [Vector4(0,0,0,0),Vector4(0.12,0,0.035,0),Vector4(0.26,0,-0.169,0),Vector4(0.42,0,-0.06,0),Vector4(0.67,0,0,0)]
 # Complete the staff rotation before the kick extends; retain the first contact heading.
 const FINISHER_WEAPON := [Vector4(0,-1.5,0,0),Vector4(0.18,-1.95,0,0),Vector4(0.43,-1.5+0.43/1.45*TAU,0,0),Vector4(0.74,TAU-1.5,0,0),Vector4(1.14,TAU-1.5,0,0),Vector4(1.45,TAU,0,0)]
+# Seconds, crouch depth: extend while lifting, drive down, then brace.
+const PLANT_STANCE := [Vector4(0,0.09,0,0),Vector4(0.18,0.06,0,0),Vector4(0.48,0.22,0,0),Vector4(0.65,0.18,0,0)]
 const KEYS := {
 	"light":[Vector4(0,0,0,0),Vector4(0.11,0.06,-0.16,0.06),Vector4(0.15,0.06,-0.16,0.06),Vector4(0.25,-0.16,0.20,-0.075),Vector4(0.30,-0.16,0.20,-0.075),Vector4(0.40,-0.07,0.10,-0.025),Vector4(0.66,0,0,0)],
 	"heavy":[Vector4(0,0,0,0),Vector4(0.18,0.05,-0.60,0.085),Vector4(0.30,0.05,-0.60,0.085),Vector4(0.43,-0.12,0.28,-0.075),Vector4(0.61,-0.06,0.65,-0.035),Vector4(0.70,-0.06,0.65,-0.035),Vector4(0.92,0,0,0)],
@@ -21,7 +23,7 @@ const KEYS := {
 	"guard":[Vector4(0,0,0,0),Vector4(0.18,0.06,-0.35,0.018),Vector4(1.20,0.06,-0.35,0.018),Vector4(1.40,0,0,0)],
 	"reply":[Vector4(0,0.06,-0.35,0.018),Vector4(0.12,0.06,-0.45,0.06),Vector4(0.26,-0.16,0.28,-0.075),Vector4(0.42,-0.04,0.12,-0.02),Vector4(0.67,0.06,-0.35,0.018)],
 	"flash":[Vector4(0,0,-0.10,0),Vector4(0.23,-0.14,0.10,-0.06),Vector4(0.39,-0.06,0.03,-0.02),Vector4(0.58,0,0,0)],
-	"plant":[Vector4(0,0,0,0),Vector4(0.30,-0.20,0,-0.025),Vector4(0.55,-0.12,0,-0.015),Vector4(0.65,-0.08,0,0)],
+	"plant":[Vector4(0,0,0,0),Vector4(0.18,0.06,0,0.015),Vector4(0.30,-0.20,0,-0.025),Vector4(0.48,-0.16,0,-0.02),Vector4(0.55,-0.12,0,-0.015),Vector4(0.65,-0.08,0,0)],
 	"finisher":[Vector4(0,0,0,0),Vector4(0.22,-0.08,-0.25,-0.02),Vector4(0.43,-0.08,0.22,-0.02),Vector4(0.67,0.04,-0.10,0.01),Vector4(0.95,0.20,-0.12,0.035),Vector4(1.14,0.10,-0.04,0.02),Vector4(1.45,0,0,0)],
 	"throw":[Vector4(0,0,0,0),Vector4(0.20,0.09,-0.23,0.06),Vector4(0.38,-0.15,0.20,-0.07),Vector4(0.80,0,0,0)],
 	"hurt":[Vector4(0,0,0,0),Vector4(0.08,0.30,-0.12,0.045),Vector4(0.22,0.20,-0.08,0.03),Vector4(0.55,0,0,0)]

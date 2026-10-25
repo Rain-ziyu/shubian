@@ -18,13 +18,29 @@ func run() -> void:
 	for m in get_nodes_in_group("monsters"): m.set_physics_process(false)
 	p.yaw = 0
 	p.global_position = Vector3(0,0.05,0)
+	p.combat.drawn = true
+	p.combat.set_action("idle")
+	p.animate(0,0)
+	var ready_body: Vector3 = p.rig.root.position
 	p.combat.set_action("plant")
+	p.animate(0,0)
+	check(p.rig.root.position.distance_to(ready_body)<0.001,"plant begins at the actual ready body height")
 	p.combat.elapsed = 0.18
 	p.animate(0,0)
 	var raised: float = p.rig.weapon.global_position.y
+	var raised_body: float = p.rig.root.position.y
+	check(raised_body>ready_body.y+0.025,"plant extends the legs while lifting the shaft")
 	p.combat.elapsed = 0.5
 	p.animate(0,0)
 	check(raised>p.rig.weapon.global_position.y+0.25,"plant lifts spear before driving it down")
+	check(raised_body-p.rig.root.position.y>0.14,"plant drives body weight down with the shaft")
+	p.combat.elapsed = 0.65
+	p.animate(0,0)
+	var seated_body: Vector3 = p.rig.root.position
+	var seated_weapon: Vector3 = p.rig.weapon.global_position
+	p.combat.set_action("wait")
+	p.animate(0,0)
+	check(p.rig.root.position.distance_to(seated_body)<0.001 and p.rig.weapon.global_position.distance_to(seated_weapon)<0.003,"plant settles into waiting without a body or shaft jump")
 	for point in [Vector2.ZERO,Vector2(48,40),Vector2(-48,42)]:
 		p.global_position = Vector3(point.x,Terrain.mesh_height_at(point.x,point.y)+0.05,point.y)
 		for action in ["plant","wait","counter_window"]:
