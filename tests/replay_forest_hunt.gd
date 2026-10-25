@@ -19,8 +19,11 @@ var damage_events: Array[Dictionary] = []
 var recent_control: Array[Dictionary] = []
 var recent_dodges: Array[Dictionary] = []
 var control_sample_frame := 0
+var weakness_tactics := false
+var weakpoint_events := {}
 func _initialize() -> void: call_deferred("setup")
 func setup() -> void:
+	weakness_tactics = "--weakness-tactics" in OS.get_cmdline_user_args()
 	if "--capture-victory" in OS.get_cmdline_user_args():
 		if DisplayServer.get_name()=="headless":
 			printerr("Victory capture requires native rendering")
@@ -42,6 +45,9 @@ func setup() -> void:
 		var id: String = victim.data.id
 		contacts[id] = int(contacts.get(id,0))+1
 		if result.weak: weak_contacts[id] = int(weak_contacts.get(id,0))+1
+		if weakness_tactics:
+			if not weakpoint_events.has(id): weakpoint_events[id] = []
+			if weakpoint_events[id].size()<64: weakpoint_events[id].append({"time":snappedf(elapsed,0.01),"action":_action,"part":result.part,"weak":result.weak,"phase":victim.phase,"clock":snappedf(victim.clock,0.01)})
 	)
 	physics_frame.connect(control)
 func movement(direction: Vector3, sprint := false) -> void:
@@ -110,10 +116,15 @@ func control() -> void:
 		if not route.is_empty(): movement(route[0]-fighter.position,true)
 		return
 	var pattern: String = monster.data.pattern
+	# Distant locks expire during approach. Reacquire through normal visible-target
+	# selection once close, rather than attacking along the last travel heading.
+	if weakness_tactics and pattern!="mist" and not is_instance_valid(fighter.lock_target):
+		fighter.lock_target = fighter.nearest_monster()
 	var radial := away.normalized()
 	var move := Vector3.ZERO
 	var next := ""
 	if pattern in ["charge","leap"]:
+		if weakness_tactics: fighter.apply_look(Vector2(0,fighter.pitch/0.0025))
 		var flank: Vector3 = monster.global_basis.x
 		move = monster.position+flank*(float(monster.data.size)*0.33+1.7)-fighter.position
 		if monster.phase=="windup": move = radial.cross(Vector3.UP)
@@ -142,6 +153,7 @@ func control() -> void:
 			if radial.dot(rear)<0.3: move = radial.cross(Vector3.UP)+move.normalized()*0.3
 		if away.length()<3.6: next = "attack"
 		if pattern=="pulse" and radial.dot(monster.global_basis.z)<0.70: next = ""
+		if weakness_tactics and pattern=="pulse" and not ((monster.phase=="windup" and monster.clock>=0.25) or monster.stagger>0): next = ""
 		if pattern=="pulse" and monster.phase=="windup":
 			# The pulse deals its first tick on spawn; reacting to the hazard is too late.
 			# Leave recovery time before the visible discharge, then use a normal dodge.
@@ -150,10 +162,16 @@ func control() -> void:
 
 	else:
 		move = -radial if away.length()>2.7 else Vector3.ZERO
+		var rear_aligned := true
+		if weakness_tactics:
+			var rear: Vector3 = monster.global_basis.z
+			move = monster.position+rear*3.5-fighter.position
+			if radial.dot(rear)<0.4: move = radial.cross(Vector3.UP)+move.normalized()*0.3
+			rear_aligned = radial.dot(rear)>0.65 and away.length()<4.0
 		if c.guard_reward>0: next = "reply"
 		elif c.flash_window>0: next = "flash"
 		elif monster.phase=="windup" and monster.clock>0.35: next = "guard"
-		elif monster.phase in ["recover","idle"]: next = "spin" if not c.shadow_lifetimes.is_empty() else "attack"
+		elif monster.phase in ["recover","idle"] and rear_aligned: next = "spin" if not c.shadow_lifetimes.is_empty() else "attack"
 	var danger := false
 	for hazard in get_nodes_in_group("hazards"):
 		# Pulse ticks once on spawn; its remaining disc has no second damage tick.
@@ -186,7 +204,14 @@ func finish() -> void:
 	finished = true
 	for action in ["move_left","move_right","move_forward","move_back","sprint"]: Input.action_release(action)
 	var passed: bool = encounters.size()==5 and fighter.combat.health>0
+	var missing_weakness: Array[String] = []
+	for id in ["mossback","thornhorn","mistfrill","reedclaw","stormcrest"]:
+		if int(weak_contacts.get(id,0))==0: missing_weakness.append(id)
+	if "--require-weakness" in OS.get_cmdline_user_args(): passed = passed and missing_weakness.is_empty()
 	var result := {"passed":passed,"seconds":snappedf(elapsed,0.01),"player_health":fighter.combat.health,"encounters":encounters,"contacts":contacts,"weak_contacts":weak_contacts,"damage_events":damage_events,"distance_walked":distance_walked,"scope":"normal spawn, continuous resources, all five AI active; privileged tactics controller; not human difficulty acceptance"}
+	result["weakness_tactics"] = weakness_tactics
+	result["missing_weakness"] = missing_weakness
+	result["weakpoint_events"] = weakpoint_events
 	print("FOREST_HUNT: ",JSON.stringify(result))
 	FileAccess.open("res://../Shubian-forest-hunt.json",FileAccess.WRITE).store_string(JSON.stringify(result,"  "))
 	if "--capture-victory" in OS.get_cmdline_user_args():
