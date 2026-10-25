@@ -40,6 +40,19 @@ func run() -> void:
 	check(axis.dot(p.projectile.direction)>0.999,"release shaft aligns with actual projectile flight")
 	p.projectile.cancel_arrival()
 	p.projectile.finish()
+	for aim in [-0.65,0.30,0.65]:
+		p.pitch = aim
+		p.combat.set_action("throw")
+		p.combat.elapsed = 0.38
+		p.animate(0,0)
+		var aimed_axis: Vector3 = p.rig.weapon.global_basis.y.normalized()
+		p.on_strike(0)
+		p.projectile.set_physics_process(false)
+		check(aimed_axis.dot(p.projectile.direction)>0.999,"aimed projectile follows the actual released shaft")
+		check(p.projectile.direction.y>0.4 if aim>0 else p.projectile.direction.y< -0.3,"mouse elevation changes physical throwing direction")
+		p.projectile.cancel_arrival()
+		p.projectile.finish()
+	p.pitch = -0.25
 	p.global_position = Vector3(0,0.05,-8)
 	world.obstacle(Vector3(0,1.4,-8.25),Vector3(3,3,0.1),Color.GRAY)
 	await physics_frame

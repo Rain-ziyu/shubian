@@ -44,6 +44,18 @@ func run() -> void:
 		for bone in source_skeletons[i].get_bone_count():
 			matching = matching and cloned[i].get_bone_pose(bone).is_equal_approx(source_skeletons[i].get_bone_pose(bone))
 	check(matching,"snapshot preserves skeleton poses")
+	var visible_parts := 0
+	for mesh in p.rig.root.find_children("*","MeshInstance3D",true,false):
+		if mesh.is_visible_in_tree(): visible_parts += 1
+	var lean_snapshot := true
+	for ghost in effect.ghosts:
+		var meshes: Array = ghost.find_children("*","MeshInstance3D",true,false)
+		lean_snapshot = lean_snapshot and meshes.size()==visible_parts
+		for mesh in meshes:
+			lean_snapshot = lean_snapshot and mesh.material_override==effect.material and mesh.material_overlay==null
+			for property in mesh.get_property_list():
+				if str(property.name).begins_with("instance_shader_parameters/"): lean_snapshot = false
+	check(lean_snapshot,"snapshots retain only visible geometry and no original instance-shader parameters")
 	check(p.combat.health==hp and p.combat.stamina==stamina,"presentation preserves combat resources")
 	var ready_height: float = p.rig.root.position.y
 	for tick in 3: p._physics_process(1.0/60)

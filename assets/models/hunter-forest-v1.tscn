@@ -2460,621 +2460,621 @@ _surfaces = [{
 "vertex_data": PackedByteArray("PgpXPoXrET8AAAAAzG9NPoXrET8pXA89vp9aPoiICD8AAAAAvp9aPoiICD8AAAAAzG9NPoXrET8pXA89YIpQPoiICD8rhxY9zG9NPoXrET8pXA89MzMzPoXrET+KTng9YIpQPoiICD8rhxY9YIpQPoiICD8rhxY9MzMzPoXrET+KTng99P00PoiICD9uXII9MzMzPoXrET+KTng9KVwPPoXrET8pXI899P00PoiICD9uXII99P00PoiICD9uXII9KVwPPoXrET8pXI89KVwPPoiICD8rh5Y9KVwPPoXrET8pXI89PgrXPYXrET+KTng9KVwPPoiICD8rh5Y9KVwPPoiICD8rh5Y9PgrXPYXrET+KTng9vHTTPYiICD9uXII9PgrXPYXrET+KTng9DZGiPYXrET8pXA89vHTTPYiICD9uXII9vHTTPYiICD9uXII9DZGiPYXrET8pXA895FucPYiICD8rhxY9DZGiPYXrET8pXA89KVyPPYXrET9IIR4j5FucPYiICD8rhxY95FucPYiICD8rhxY9KVyPPYXrET9IIR4jJzGIPYiICD9YCSYjKVyPPYXrET9IIR4jDZGiPYXrET8pXA+9JzGIPYiICD9YCSYjJzGIPYiICD9YCSYjDZGiPYXrET8pXA+95FucPYiICD8rhxa9DZGiPYXrET8pXA+9PgrXPYXrET+KTni95FucPYiICD8rhxa95FucPYiICD8rhxa9PgrXPYXrET+KTni9vHTTPYiICD9uXIK9PgrXPYXrET+KTni9KVwPPoXrET8pXI+9vHTTPYiICD9uXIK9vHTTPYiICD9uXIK9KVwPPoXrET8pXI+9KVwPPoiICD8rh5a9KVwPPoXrET8pXI+9MzMzPoXrET+KTni9KVwPPoiICD8rh5a9KVwPPoiICD8rh5a9MzMzPoXrET+KTni99P00PoiICD9uXIK9MzMzPoXrET+KTni9zG9NPoXrET8pXA+99P00PoiICD9uXIK99P00PoiICD9uXIK9zG9NPoXrET8pXA+9YIpQPoiICD8rhxa9zG9NPoXrET8pXA+9PgpXPoXrET9IIZ6jYIpQPoiICD8rhxa9YIpQPoiICD8rhxa9PgpXPoXrET9IIZ6jvp9aPoiICD9YCaajvp9aPoiICD8AAAAAYIpQPoiICD8rhxY9aD9dPhhL/j4AAAAA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3JpVwJgxrXtfqDa2mDGte1+oNrbsIIt43JpVwCceDXx8mm6+VAW+YF1lLb9RBGpOtFiUttoARmRFZvW82gBGZEVm9bxRBGpOtFiUtgAA2a5SWdS0UQRqTrRYlLZRBEQtpFkDoAAA2a5SWdS0AADZrlJZ1LRRBEQtpFkDoAAAJdFSWYCeUQRELaRZA6DTBQAAtX8MgwAAJdFSWYCeAAAl0VJZgJ7TBQAAtX8Mg///////fwCA0wUAALV/DIOt+0Et2qTinv//////fwCA//////9/AICt+0Et2qTinv//JdGspoCerftBLdqk4p6t+2dO26SHs///JdGspoCe//8l0aymgJ6t+2dO26SHs///2a6sptS0rftnTtukh7Mr+ih6u38Wvf//2a6sptS0///Zrqym1LQr+ih6u38Wvf//AID/f/+/K/ooert/Fr1pzq17plkqs///AID/f/+///8AgP9//79pzq17plkqsyXR/39SWdS0ac6te6ZZKrNGra17slgSnSXR/39SWdS0JdH/f1JZ1LRGra17slgSndmu/39SWYCeRq2te7JYEp0CgCt65XkkgNmu/39SWYCe2a7/f1JZgJ4CgCt65XkkgP9//3//fwCAAoAreuV5JIC6Uq17Xqj1nf9//3//fwCA/3//f/9/AIC6Uq17Xqj1nSVR/3+spoCeulKte16o9Z2YMa17X6g2tiVR/3+spoCeJVH/f6ymgJ6YMa17X6g2ttku/3+sptS0mDGte1+oNrYnHg18fJpuvtku/3+sptS02S7/f6ym1LQnHg18fJpuvrkb2oBjmTC82gBGZEVm9bwAANmuUlnUtPEDKJ7UZsO68QMontRmw7oAANmuUlnUtFEEl7GkWSmzAADZrlJZ1LQAACXRUlmAnlEEl7GkWSmzUQSXsaRZKbMAACXRUlmAnlEEu9K0WA+dAAAl0VJZgJ7//////38AgFEEu9K0WA+dUQS70rRYD53//////38AgCv6/P/qeSGA//////9/AID//yXRrKaAniv6/P/qeSGAK/r8/+p5IYD//yXRrKaAnq37uNJfqPid//8l0aymgJ7//9murKbUtK37uNJfqPidrfu40l+o+J3//9murKbUtK37lLFeqDi2///Zrqym1LT//wCA/3//v637lLFeqDi2rfuUsV6oOLb//wCA/3//vyj604W1f+fC//8AgP9//78l0f9/UlnUtCj604W1f+fCKPrThbV/58Il0f9/UlnUtGbOUYSyWJK2JdH/f1JZ1LTZrv9/UlmAnmbOUYSyWJK2Zs5RhLJYkrbZrv9/UlmAnkOtUYSmWQCg2a7/f1JZgJ7/f/9//38AgEOtUYSmWQCgQ61RhKZZAKD/f/9//38AgPx/04W7fwqD/3//f/9/AIAlUf9/rKaAnvx/04W7fwqD/H/Thbt/CoMlUf9/rKaAnrhSUYTbpOSeJVH/f6ymgJ7ZLv9/rKbUtLhSUYTbpOSeuFJRhNuk5J7ZLv9/rKbUtJUxUYTapImz2S7/f6ym1LS5G9qAY5kwvJUxUYTapImzlTFRhNqkibO5G9qAY5kwvD4fU4UamDm68QMontRmw7pRBJexpFkps3MH66D/ZiW5cwfroP9mJblRBJexpFkps00He7OyWf6xUQSXsaRZKbNRBLvStFgPnU0He7OyWf6xTQd7s7JZ/rFRBLvStFgPnU0H09MPWBCcUQS70rRYD50r+vz/6nkhgE0H09MPWBCcTQfT0w9YEJwr+vz/6nkhgDn2/P9+dWSAK/r8/+p5IYCt+7jSX6j4nTn2/P9+dWSAOfb8/351ZICt+7jSX6j4nbH40NOJqXedrfu40l+o+J2t+5SxXqg4trH40NOJqXedsfjQ04mpd52t+5SxXqg4trH4ebOIqU63rfuUsV6oOLYo+tOFtX/nwrH4ebOIqU63sfh5s4ipTrco+tOFtX/nwjb2xIkvf9rEKPrThbV/58JmzlGEsliStjb2xIkvf9rENvbEiS9/2sRmzlGEsliStoLMTIcOWOS3Zs5RhLJYkrZDrVGEplkAoILMTIcOWOS3gsxMhw5Y5LdDrVGEplkAoCusTYe0WSShQ61RhKZZAKD8f9OFu38KgyusTYe0WSShK6xNh7RZJKH8f9OFu38Kg/x/xIk0fz+F/H/Thbt/CoO4UlGE26Tknvx/xIk0fz+F/H/EiTR/P4W4UlGE26TkntBTTIdxoxifuFJRhNuk5J6VMVGE2qSJs9BTTIdxoxif0FNMh3GjGJ+VMVGE2qSJs3kzTYdwo6CylTFRhNqkibM+H1OFGpg5unkzTYdwo6CyeTNNh3CjoLI+H1OFGpg5uoUhNYgal/S4cwfroP9mJblNB3uzsln+sfYIHaIAZ3O49ggdogBnc7hNB3uzsln+sSsIorkmV5muTQd7s7JZ/rFNB9PTD1gQnCsIorkmV5muKwiiuSZXma5NB9PTD1gQnIsIItrKWu6WTQfT0w9YEJw59vz/fnVkgIsIItrKWu6Wiwgi2spa7pY59vz/fnVkgK71WPaDkm2EOfb8/351ZICx+NDTial3na71WPaDkm2ErvVY9oOSbYSx+NDTial3ndH3ic5wrGWisfjQ04mpd52x+HmziKlOt9H3ic5wrGWi0feJznCsZaKx+HmziKlOt3H3aa5HplO7sfh5s4ipTrc29sSJL3/axHH3aa5HplO7cfdprkemU7s29sSJL3/axAjsT4pzda/ENvbEiS9/2sSCzEyHDljktwjsT4pzda/ECOxPinN1r8SCzEyHDljkt1zGLIjbVeK0gsxMhw5Y5LcrrE2HtFkkoVzGLIjbVeK0XMYsiNtV4rQrrE2HtFkkodyljIguXSOdK6xNh7RZJKH8f8SJNH8/hdyljIguXSOd3KWMiC5dI538f8SJNH8/hVl2T4qbiNuJ/H/EiTR/P4XQU0yHcaMYn1l2T4qbiNuJWXZPipuI24nQU0yHcaMYn4pOLIgNpe2i0FNMh3GjGJ95M02HcKOgsopOLIgNpe2iik4siA2l7aJ5M02HcKOgsmoujIjUn7+0eTNNh3CjoLKFITWIGpf0uGoujIjUn7+0ai6MiNSfv7SFITWIGpf0uB0i9YjSlp+4")
 }]
 
-[node name="HunterRig" type="Node3D" unique_id=521851112]
+[node name="HunterRig" type="Node3D" unique_id=893946541]
 
-[node name="WaistSash" type="MeshInstance3D" parent="." unique_id=1550889245]
+[node name="WaistSash" type="MeshInstance3D" parent="." unique_id=1345022975]
 visible = false
 material_override = SubResource("StandardMaterial3D_w24ih")
 mesh = SubResource("ArrayMesh_a2ir0")
 
-[node name="Belt" type="MeshInstance3D" parent="." unique_id=1730478566]
+[node name="Belt" type="MeshInstance3D" parent="." unique_id=1770778105]
 visible = false
 material_override = SubResource("StandardMaterial3D_kqdhx")
 mesh = SubResource("ArrayMesh_2gnx4")
 
-[node name="@MeshInstance3D@2" type="MeshInstance3D" parent="." unique_id=254745489]
+[node name="@MeshInstance3D@2" type="MeshInstance3D" parent="." unique_id=681644993]
 transform = Transform3D(0.07, 0, 0, 0, 0.044, 0, 0, 0, 0.013, 0.055, 0.997, -0.133)
 visible = false
 material_override = SubResource("StandardMaterial3D_vn8mv")
 mesh = SubResource("BoxMesh_ahija")
 
-[node name="@MeshInstance3D@3" type="MeshInstance3D" parent="." unique_id=1561207642]
+[node name="@MeshInstance3D@3" type="MeshInstance3D" parent="." unique_id=1039337233]
 transform = Transform3D(0.046, 0, 0, 0, 0.025, 0, 0, 0, 0.008, 0.055, 0.997, -0.141)
 visible = false
 material_override = SubResource("StandardMaterial3D_jjv30")
 mesh = SubResource("BoxMesh_i83xw")
 
-[node name="ShoulderPlate-1" type="MeshInstance3D" parent="." unique_id=1658915932]
+[node name="ShoulderPlate-1" type="MeshInstance3D" parent="." unique_id=1281344245]
 transform = Transform3D(0.99999994, 3.7252903e-09, 0, 7.450581e-09, 1, -2.9802322e-08, 0, 2.9802322e-08, 1, -0.27, 1.43, 0)
 visible = false
 material_override = SubResource("StandardMaterial3D_fdltr")
 mesh = SubResource("ArrayMesh_vi33o")
 
-[node name="ShoulderPlate1" type="MeshInstance3D" parent="." unique_id=89568804]
+[node name="ShoulderPlate1" type="MeshInstance3D" parent="." unique_id=502001482]
 transform = Transform3D(0.99999994, -3.7252903e-09, 0, -7.450581e-09, 1, -2.9802322e-08, 0, 2.9802322e-08, 1, 0.27, 1.43, 0)
 visible = false
 material_override = SubResource("StandardMaterial3D_fqblc")
 mesh = SubResource("ArrayMesh_43lij")
 
-[node name="Skirt-1" type="Node3D" parent="." unique_id=1640284527]
+[node name="Skirt-1" type="Node3D" parent="." unique_id=1335159447]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.12, 0.98, -0.1)
 
-[node name="CoatPanel" type="MeshInstance3D" parent="Skirt-1" unique_id=2119999934]
+[node name="CoatPanel" type="MeshInstance3D" parent="Skirt-1" unique_id=1738607912]
 visible = false
 material_override = SubResource("ShaderMaterial_4esh8")
 mesh = SubResource("ArrayMesh_7qjxw")
 
-[node name="PanelTrim" type="MeshInstance3D" parent="Skirt-1" unique_id=1873651068]
+[node name="PanelTrim" type="MeshInstance3D" parent="Skirt-1" unique_id=2126245405]
 visible = false
 material_override = SubResource("StandardMaterial3D_qgiuv")
 mesh = SubResource("ArrayMesh_3vn2w")
 
-[node name="BeltPouch-1" type="MeshInstance3D" parent="." unique_id=918603321]
+[node name="BeltPouch-1" type="MeshInstance3D" parent="." unique_id=548362600]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.215, 0, 0.04)
 visible = false
 material_override = SubResource("StandardMaterial3D_weab6")
 mesh = SubResource("ArrayMesh_imqia")
 
-[node name="@MeshInstance3D@6" type="MeshInstance3D" parent="." unique_id=206506095]
+[node name="@MeshInstance3D@6" type="MeshInstance3D" parent="." unique_id=677492937]
 transform = Transform3D(0.035, 0, 0, 0, 0.045, 0, 0, 0, 0.015, -0.215, 0.96, -0.003)
 visible = false
 material_override = SubResource("StandardMaterial3D_l40sf")
 mesh = SubResource("BoxMesh_h7dhg")
 
-[node name="Skirt1" type="Node3D" parent="." unique_id=615523043]
+[node name="Skirt1" type="Node3D" parent="." unique_id=1058332649]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, 0.98, -0.1)
 
-[node name="CoatPanel" type="MeshInstance3D" parent="Skirt1" unique_id=646138076]
+[node name="CoatPanel" type="MeshInstance3D" parent="Skirt1" unique_id=1698777205]
 visible = false
 material_override = SubResource("ShaderMaterial_44vpl")
 mesh = SubResource("ArrayMesh_phh0s")
 
-[node name="PanelTrim" type="MeshInstance3D" parent="Skirt1" unique_id=1423833663]
+[node name="PanelTrim" type="MeshInstance3D" parent="Skirt1" unique_id=809671576]
 visible = false
 material_override = SubResource("StandardMaterial3D_rthtb")
 mesh = SubResource("ArrayMesh_satyb")
 
-[node name="BeltPouch1" type="MeshInstance3D" parent="." unique_id=1371455382]
+[node name="BeltPouch1" type="MeshInstance3D" parent="." unique_id=2006558707]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.215, 0, 0.04)
 visible = false
 material_override = SubResource("StandardMaterial3D_2tx6g")
 mesh = SubResource("ArrayMesh_7g6yt")
 
-[node name="@MeshInstance3D@7" type="MeshInstance3D" parent="." unique_id=926527242]
+[node name="@MeshInstance3D@7" type="MeshInstance3D" parent="." unique_id=969078803]
 transform = Transform3D(0.035, 0, 0, 0, 0.045, 0, 0, 0, 0.015, 0.215, 0.96, -0.003)
 visible = false
 material_override = SubResource("StandardMaterial3D_qq3rw")
 mesh = SubResource("BoxMesh_x76ke")
 
-[node name="Torso" type="Node3D" parent="." unique_id=1329950932]
+[node name="Torso" type="Node3D" parent="." unique_id=1635536373]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.08, 0)
 
-[node name="Undercoat" type="MeshInstance3D" parent="Torso" unique_id=1033243159]
+[node name="Undercoat" type="MeshInstance3D" parent="Torso" unique_id=927344374]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.08, 0)
 visible = false
 material_override = SubResource("ShaderMaterial_ecywk")
 mesh = SubResource("ArrayMesh_fo3ei")
 
-[node name="Neck" type="MeshInstance3D" parent="Torso" unique_id=30968344]
+[node name="Neck" type="MeshInstance3D" parent="Torso" unique_id=999535045]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.08, 0)
 visible = false
 material_override = SubResource("StandardMaterial3D_s5wap")
 mesh = SubResource("ArrayMesh_d6y2m")
 
-[node name="Collar" type="MeshInstance3D" parent="Torso" unique_id=808688070]
+[node name="Collar" type="MeshInstance3D" parent="Torso" unique_id=371088091]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.08, 0)
 visible = false
 material_override = SubResource("StandardMaterial3D_v2wkx")
 mesh = SubResource("ArrayMesh_4oj3c")
 
-[node name="CrossedCollar" type="MeshInstance3D" parent="Torso" unique_id=1439472387]
+[node name="CrossedCollar" type="MeshInstance3D" parent="Torso" unique_id=1087337962]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.08, 0)
 visible = false
 material_override = SubResource("StandardMaterial3D_ese2x")
 mesh = SubResource("ArrayMesh_h6o6c")
 
-[node name="InnerCollar" type="MeshInstance3D" parent="Torso" unique_id=101833706]
+[node name="InnerCollar" type="MeshInstance3D" parent="Torso" unique_id=1393290293]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.08, 0)
 visible = false
 material_override = SubResource("StandardMaterial3D_8froq")
 mesh = SubResource("ArrayMesh_qwt1q")
 
-[node name="RainCape-1" type="MeshInstance3D" parent="Torso" unique_id=2115986755]
+[node name="RainCape-1" type="MeshInstance3D" parent="Torso" unique_id=2109485629]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.08, 0)
 visible = false
 material_override = SubResource("ShaderMaterial_jye1t")
 mesh = SubResource("ArrayMesh_hbwef")
 
-[node name="CapeHem-1" type="MeshInstance3D" parent="Torso" unique_id=518826891]
+[node name="CapeHem-1" type="MeshInstance3D" parent="Torso" unique_id=1758694147]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.08, 0)
 visible = false
 material_override = SubResource("StandardMaterial3D_m8yhh")
 mesh = SubResource("ArrayMesh_ihrlq")
 
-[node name="@MeshInstance3D@4" type="MeshInstance3D" parent="Torso" unique_id=463559846]
+[node name="@MeshInstance3D@4" type="MeshInstance3D" parent="Torso" unique_id=1790121798]
 transform = Transform3D(0.028, 0, 0, 0, 0.055, 0, 0, 0, 0.018, -0.25, 0.3449999, -0.085)
 visible = false
 material_override = SubResource("StandardMaterial3D_2je84")
 mesh = SubResource("BoxMesh_n6nw5")
 
-[node name="RainCape1" type="MeshInstance3D" parent="Torso" unique_id=421041274]
+[node name="RainCape1" type="MeshInstance3D" parent="Torso" unique_id=1370724537]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.08, 0)
 visible = false
 material_override = SubResource("ShaderMaterial_mpdes")
 mesh = SubResource("ArrayMesh_psq4k")
 
-[node name="CapeHem1" type="MeshInstance3D" parent="Torso" unique_id=1962742562]
+[node name="CapeHem1" type="MeshInstance3D" parent="Torso" unique_id=1817981824]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.08, 0)
 visible = false
 material_override = SubResource("StandardMaterial3D_lv1ba")
 mesh = SubResource("ArrayMesh_0k5rc")
 
-[node name="@MeshInstance3D@5" type="MeshInstance3D" parent="Torso" unique_id=1830482831]
+[node name="@MeshInstance3D@5" type="MeshInstance3D" parent="Torso" unique_id=116775490]
 transform = Transform3D(0.028, 0, 0, 0, 0.055, 0, 0, 0, 0.018, 0.25, 0.3449999, -0.085)
 visible = false
 material_override = SubResource("StandardMaterial3D_mlnaj")
 mesh = SubResource("BoxMesh_vsihd")
 
-[node name="@MeshInstance3D@8" type="MeshInstance3D" parent="Torso" unique_id=559493334]
+[node name="@MeshInstance3D@8" type="MeshInstance3D" parent="Torso" unique_id=755766374]
 transform = Transform3D(0.07, 0, 0, 0, 0.31, 0, 0, 0, 0.055, 0, 0.21999991, 0.15)
 visible = false
 material_override = SubResource("StandardMaterial3D_i27qk")
 mesh = SubResource("BoxMesh_flw88")
 
-[node name="@MeshInstance3D@9" type="MeshInstance3D" parent="Torso" unique_id=332648635]
+[node name="@MeshInstance3D@9" type="MeshInstance3D" parent="Torso" unique_id=298090267]
 transform = Transform3D(0.09, 0, 0, 0, 0.065, 0, 0, 0, 0.025, 0, 0.37, 0.18)
 visible = false
 material_override = SubResource("StandardMaterial3D_j4phc")
 mesh = SubResource("BoxMesh_rf5ma")
 
-[node name="Head" type="MeshInstance3D" parent="Torso" unique_id=1387289928]
+[node name="Head" type="MeshInstance3D" parent="Torso" unique_id=339350657]
 transform = Transform3D(0.86, 0, 0, 0, 0.86, 0, 0, 0, 0.86, 0, -0.8651, 0)
 visible = false
 material_override = SubResource("StandardMaterial3D_44hx7")
 mesh = SubResource("ArrayMesh_kor74")
 
-[node name="Ear-1" type="MeshInstance3D" parent="Torso" unique_id=1324749034]
+[node name="Ear-1" type="MeshInstance3D" parent="Torso" unique_id=696692063]
 transform = Transform3D(0.038700003, 0, 0, 0, 0.067080006, 0, 0, 0, 0.030100001, -0.11868, 0.584, 0.0043)
 visible = false
 material_override = SubResource("StandardMaterial3D_vbq6g")
 mesh = SubResource("SphereMesh_muvlm")
 
-[node name="EyeWhite-1" type="MeshInstance3D" parent="Torso" unique_id=1373749475]
+[node name="EyeWhite-1" type="MeshInstance3D" parent="Torso" unique_id=109390204]
 transform = Transform3D(0.03612, 0, 0, 0, 0.01204, 0, 0, 0, 0.0068800002, -0.04816, 0.60722005, -0.09116)
 visible = false
 material_override = SubResource("StandardMaterial3D_sdm12")
 mesh = SubResource("SphereMesh_m7e3a")
 
-[node name="Iris-1" type="MeshInstance3D" parent="Torso" unique_id=1217830486]
+[node name="Iris-1" type="MeshInstance3D" parent="Torso" unique_id=17944484]
 transform = Transform3D(0.01118, 0, 0, 0, 0.01118, 0, 0, 0, 0.0034400001, -0.04816, 0.60808, -0.095460005)
 visible = false
 material_override = SubResource("StandardMaterial3D_87bmh")
 mesh = SubResource("SphereMesh_hjj7o")
 
-[node name="EyeGlint-1" type="MeshInstance3D" parent="Torso" unique_id=1551151536]
+[node name="EyeGlint-1" type="MeshInstance3D" parent="Torso" unique_id=1662952074]
 transform = Transform3D(0.00258, 0, 0, 0, 0.00258, 0, 0, 0, 0.0017200001, -0.04558, 0.61065996, -0.09804)
 visible = false
 material_override = SubResource("StandardMaterial3D_rxuu8")
 mesh = SubResource("SphereMesh_5s73s")
 
-[node name="UpperLid-1" type="MeshInstance3D" parent="Torso" unique_id=1091708838]
+[node name="UpperLid-1" type="MeshInstance3D" parent="Torso" unique_id=1117712360]
 transform = Transform3D(0.86, 0, 0, 0, 0.86, 0, 0, 0, 0.86, 0, -0.8651, 0)
 visible = false
 material_override = SubResource("StandardMaterial3D_yielf")
 mesh = SubResource("ArrayMesh_d6s0d")
 
-[node name="LowerLid-1" type="MeshInstance3D" parent="Torso" unique_id=1339746053]
+[node name="LowerLid-1" type="MeshInstance3D" parent="Torso" unique_id=788520576]
 transform = Transform3D(0.86, 0, 0, 0, 0.86, 0, 0, 0, 0.86, 0, -0.8651, 0)
 visible = false
 material_override = SubResource("StandardMaterial3D_2jogi")
 mesh = SubResource("ArrayMesh_movb4")
 
-[node name="Brow-1" type="MeshInstance3D" parent="Torso" unique_id=520170250]
+[node name="Brow-1" type="MeshInstance3D" parent="Torso" unique_id=1884261893]
 transform = Transform3D(0.86, 0, 0, 0, 0.86, 0, 0, 0, 0.86, 0, -0.8651, 0)
 visible = false
 material_override = SubResource("StandardMaterial3D_v4jj8")
 mesh = SubResource("ArrayMesh_mfc2u")
 
-[node name="Ear1" type="MeshInstance3D" parent="Torso" unique_id=798989856]
+[node name="Ear1" type="MeshInstance3D" parent="Torso" unique_id=790740312]
 transform = Transform3D(0.038700003, 0, 0, 0, 0.067080006, 0, 0, 0, 0.030100001, 0.11868, 0.584, 0.0043)
 visible = false
 material_override = SubResource("StandardMaterial3D_ic4g2")
 mesh = SubResource("SphereMesh_q0dbh")
 
-[node name="EyeWhite1" type="MeshInstance3D" parent="Torso" unique_id=1415767152]
+[node name="EyeWhite1" type="MeshInstance3D" parent="Torso" unique_id=247941702]
 transform = Transform3D(0.03612, 0, 0, 0, 0.01204, 0, 0, 0, 0.0068800002, 0.04816, 0.60722005, -0.09116)
 visible = false
 material_override = SubResource("StandardMaterial3D_gembf")
 mesh = SubResource("SphereMesh_yuuky")
 
-[node name="Iris1" type="MeshInstance3D" parent="Torso" unique_id=455022924]
+[node name="Iris1" type="MeshInstance3D" parent="Torso" unique_id=1327483656]
 transform = Transform3D(0.01118, 0, 0, 0, 0.01118, 0, 0, 0, 0.0034400001, 0.04816, 0.60808, -0.095460005)
 visible = false
 material_override = SubResource("StandardMaterial3D_i10nb")
 mesh = SubResource("SphereMesh_ba3va")
 
-[node name="EyeGlint1" type="MeshInstance3D" parent="Torso" unique_id=548153340]
+[node name="EyeGlint1" type="MeshInstance3D" parent="Torso" unique_id=459287879]
 transform = Transform3D(0.00258, 0, 0, 0, 0.00258, 0, 0, 0, 0.0017200001, 0.04558, 0.61065996, -0.09804)
 visible = false
 material_override = SubResource("StandardMaterial3D_jcbjv")
 mesh = SubResource("SphereMesh_a8fhq")
 
-[node name="UpperLid1" type="MeshInstance3D" parent="Torso" unique_id=1263586735]
+[node name="UpperLid1" type="MeshInstance3D" parent="Torso" unique_id=480597377]
 transform = Transform3D(0.86, 0, 0, 0, 0.86, 0, 0, 0, 0.86, 0, -0.8651, 0)
 visible = false
 material_override = SubResource("StandardMaterial3D_vk2mu")
 mesh = SubResource("ArrayMesh_57b80")
 
-[node name="LowerLid1" type="MeshInstance3D" parent="Torso" unique_id=2106233307]
+[node name="LowerLid1" type="MeshInstance3D" parent="Torso" unique_id=140060734]
 transform = Transform3D(0.86, 0, 0, 0, 0.86, 0, 0, 0, 0.86, 0, -0.8651, 0)
 visible = false
 material_override = SubResource("StandardMaterial3D_5yk2d")
 mesh = SubResource("ArrayMesh_6er2t")
 
-[node name="Brow1" type="MeshInstance3D" parent="Torso" unique_id=1370766229]
+[node name="Brow1" type="MeshInstance3D" parent="Torso" unique_id=1660082705]
 transform = Transform3D(0.86, 0, 0, 0, 0.86, 0, 0, 0, 0.86, 0, -0.8651, 0)
 visible = false
 material_override = SubResource("StandardMaterial3D_u6say")
 mesh = SubResource("ArrayMesh_6fmn7")
 
-[node name="NoseBridge" type="MeshInstance3D" parent="Torso" unique_id=1401828570]
+[node name="NoseBridge" type="MeshInstance3D" parent="Torso" unique_id=175669711]
 transform = Transform3D(0.86, 0, 0, 0, 0.86, 0, 0, 0, 0.86, 0, -0.8651, 0)
 visible = false
 material_override = SubResource("StandardMaterial3D_hjv3b")
 mesh = SubResource("ArrayMesh_0hvol")
 
-[node name="UpperLip" type="MeshInstance3D" parent="Torso" unique_id=1441170216]
+[node name="UpperLip" type="MeshInstance3D" parent="Torso" unique_id=296593752]
 transform = Transform3D(0.0473, 0, 0, 0, 0.00516, 0, 0, 0, 0.0068800002, 0, 0.5401399, -0.09331)
 visible = false
 material_override = SubResource("StandardMaterial3D_37na5")
 mesh = SubResource("SphereMesh_05baj")
 
-[node name="LowerLip" type="MeshInstance3D" parent="Torso" unique_id=525752459]
+[node name="LowerLip" type="MeshInstance3D" parent="Torso" unique_id=1562727722]
 transform = Transform3D(0.043, 0, 0, 0, 0.00516, 0, 0, 0, 0.0068800002, 0, 0.5354099, -0.09331)
 visible = false
 material_override = SubResource("StandardMaterial3D_i7cpq")
 mesh = SubResource("SphereMesh_np42u")
 
-[node name="HairCap" type="MeshInstance3D" parent="Torso" unique_id=700431066]
+[node name="HairCap" type="MeshInstance3D" parent="Torso" unique_id=1384030538]
 transform = Transform3D(0.86, 0, 0, 0, 0.86, 0, 0, 0, 0.86, 0, -0.8651, 0)
 visible = false
 material_override = SubResource("StandardMaterial3D_h1et7")
 mesh = SubResource("ArrayMesh_dbehx")
 
-[node name="HairKnot" type="MeshInstance3D" parent="Torso" unique_id=1256276660]
+[node name="HairKnot" type="MeshInstance3D" parent="Torso" unique_id=840361744]
 transform = Transform3D(0.86, 0, 0, 0, 0.86, 0, 0, 0, 0.86, 0, -0.8651, 0)
 visible = false
 material_override = SubResource("StandardMaterial3D_7bhax")
 mesh = SubResource("ArrayMesh_o3i02")
 
-[node name="HairTie" type="MeshInstance3D" parent="Torso" unique_id=1486199670]
+[node name="HairTie" type="MeshInstance3D" parent="Torso" unique_id=990735601]
 transform = Transform3D(0.86, 0, 0, 0, 0.86, 0, 0, 0, 0.86, 0, -0.8651, 0)
 visible = false
 material_override = SubResource("StandardMaterial3D_76uc0")
 mesh = SubResource("ArrayMesh_cch87")
 
-[node name="Arm-1" type="Node3D" parent="." unique_id=1166479384]
+[node name="Arm-1" type="Node3D" parent="." unique_id=456104602]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.27, 1.43, 0)
 
-[node name="Sleeve-1" type="MeshInstance3D" parent="." unique_id=514853414]
+[node name="Sleeve-1" type="MeshInstance3D" parent="." unique_id=1474058395]
 transform = Transform3D(0.99278486, -0.017963916, -0.11070969, 0.002497572, -0.35690212, 0.4031429, -0.119883455, -0.15619916, -0.9084158, -0.27898198, 1.2515489, -0.07809958)
 visible = false
 material_override = SubResource("ShaderMaterial_153nu")
 mesh = SubResource("ArrayMesh_ewwu2")
 
-[node name="Bracer-1" type="MeshInstance3D" parent="." unique_id=511379685]
+[node name="Bracer-1" type="MeshInstance3D" parent="." unique_id=1567841307]
 transform = Transform3D(0.9692424, 0.017963953, -0.24175903, -0.046061233, -0.3630979, -0.36204904, -0.24175906, 0.1411991, -0.9002628, -0.27898198, 0.8915489, -0.08559958)
 visible = false
 material_override = SubResource("StandardMaterial3D_0hmav")
 mesh = SubResource("ArrayMesh_3pntx")
 
-[node name="@MeshInstance3D@20" type="MeshInstance3D" parent="Bracer-1" unique_id=43167198]
+[node name="@MeshInstance3D@20" type="MeshInstance3D" parent="Bracer-1" unique_id=368962176]
 transform = Transform3D(0.065, 0, 0, 0, 0.28, 0, 0, 0, 0.012, 0, -0.06, -0.063)
 visible = false
 material_override = SubResource("StandardMaterial3D_5fcvk")
 mesh = SubResource("BoxMesh_f1g20")
 
-[node name="@MeshInstance3D@21" type="MeshInstance3D" parent="Bracer-1" unique_id=1049595948]
+[node name="@MeshInstance3D@21" type="MeshInstance3D" parent="Bracer-1" unique_id=1271799254]
 transform = Transform3D(0.039, 0, 0, 0, 0.18, 0, 0, 0, 0.009, 0, -0.06, -0.071)
 visible = false
 material_override = SubResource("StandardMaterial3D_r3ujk")
 mesh = SubResource("BoxMesh_u5tq0")
 
-[node name="GripHandLeft" type="MeshInstance3D" parent="." unique_id=335111884]
+[node name="GripHandLeft" type="MeshInstance3D" parent="." unique_id=1264192448]
 transform = Transform3D(0, 1, 0, 0.93200946, 0, -0.3624338, -0.3624338, 0, -0.93200946, -0.27, 0.7099999, -0.015)
 visible = false
 material_override = SubResource("StandardMaterial3D_qrqus")
 mesh = SubResource("ArrayMesh_3qnee")
 blend_shapes/OpenHand = 1.0
 
-[node name="Elbow-1" type="MeshInstance3D" parent="." unique_id=518733994]
+[node name="Elbow-1" type="MeshInstance3D" parent="." unique_id=398838005]
 transform = Transform3D(0.12, 0, 0, 0, 0.12, 0, 0, 0, 0.12, -0.28796393, 1.0730978, -0.15619916)
 visible = false
 material_override = SubResource("StandardMaterial3D_cwow1")
 mesh = SubResource("SphereMesh_wn277")
 
-[node name="Leg-1" type="Node3D" parent="." unique_id=1916108753]
+[node name="Leg-1" type="Node3D" parent="." unique_id=1422431979]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.14, 0.89, 0)
 
-[node name="TrouserThigh" type="MeshInstance3D" parent="Leg-1" unique_id=1986810096]
+[node name="TrouserThigh" type="MeshInstance3D" parent="Leg-1" unique_id=387091121]
 visible = false
 material_override = SubResource("ShaderMaterial_wii3c")
 mesh = SubResource("ArrayMesh_3q4yx")
 
-[node name="Knee" type="Node3D" parent="Leg-1" unique_id=1703996367]
+[node name="Knee" type="Node3D" parent="Leg-1" unique_id=2059271268]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.43, 0)
 
-[node name="KneePlate" type="MeshInstance3D" parent="Leg-1/Knee" unique_id=1833337322]
+[node name="KneePlate" type="MeshInstance3D" parent="Leg-1/Knee" unique_id=1147267437]
 visible = false
 material_override = SubResource("StandardMaterial3D_ylshq")
 mesh = SubResource("ArrayMesh_n3qum")
 
-[node name="TrouserShin" type="MeshInstance3D" parent="Leg-1/Knee" unique_id=866495321]
+[node name="TrouserShin" type="MeshInstance3D" parent="Leg-1/Knee" unique_id=995241716]
 visible = false
 material_override = SubResource("ShaderMaterial_4chwa")
 mesh = SubResource("ArrayMesh_ym0wa")
 
-[node name="ShinPlate" type="MeshInstance3D" parent="Leg-1/Knee" unique_id=996965492]
+[node name="ShinPlate" type="MeshInstance3D" parent="Leg-1/Knee" unique_id=1854063717]
 visible = false
 material_override = SubResource("StandardMaterial3D_gd4k5")
 mesh = SubResource("ArrayMesh_fsa8s")
 
-[node name="Ankle" type="Node3D" parent="Leg-1/Knee" unique_id=1942203821]
+[node name="Ankle" type="Node3D" parent="Leg-1/Knee" unique_id=1565542435]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.36, 0)
 
-[node name="ForestBoot" type="MeshInstance3D" parent="Leg-1/Knee/Ankle" unique_id=731904058]
+[node name="ForestBoot" type="MeshInstance3D" parent="Leg-1/Knee/Ankle" unique_id=714034002]
 transform = Transform3D(0.18, 0, 0, 0, 0.15, 0, 0, 0, 0.3, 0, -0.025, -0.06)
 visible = false
 material_override = SubResource("StandardMaterial3D_s04h1")
 mesh = SubResource("ArrayMesh_vfclj")
 
-[node name="Arm1" type="Node3D" parent="." unique_id=1531425491]
+[node name="Arm1" type="Node3D" parent="." unique_id=1247430678]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.27, 1.43, 0)
 
-[node name="Sleeve1" type="MeshInstance3D" parent="." unique_id=1495494308]
+[node name="Sleeve1" type="MeshInstance3D" parent="." unique_id=1349665609]
 transform = Transform3D(0.99278486, 0.017963916, 0.11070969, -0.002497572, -0.35690212, 0.4031429, 0.119883455, -0.15619916, -0.9084158, 0.27898198, 1.2515489, -0.07809958)
 visible = false
 material_override = SubResource("ShaderMaterial_mm06t")
 mesh = SubResource("ArrayMesh_su1hq")
 
-[node name="Bracer1" type="MeshInstance3D" parent="." unique_id=1572538606]
+[node name="Bracer1" type="MeshInstance3D" parent="." unique_id=647231893]
 transform = Transform3D(0.9692424, -0.017963953, 0.24175903, 0.046061233, -0.3630979, -0.36204904, 0.24175906, 0.1411991, -0.9002628, 0.27898198, 0.8915489, -0.08559958)
 visible = false
 material_override = SubResource("StandardMaterial3D_4l644")
 mesh = SubResource("ArrayMesh_1lhbq")
 
-[node name="@MeshInstance3D@23" type="MeshInstance3D" parent="Bracer1" unique_id=245734596]
+[node name="@MeshInstance3D@23" type="MeshInstance3D" parent="Bracer1" unique_id=192536425]
 transform = Transform3D(0.065, 0, 0, 0, 0.28, 0, 0, 0, 0.012, 0, -0.06, -0.063)
 visible = false
 material_override = SubResource("StandardMaterial3D_1wjib")
 mesh = SubResource("BoxMesh_kf5yr")
 
-[node name="GripHandRight" type="MeshInstance3D" parent="." unique_id=1756097572]
+[node name="GripHandRight" type="MeshInstance3D" parent="." unique_id=1350346591]
 transform = Transform3D(0, 1, 0, 0.93200946, 0, -0.3624338, -0.3624338, 0, -0.93200946, 0.27, 0.7099999, -0.015)
 visible = false
 material_override = SubResource("StandardMaterial3D_l5ltl")
 mesh = SubResource("ArrayMesh_wh4gk")
 blend_shapes/OpenHand = 1.0
 
-[node name="Elbow1" type="MeshInstance3D" parent="." unique_id=1544506190]
+[node name="Elbow1" type="MeshInstance3D" parent="." unique_id=1574074279]
 transform = Transform3D(0.12, 0, 0, 0, 0.12, 0, 0, 0, 0.12, 0.28796393, 1.0730978, -0.15619916)
 visible = false
 material_override = SubResource("StandardMaterial3D_6aro4")
 mesh = SubResource("SphereMesh_un1rs")
 
-[node name="Leg1" type="Node3D" parent="." unique_id=1648910176]
+[node name="Leg1" type="Node3D" parent="." unique_id=930501330]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.14, 0.89, 0)
 
-[node name="TrouserThigh" type="MeshInstance3D" parent="Leg1" unique_id=1464792438]
+[node name="TrouserThigh" type="MeshInstance3D" parent="Leg1" unique_id=1383414206]
 visible = false
 material_override = SubResource("ShaderMaterial_gu3so")
 mesh = SubResource("ArrayMesh_j7l1f")
 
-[node name="Knee" type="Node3D" parent="Leg1" unique_id=1130991063]
+[node name="Knee" type="Node3D" parent="Leg1" unique_id=1221193648]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.43, 0)
 
-[node name="KneePlate" type="MeshInstance3D" parent="Leg1/Knee" unique_id=525042480]
+[node name="KneePlate" type="MeshInstance3D" parent="Leg1/Knee" unique_id=1248299817]
 visible = false
 material_override = SubResource("StandardMaterial3D_bnuri")
 mesh = SubResource("ArrayMesh_cp10e")
 
-[node name="TrouserShin" type="MeshInstance3D" parent="Leg1/Knee" unique_id=783004586]
+[node name="TrouserShin" type="MeshInstance3D" parent="Leg1/Knee" unique_id=1126762018]
 visible = false
 material_override = SubResource("ShaderMaterial_wkpe1")
 mesh = SubResource("ArrayMesh_an4fb")
 
-[node name="ShinPlate" type="MeshInstance3D" parent="Leg1/Knee" unique_id=1835947488]
+[node name="ShinPlate" type="MeshInstance3D" parent="Leg1/Knee" unique_id=89522677]
 visible = false
 material_override = SubResource("StandardMaterial3D_wwxph")
 mesh = SubResource("ArrayMesh_j3371")
 
-[node name="Ankle" type="Node3D" parent="Leg1/Knee" unique_id=150612433]
+[node name="Ankle" type="Node3D" parent="Leg1/Knee" unique_id=14908944]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.36, 0)
 
-[node name="ForestBoot" type="MeshInstance3D" parent="Leg1/Knee/Ankle" unique_id=616845799]
+[node name="ForestBoot" type="MeshInstance3D" parent="Leg1/Knee/Ankle" unique_id=290643084]
 transform = Transform3D(0.18, 0, 0, 0, 0.15, 0, 0, 0, 0.3, 0, -0.025, -0.06)
 visible = false
 material_override = SubResource("StandardMaterial3D_33li1")
 mesh = SubResource("ArrayMesh_qnrrf")
 
-[node name="Trident" type="Node3D" parent="." unique_id=1212458157]
+[node name="Trident" type="Node3D" parent="." unique_id=393751291]
 transform = Transform3D(0.9393727, -0.3428978, 0, 0.3428978, 0.9393727, 0, 0, 0, 1, 0, 1.05, 0.26)
 
-[node name="Shaft" type="MeshInstance3D" parent="Trident" unique_id=1216620893]
+[node name="Shaft" type="MeshInstance3D" parent="Trident" unique_id=672664708]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.04, 0)
 material_override = SubResource("StandardMaterial3D_ugrkl")
 mesh = SubResource("CylinderMesh_28g2f")
 
-[node name="Grip" type="MeshInstance3D" parent="Trident" unique_id=1448477334]
+[node name="Grip" type="MeshInstance3D" parent="Trident" unique_id=740448611]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.04, 0)
 material_override = SubResource("StandardMaterial3D_jqgh5")
 mesh = SubResource("CylinderMesh_ro4yc")
 
-[node name="Ferrule" type="MeshInstance3D" parent="Trident" unique_id=639032413]
+[node name="Ferrule" type="MeshInstance3D" parent="Trident" unique_id=906294347]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.32, 0)
 material_override = SubResource("StandardMaterial3D_cr1q0")
 mesh = SubResource("CylinderMesh_xxci5")
 
-[node name="@MeshInstance3D@26" type="MeshInstance3D" parent="Trident" unique_id=565988313]
+[node name="@MeshInstance3D@26" type="MeshInstance3D" parent="Trident" unique_id=515843019]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.24, 0)
 material_override = SubResource("StandardMaterial3D_cr1q0")
 mesh = SubResource("CylinderMesh_kiekk")
 
-[node name="@MeshInstance3D@27" type="MeshInstance3D" parent="Trident" unique_id=1343955406]
+[node name="@MeshInstance3D@27" type="MeshInstance3D" parent="Trident" unique_id=1061176236]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.77, 0)
 material_override = SubResource("StandardMaterial3D_cr1q0")
 mesh = SubResource("CylinderMesh_sablt")
 
-[node name="@MeshInstance3D@28" type="MeshInstance3D" parent="Trident" unique_id=1125020997]
+[node name="@MeshInstance3D@28" type="MeshInstance3D" parent="Trident" unique_id=612351796]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.87, 0)
 material_override = SubResource("StandardMaterial3D_cr1q0")
 mesh = SubResource("CylinderMesh_12acr")
 
-[node name="GripRib" type="MeshInstance3D" parent="Trident" unique_id=1208125968]
+[node name="GripRib" type="MeshInstance3D" parent="Trident" unique_id=459615357]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.29, 0)
 material_override = SubResource("StandardMaterial3D_ugrkl")
 mesh = SubResource("CylinderMesh_kpchp")
 
-[node name="@MeshInstance3D@29" type="MeshInstance3D" parent="Trident" unique_id=60902102]
+[node name="@MeshInstance3D@29" type="MeshInstance3D" parent="Trident" unique_id=1733791880]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.245, 0)
 material_override = SubResource("StandardMaterial3D_ugrkl")
 mesh = SubResource("CylinderMesh_c3ue3")
 
-[node name="@MeshInstance3D@30" type="MeshInstance3D" parent="Trident" unique_id=777750112]
+[node name="@MeshInstance3D@30" type="MeshInstance3D" parent="Trident" unique_id=1147967394]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, 0)
 material_override = SubResource("StandardMaterial3D_ugrkl")
 mesh = SubResource("CylinderMesh_l768d")
 
-[node name="@MeshInstance3D@31" type="MeshInstance3D" parent="Trident" unique_id=165406736]
+[node name="@MeshInstance3D@31" type="MeshInstance3D" parent="Trident" unique_id=1066453636]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.155, 0)
 material_override = SubResource("StandardMaterial3D_ugrkl")
 mesh = SubResource("CylinderMesh_jb3ty")
 
-[node name="@MeshInstance3D@32" type="MeshInstance3D" parent="Trident" unique_id=925699623]
+[node name="@MeshInstance3D@32" type="MeshInstance3D" parent="Trident" unique_id=695913744]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.11, 0)
 material_override = SubResource("StandardMaterial3D_ugrkl")
 mesh = SubResource("CylinderMesh_8sbjw")
 
-[node name="@MeshInstance3D@33" type="MeshInstance3D" parent="Trident" unique_id=1572336561]
+[node name="@MeshInstance3D@33" type="MeshInstance3D" parent="Trident" unique_id=93766046]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.065, 0)
 material_override = SubResource("StandardMaterial3D_ugrkl")
 mesh = SubResource("CylinderMesh_ek2l3")
 
-[node name="@MeshInstance3D@34" type="MeshInstance3D" parent="Trident" unique_id=1500061909]
+[node name="@MeshInstance3D@34" type="MeshInstance3D" parent="Trident" unique_id=676497797]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.02, 0)
 material_override = SubResource("StandardMaterial3D_ugrkl")
 mesh = SubResource("CylinderMesh_67rfr")
 
-[node name="@MeshInstance3D@35" type="MeshInstance3D" parent="Trident" unique_id=685027229]
+[node name="@MeshInstance3D@35" type="MeshInstance3D" parent="Trident" unique_id=970593424]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.025, 0)
 material_override = SubResource("StandardMaterial3D_ugrkl")
 mesh = SubResource("CylinderMesh_bt5nf")
 
-[node name="@MeshInstance3D@36" type="MeshInstance3D" parent="Trident" unique_id=372567181]
+[node name="@MeshInstance3D@36" type="MeshInstance3D" parent="Trident" unique_id=1980818440]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.07, 0)
 material_override = SubResource("StandardMaterial3D_ugrkl")
 mesh = SubResource("CylinderMesh_x1om8")
 
-[node name="@MeshInstance3D@37" type="MeshInstance3D" parent="Trident" unique_id=996175277]
+[node name="@MeshInstance3D@37" type="MeshInstance3D" parent="Trident" unique_id=1677241165]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.115, 0)
 material_override = SubResource("StandardMaterial3D_ugrkl")
 mesh = SubResource("CylinderMesh_8rpt3")
 
-[node name="@MeshInstance3D@38" type="MeshInstance3D" parent="Trident" unique_id=1303578764]
+[node name="@MeshInstance3D@38" type="MeshInstance3D" parent="Trident" unique_id=308380449]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.16, 0)
 material_override = SubResource("StandardMaterial3D_ugrkl")
 mesh = SubResource("CylinderMesh_kfwj3")
 
-[node name="@MeshInstance3D@39" type="MeshInstance3D" parent="Trident" unique_id=1219041271]
+[node name="@MeshInstance3D@39" type="MeshInstance3D" parent="Trident" unique_id=596200403]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.205, 0)
 material_override = SubResource("StandardMaterial3D_ugrkl")
 mesh = SubResource("CylinderMesh_nfvxm")
 
-[node name="ButtNeck" type="MeshInstance3D" parent="Trident" unique_id=1446998887]
+[node name="ButtNeck" type="MeshInstance3D" parent="Trident" unique_id=1515195885]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.9, 0)
 material_override = SubResource("StandardMaterial3D_cr1q0")
 mesh = SubResource("CylinderMesh_5ijnx")
 
-[node name="Butt" type="MeshInstance3D" parent="Trident" unique_id=712079720]
+[node name="Butt" type="MeshInstance3D" parent="Trident" unique_id=1014656965]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.93, 0)
 material_override = SubResource("StandardMaterial3D_cr1q0")
 mesh = SubResource("SphereMesh_fqnqj")
 
-[node name="CenterBlade" type="MeshInstance3D" parent="Trident" unique_id=564753139]
+[node name="CenterBlade" type="MeshInstance3D" parent="Trident" unique_id=2013513412]
 material_override = SubResource("StandardMaterial3D_cr1q0")
 mesh = SubResource("ArrayMesh_4l2iw")
 
-[node name="Hook-1" type="MeshInstance3D" parent="Trident" unique_id=1665776736]
+[node name="Hook-1" type="MeshInstance3D" parent="Trident" unique_id=122513149]
 material_override = SubResource("StandardMaterial3D_cr1q0")
 mesh = SubResource("ArrayMesh_xw4jv")
 
-[node name="Hook1" type="MeshInstance3D" parent="Trident" unique_id=1202668432]
+[node name="Hook1" type="MeshInstance3D" parent="Trident" unique_id=37911907]
 material_override = SubResource("StandardMaterial3D_cr1q0")
 mesh = SubResource("ArrayMesh_uum5r")
 
-[node name="JadeCell" type="MeshInstance3D" parent="Trident" unique_id=424402987]
+[node name="JadeCell" type="MeshInstance3D" parent="Trident" unique_id=720205448]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.875, -0.023)
 material_override = SubResource("StandardMaterial3D_qpukj")
 mesh = SubResource("CylinderMesh_818ij")
 
-[node name="TipContact" type="Marker3D" parent="Trident" unique_id=849003599]
+[node name="TipContact" type="Marker3D" parent="Trident" unique_id=599105452]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
 
-[node name="BladeContact" type="Marker3D" parent="Trident" unique_id=567400630]
+[node name="BladeContact" type="Marker3D" parent="Trident" unique_id=850686561]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0)
 
-[node name="HeadBaseContact" type="Marker3D" parent="Trident" unique_id=326120861]
+[node name="HeadBaseContact" type="Marker3D" parent="Trident" unique_id=1679184007]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
 
-[node name="LeftProngContact" type="Marker3D" parent="Trident" unique_id=1335624248]
+[node name="LeftProngContact" type="Marker3D" parent="Trident" unique_id=883932526]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.17, 1.06, 0)
 
-[node name="RightProngContact" type="Marker3D" parent="Trident" unique_id=1384739884]
+[node name="RightProngContact" type="Marker3D" parent="Trident" unique_id=613731972]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.17, 1.06, 0)
 
-[node name="LeftHookContact" type="Marker3D" parent="Trident" unique_id=317591159]
+[node name="LeftHookContact" type="Marker3D" parent="Trident" unique_id=86273773]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.135, 0.7, 0)
 
-[node name="RightHookContact" type="Marker3D" parent="Trident" unique_id=498105491]
+[node name="RightHookContact" type="Marker3D" parent="Trident" unique_id=1690866923]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.135, 0.7, 0)
 
-[node name="ButtContact" type="Marker3D" parent="Trident" unique_id=1534671983]
+[node name="ButtContact" type="Marker3D" parent="Trident" unique_id=569650067]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.98, 0)
 
-[node name="ButtNeckContact" type="Marker3D" parent="Trident" unique_id=1581356971]
+[node name="ButtNeckContact" type="Marker3D" parent="Trident" unique_id=296042475]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.88, 0)
 
-[node name="JointClothShoulder-1" type="MeshInstance3D" parent="." unique_id=344623878]
+[node name="JointClothShoulder-1" type="MeshInstance3D" parent="." unique_id=36898335]
 visible = false
 material_override = SubResource("ShaderMaterial_wwspx")
 mesh = SubResource("ArrayMesh_qb85c")
 
-[node name="JointClothElbow-1" type="MeshInstance3D" parent="." unique_id=1762416586]
+[node name="JointClothElbow-1" type="MeshInstance3D" parent="." unique_id=731584437]
 visible = false
 material_override = SubResource("ShaderMaterial_x6kjm")
 mesh = SubResource("ArrayMesh_sin1v")
 
-[node name="JointClothKnee-1" type="MeshInstance3D" parent="." unique_id=1614068610]
+[node name="JointClothKnee-1" type="MeshInstance3D" parent="." unique_id=1573841932]
 visible = false
 material_override = SubResource("ShaderMaterial_xffvi")
 mesh = SubResource("ArrayMesh_gtlo6")
 
-[node name="JointClothShoulder1" type="MeshInstance3D" parent="." unique_id=2095068416]
+[node name="JointClothShoulder1" type="MeshInstance3D" parent="." unique_id=1188027344]
 visible = false
 material_override = SubResource("ShaderMaterial_y0umj")
 mesh = SubResource("ArrayMesh_r87m8")
 
-[node name="JointClothElbow1" type="MeshInstance3D" parent="." unique_id=521163390]
+[node name="JointClothElbow1" type="MeshInstance3D" parent="." unique_id=668136938]
 visible = false
 material_override = SubResource("ShaderMaterial_f4vi1")
 mesh = SubResource("ArrayMesh_hq00t")
 
-[node name="JointClothKnee1" type="MeshInstance3D" parent="." unique_id=2025859462]
+[node name="JointClothKnee1" type="MeshInstance3D" parent="." unique_id=316385824]
 visible = false
 material_override = SubResource("ShaderMaterial_w76tt")
 mesh = SubResource("ArrayMesh_fgbjf")
 
-[node name="Skeleton3D" type="Skeleton3D" parent="." unique_id=1283448262]
+[node name="Skeleton3D" type="Skeleton3D" parent="." unique_id=759749449]
 bones/0/name = "Root"
 bones/0/parent = -1
 bones/0/rest = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
@@ -3615,371 +3615,371 @@ bones/76/position = Vector3(0, 0, 0)
 bones/76/rotation = Quaternion(0, 0, 0, 1)
 bones/76/scale = Vector3(1, 1, 1)
 
-[node name="SkinPart_00" type="MeshInstance3D" parent="Skeleton3D" unique_id=1776628072]
+[node name="SkinPart_00" type="MeshInstance3D" parent="Skeleton3D" unique_id=834625175]
 material_override = SubResource("StandardMaterial3D_w24ih")
 mesh = SubResource("ArrayMesh_mfcg1")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "WaistSash"
 
-[node name="SkinPart_01" type="MeshInstance3D" parent="Skeleton3D" unique_id=125277451]
+[node name="SkinPart_01" type="MeshInstance3D" parent="Skeleton3D" unique_id=736714937]
 material_override = SubResource("StandardMaterial3D_kqdhx")
 mesh = SubResource("ArrayMesh_seuar")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "Belt"
 
-[node name="SkinPart_02" type="MeshInstance3D" parent="Skeleton3D" unique_id=1554881766]
+[node name="SkinPart_02" type="MeshInstance3D" parent="Skeleton3D" unique_id=857079113]
 material_override = SubResource("StandardMaterial3D_vn8mv")
 mesh = SubResource("ArrayMesh_iqgyq")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "@MeshInstance3D@2"
 
-[node name="SkinPart_03" type="MeshInstance3D" parent="Skeleton3D" unique_id=1319019574]
+[node name="SkinPart_03" type="MeshInstance3D" parent="Skeleton3D" unique_id=1701871855]
 material_override = SubResource("StandardMaterial3D_jjv30")
 mesh = SubResource("ArrayMesh_tldyg")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "@MeshInstance3D@3"
 
-[node name="SkinPart_04" type="MeshInstance3D" parent="Skeleton3D" unique_id=573298917]
+[node name="SkinPart_04" type="MeshInstance3D" parent="Skeleton3D" unique_id=1213285141]
 material_override = SubResource("StandardMaterial3D_fdltr")
 mesh = SubResource("ArrayMesh_lpbrw")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "ShoulderPlate-1"
 
-[node name="SkinPart_05" type="MeshInstance3D" parent="Skeleton3D" unique_id=1996179620]
+[node name="SkinPart_05" type="MeshInstance3D" parent="Skeleton3D" unique_id=271618835]
 material_override = SubResource("StandardMaterial3D_fqblc")
 mesh = SubResource("ArrayMesh_4we3k")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "ShoulderPlate1"
 
-[node name="SkinPart_06" type="MeshInstance3D" parent="Skeleton3D" unique_id=235317429]
+[node name="SkinPart_06" type="MeshInstance3D" parent="Skeleton3D" unique_id=179915729]
 material_override = SubResource("ShaderMaterial_4esh8")
 mesh = SubResource("ArrayMesh_dv5oy")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "CoatPanel"
 
-[node name="SkinPart_07" type="MeshInstance3D" parent="Skeleton3D" unique_id=1199438297]
+[node name="SkinPart_07" type="MeshInstance3D" parent="Skeleton3D" unique_id=362120040]
 material_override = SubResource("StandardMaterial3D_qgiuv")
 mesh = SubResource("ArrayMesh_y76co")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "PanelTrim"
 
-[node name="SkinPart_08" type="MeshInstance3D" parent="Skeleton3D" unique_id=1084860400]
+[node name="SkinPart_08" type="MeshInstance3D" parent="Skeleton3D" unique_id=1583349826]
 material_override = SubResource("StandardMaterial3D_weab6")
 mesh = SubResource("ArrayMesh_jtxna")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "BeltPouch-1"
 
-[node name="SkinPart_09" type="MeshInstance3D" parent="Skeleton3D" unique_id=1855574135]
+[node name="SkinPart_09" type="MeshInstance3D" parent="Skeleton3D" unique_id=1627980520]
 material_override = SubResource("StandardMaterial3D_l40sf")
 mesh = SubResource("ArrayMesh_678rg")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "@MeshInstance3D@6"
 
-[node name="SkinPart_10" type="MeshInstance3D" parent="Skeleton3D" unique_id=467125614]
+[node name="SkinPart_10" type="MeshInstance3D" parent="Skeleton3D" unique_id=1409763323]
 material_override = SubResource("ShaderMaterial_44vpl")
 mesh = SubResource("ArrayMesh_gqps0")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "CoatPanel"
 
-[node name="SkinPart_11" type="MeshInstance3D" parent="Skeleton3D" unique_id=547190121]
+[node name="SkinPart_11" type="MeshInstance3D" parent="Skeleton3D" unique_id=1319040156]
 material_override = SubResource("StandardMaterial3D_rthtb")
 mesh = SubResource("ArrayMesh_0fqjc")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "PanelTrim"
 
-[node name="SkinPart_12" type="MeshInstance3D" parent="Skeleton3D" unique_id=656001374]
+[node name="SkinPart_12" type="MeshInstance3D" parent="Skeleton3D" unique_id=1619787311]
 material_override = SubResource("StandardMaterial3D_2tx6g")
 mesh = SubResource("ArrayMesh_xprgf")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "BeltPouch1"
 
-[node name="SkinPart_13" type="MeshInstance3D" parent="Skeleton3D" unique_id=238207419]
+[node name="SkinPart_13" type="MeshInstance3D" parent="Skeleton3D" unique_id=1336182711]
 material_override = SubResource("StandardMaterial3D_qq3rw")
 mesh = SubResource("ArrayMesh_ym8mq")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "@MeshInstance3D@7"
 
-[node name="SkinPart_14" type="MeshInstance3D" parent="Skeleton3D" unique_id=1768521160]
+[node name="SkinPart_14" type="MeshInstance3D" parent="Skeleton3D" unique_id=1176616043]
 material_override = SubResource("ShaderMaterial_ecywk")
 mesh = SubResource("ArrayMesh_jqp5q")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "Undercoat"
 
-[node name="SkinPart_15" type="MeshInstance3D" parent="Skeleton3D" unique_id=1659570194]
+[node name="SkinPart_15" type="MeshInstance3D" parent="Skeleton3D" unique_id=2026844826]
 material_override = SubResource("StandardMaterial3D_s5wap")
 mesh = SubResource("ArrayMesh_ysfyh")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "Neck"
 
-[node name="SkinPart_16" type="MeshInstance3D" parent="Skeleton3D" unique_id=1062231091]
+[node name="SkinPart_16" type="MeshInstance3D" parent="Skeleton3D" unique_id=1317592009]
 material_override = SubResource("StandardMaterial3D_v2wkx")
 mesh = SubResource("ArrayMesh_hes43")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "Collar"
 
-[node name="SkinPart_17" type="MeshInstance3D" parent="Skeleton3D" unique_id=1542074343]
+[node name="SkinPart_17" type="MeshInstance3D" parent="Skeleton3D" unique_id=1575144368]
 material_override = SubResource("StandardMaterial3D_ese2x")
 mesh = SubResource("ArrayMesh_j8gwp")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "CrossedCollar"
 
-[node name="SkinPart_18" type="MeshInstance3D" parent="Skeleton3D" unique_id=202747616]
+[node name="SkinPart_18" type="MeshInstance3D" parent="Skeleton3D" unique_id=588025783]
 material_override = SubResource("StandardMaterial3D_8froq")
 mesh = SubResource("ArrayMesh_mtg4n")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "InnerCollar"
 
-[node name="SkinPart_19" type="MeshInstance3D" parent="Skeleton3D" unique_id=1970291571]
+[node name="SkinPart_19" type="MeshInstance3D" parent="Skeleton3D" unique_id=2111045544]
 material_override = SubResource("ShaderMaterial_jye1t")
 mesh = SubResource("ArrayMesh_pm0y3")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "RainCape-1"
 
-[node name="SkinPart_20" type="MeshInstance3D" parent="Skeleton3D" unique_id=547256168]
+[node name="SkinPart_20" type="MeshInstance3D" parent="Skeleton3D" unique_id=918764368]
 material_override = SubResource("StandardMaterial3D_m8yhh")
 mesh = SubResource("ArrayMesh_sqgv3")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "CapeHem-1"
 
-[node name="SkinPart_21" type="MeshInstance3D" parent="Skeleton3D" unique_id=1124773856]
+[node name="SkinPart_21" type="MeshInstance3D" parent="Skeleton3D" unique_id=1174015483]
 material_override = SubResource("StandardMaterial3D_2je84")
 mesh = SubResource("ArrayMesh_xmnsg")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "@MeshInstance3D@4"
 
-[node name="SkinPart_22" type="MeshInstance3D" parent="Skeleton3D" unique_id=387303710]
+[node name="SkinPart_22" type="MeshInstance3D" parent="Skeleton3D" unique_id=2022820365]
 material_override = SubResource("ShaderMaterial_mpdes")
 mesh = SubResource("ArrayMesh_icvyx")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "RainCape1"
 
-[node name="SkinPart_23" type="MeshInstance3D" parent="Skeleton3D" unique_id=29042035]
+[node name="SkinPart_23" type="MeshInstance3D" parent="Skeleton3D" unique_id=114069210]
 material_override = SubResource("StandardMaterial3D_lv1ba")
 mesh = SubResource("ArrayMesh_jupva")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "CapeHem1"
 
-[node name="SkinPart_24" type="MeshInstance3D" parent="Skeleton3D" unique_id=2063030316]
+[node name="SkinPart_24" type="MeshInstance3D" parent="Skeleton3D" unique_id=1112394526]
 material_override = SubResource("StandardMaterial3D_mlnaj")
 mesh = SubResource("ArrayMesh_g4b7o")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "@MeshInstance3D@5"
 
-[node name="SkinPart_25" type="MeshInstance3D" parent="Skeleton3D" unique_id=1041338021]
+[node name="SkinPart_25" type="MeshInstance3D" parent="Skeleton3D" unique_id=583629565]
 material_override = SubResource("StandardMaterial3D_i27qk")
 mesh = SubResource("ArrayMesh_4st15")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "@MeshInstance3D@8"
 
-[node name="SkinPart_26" type="MeshInstance3D" parent="Skeleton3D" unique_id=1252575044]
+[node name="SkinPart_26" type="MeshInstance3D" parent="Skeleton3D" unique_id=99397445]
 material_override = SubResource("StandardMaterial3D_j4phc")
 mesh = SubResource("ArrayMesh_68by6")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "@MeshInstance3D@9"
 
-[node name="SkinPart_27" type="MeshInstance3D" parent="Skeleton3D" unique_id=1497687211]
+[node name="SkinPart_27" type="MeshInstance3D" parent="Skeleton3D" unique_id=38325404]
 material_override = SubResource("StandardMaterial3D_44hx7")
 mesh = SubResource("ArrayMesh_2srx2")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "Head"
 
-[node name="SkinPart_28" type="MeshInstance3D" parent="Skeleton3D" unique_id=718607770]
+[node name="SkinPart_28" type="MeshInstance3D" parent="Skeleton3D" unique_id=112255899]
 material_override = SubResource("StandardMaterial3D_vbq6g")
 mesh = SubResource("ArrayMesh_41x3l")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "Ear-1"
 
-[node name="SkinPart_29" type="MeshInstance3D" parent="Skeleton3D" unique_id=1169846370]
+[node name="SkinPart_29" type="MeshInstance3D" parent="Skeleton3D" unique_id=1255875751]
 material_override = SubResource("StandardMaterial3D_sdm12")
 mesh = SubResource("ArrayMesh_7j63h")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "EyeWhite-1"
 
-[node name="SkinPart_30" type="MeshInstance3D" parent="Skeleton3D" unique_id=638885527]
+[node name="SkinPart_30" type="MeshInstance3D" parent="Skeleton3D" unique_id=1166140175]
 material_override = SubResource("StandardMaterial3D_87bmh")
 mesh = SubResource("ArrayMesh_c15um")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "Iris-1"
 
-[node name="SkinPart_31" type="MeshInstance3D" parent="Skeleton3D" unique_id=1835954319]
+[node name="SkinPart_31" type="MeshInstance3D" parent="Skeleton3D" unique_id=621325026]
 material_override = SubResource("StandardMaterial3D_rxuu8")
 mesh = SubResource("ArrayMesh_5yudx")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "EyeGlint-1"
 
-[node name="SkinPart_32" type="MeshInstance3D" parent="Skeleton3D" unique_id=1424009321]
+[node name="SkinPart_32" type="MeshInstance3D" parent="Skeleton3D" unique_id=485722781]
 material_override = SubResource("StandardMaterial3D_yielf")
 mesh = SubResource("ArrayMesh_qnoh6")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "UpperLid-1"
 
-[node name="SkinPart_33" type="MeshInstance3D" parent="Skeleton3D" unique_id=1848704370]
+[node name="SkinPart_33" type="MeshInstance3D" parent="Skeleton3D" unique_id=1625315161]
 material_override = SubResource("StandardMaterial3D_2jogi")
 mesh = SubResource("ArrayMesh_b4ble")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "LowerLid-1"
 
-[node name="SkinPart_34" type="MeshInstance3D" parent="Skeleton3D" unique_id=243515350]
+[node name="SkinPart_34" type="MeshInstance3D" parent="Skeleton3D" unique_id=437492156]
 material_override = SubResource("StandardMaterial3D_v4jj8")
 mesh = SubResource("ArrayMesh_5dmx3")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "Brow-1"
 
-[node name="SkinPart_35" type="MeshInstance3D" parent="Skeleton3D" unique_id=2015692553]
+[node name="SkinPart_35" type="MeshInstance3D" parent="Skeleton3D" unique_id=1969679306]
 material_override = SubResource("StandardMaterial3D_ic4g2")
 mesh = SubResource("ArrayMesh_emlea")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "Ear1"
 
-[node name="SkinPart_36" type="MeshInstance3D" parent="Skeleton3D" unique_id=1026482504]
+[node name="SkinPart_36" type="MeshInstance3D" parent="Skeleton3D" unique_id=1613395068]
 material_override = SubResource("StandardMaterial3D_gembf")
 mesh = SubResource("ArrayMesh_060tb")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "EyeWhite1"
 
-[node name="SkinPart_37" type="MeshInstance3D" parent="Skeleton3D" unique_id=773776000]
+[node name="SkinPart_37" type="MeshInstance3D" parent="Skeleton3D" unique_id=1134743470]
 material_override = SubResource("StandardMaterial3D_i10nb")
 mesh = SubResource("ArrayMesh_pu0f2")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "Iris1"
 
-[node name="SkinPart_38" type="MeshInstance3D" parent="Skeleton3D" unique_id=2012554027]
+[node name="SkinPart_38" type="MeshInstance3D" parent="Skeleton3D" unique_id=851479366]
 material_override = SubResource("StandardMaterial3D_jcbjv")
 mesh = SubResource("ArrayMesh_448oi")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "EyeGlint1"
 
-[node name="SkinPart_39" type="MeshInstance3D" parent="Skeleton3D" unique_id=840882418]
+[node name="SkinPart_39" type="MeshInstance3D" parent="Skeleton3D" unique_id=156721531]
 material_override = SubResource("StandardMaterial3D_vk2mu")
 mesh = SubResource("ArrayMesh_wosmj")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "UpperLid1"
 
-[node name="SkinPart_40" type="MeshInstance3D" parent="Skeleton3D" unique_id=1067940363]
+[node name="SkinPart_40" type="MeshInstance3D" parent="Skeleton3D" unique_id=1875186458]
 material_override = SubResource("StandardMaterial3D_5yk2d")
 mesh = SubResource("ArrayMesh_ts6xm")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "LowerLid1"
 
-[node name="SkinPart_41" type="MeshInstance3D" parent="Skeleton3D" unique_id=1833511158]
+[node name="SkinPart_41" type="MeshInstance3D" parent="Skeleton3D" unique_id=1401173642]
 material_override = SubResource("StandardMaterial3D_u6say")
 mesh = SubResource("ArrayMesh_afww0")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "Brow1"
 
-[node name="SkinPart_42" type="MeshInstance3D" parent="Skeleton3D" unique_id=1704806124]
+[node name="SkinPart_42" type="MeshInstance3D" parent="Skeleton3D" unique_id=14089875]
 material_override = SubResource("StandardMaterial3D_hjv3b")
 mesh = SubResource("ArrayMesh_qlmb1")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "NoseBridge"
 
-[node name="SkinPart_43" type="MeshInstance3D" parent="Skeleton3D" unique_id=1518134372]
+[node name="SkinPart_43" type="MeshInstance3D" parent="Skeleton3D" unique_id=1002988344]
 material_override = SubResource("StandardMaterial3D_37na5")
 mesh = SubResource("ArrayMesh_pmpv7")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "UpperLip"
 
-[node name="SkinPart_44" type="MeshInstance3D" parent="Skeleton3D" unique_id=1179468382]
+[node name="SkinPart_44" type="MeshInstance3D" parent="Skeleton3D" unique_id=793941729]
 material_override = SubResource("StandardMaterial3D_i7cpq")
 mesh = SubResource("ArrayMesh_mvhvc")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "LowerLip"
 
-[node name="SkinPart_45" type="MeshInstance3D" parent="Skeleton3D" unique_id=1918365447]
+[node name="SkinPart_45" type="MeshInstance3D" parent="Skeleton3D" unique_id=510247484]
 material_override = SubResource("StandardMaterial3D_h1et7")
 mesh = SubResource("ArrayMesh_jd3d4")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "HairCap"
 
-[node name="SkinPart_46" type="MeshInstance3D" parent="Skeleton3D" unique_id=23199001]
+[node name="SkinPart_46" type="MeshInstance3D" parent="Skeleton3D" unique_id=1415073920]
 material_override = SubResource("StandardMaterial3D_7bhax")
 mesh = SubResource("ArrayMesh_q2n2k")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "HairKnot"
 
-[node name="SkinPart_47" type="MeshInstance3D" parent="Skeleton3D" unique_id=548000343]
+[node name="SkinPart_47" type="MeshInstance3D" parent="Skeleton3D" unique_id=996051228]
 material_override = SubResource("StandardMaterial3D_76uc0")
 mesh = SubResource("ArrayMesh_l340f")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "HairTie"
 
-[node name="SkinPart_48" type="MeshInstance3D" parent="Skeleton3D" unique_id=123964661]
+[node name="SkinPart_48" type="MeshInstance3D" parent="Skeleton3D" unique_id=1814774154]
 material_override = SubResource("ShaderMaterial_153nu")
 mesh = SubResource("ArrayMesh_721sl")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "Sleeve-1"
 
-[node name="SkinPart_49" type="MeshInstance3D" parent="Skeleton3D" unique_id=770019276]
+[node name="SkinPart_49" type="MeshInstance3D" parent="Skeleton3D" unique_id=1970046868]
 material_override = SubResource("StandardMaterial3D_0hmav")
 mesh = SubResource("ArrayMesh_du4ow")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "Bracer-1"
 
-[node name="SkinPart_50" type="MeshInstance3D" parent="Skeleton3D" unique_id=512730555]
+[node name="SkinPart_50" type="MeshInstance3D" parent="Skeleton3D" unique_id=561542536]
 material_override = SubResource("StandardMaterial3D_5fcvk")
 mesh = SubResource("ArrayMesh_0w5vb")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "@MeshInstance3D@20"
 
-[node name="SkinPart_51" type="MeshInstance3D" parent="Skeleton3D" unique_id=741931613]
+[node name="SkinPart_51" type="MeshInstance3D" parent="Skeleton3D" unique_id=798617047]
 material_override = SubResource("StandardMaterial3D_r3ujk")
 mesh = SubResource("ArrayMesh_7l35x")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "@MeshInstance3D@21"
 
-[node name="SkinPart_52" type="MeshInstance3D" parent="Skeleton3D" unique_id=323448241]
+[node name="SkinPart_52" type="MeshInstance3D" parent="Skeleton3D" unique_id=1332604104]
 material_override = SubResource("StandardMaterial3D_qrqus")
 mesh = SubResource("ArrayMesh_lenme")
 skin = SubResource("Skin_l68b5")
@@ -3987,70 +3987,70 @@ skeleton = NodePath("..")
 blend_shapes/OpenHand = 1.0
 metadata/source_part = "GripHandLeft"
 
-[node name="SkinPart_53" type="MeshInstance3D" parent="Skeleton3D" unique_id=184504794]
+[node name="SkinPart_53" type="MeshInstance3D" parent="Skeleton3D" unique_id=1227620916]
 material_override = SubResource("StandardMaterial3D_cwow1")
 mesh = SubResource("ArrayMesh_1x7ik")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "Elbow-1"
 
-[node name="SkinPart_54" type="MeshInstance3D" parent="Skeleton3D" unique_id=1207563657]
+[node name="SkinPart_54" type="MeshInstance3D" parent="Skeleton3D" unique_id=1183509868]
 material_override = SubResource("ShaderMaterial_wii3c")
 mesh = SubResource("ArrayMesh_kwiyq")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "TrouserThigh"
 
-[node name="SkinPart_55" type="MeshInstance3D" parent="Skeleton3D" unique_id=1846277799]
+[node name="SkinPart_55" type="MeshInstance3D" parent="Skeleton3D" unique_id=1401191939]
 material_override = SubResource("StandardMaterial3D_ylshq")
 mesh = SubResource("ArrayMesh_v7qhl")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "KneePlate"
 
-[node name="SkinPart_56" type="MeshInstance3D" parent="Skeleton3D" unique_id=2113569769]
+[node name="SkinPart_56" type="MeshInstance3D" parent="Skeleton3D" unique_id=677328939]
 material_override = SubResource("ShaderMaterial_4chwa")
 mesh = SubResource("ArrayMesh_fxthm")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "TrouserShin"
 
-[node name="SkinPart_57" type="MeshInstance3D" parent="Skeleton3D" unique_id=1580414578]
+[node name="SkinPart_57" type="MeshInstance3D" parent="Skeleton3D" unique_id=578814195]
 material_override = SubResource("StandardMaterial3D_gd4k5")
 mesh = SubResource("ArrayMesh_tbw5d")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "ShinPlate"
 
-[node name="SkinPart_58" type="MeshInstance3D" parent="Skeleton3D" unique_id=244622861]
+[node name="SkinPart_58" type="MeshInstance3D" parent="Skeleton3D" unique_id=1247919679]
 material_override = SubResource("StandardMaterial3D_s04h1")
 mesh = SubResource("ArrayMesh_7gxby")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "ForestBoot"
 
-[node name="SkinPart_59" type="MeshInstance3D" parent="Skeleton3D" unique_id=1816818728]
+[node name="SkinPart_59" type="MeshInstance3D" parent="Skeleton3D" unique_id=1183376484]
 material_override = SubResource("ShaderMaterial_mm06t")
 mesh = SubResource("ArrayMesh_53rwx")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "Sleeve1"
 
-[node name="SkinPart_60" type="MeshInstance3D" parent="Skeleton3D" unique_id=506449423]
+[node name="SkinPart_60" type="MeshInstance3D" parent="Skeleton3D" unique_id=1039638967]
 material_override = SubResource("StandardMaterial3D_4l644")
 mesh = SubResource("ArrayMesh_ipw1m")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "Bracer1"
 
-[node name="SkinPart_61" type="MeshInstance3D" parent="Skeleton3D" unique_id=441016942]
+[node name="SkinPart_61" type="MeshInstance3D" parent="Skeleton3D" unique_id=1914384717]
 material_override = SubResource("StandardMaterial3D_1wjib")
 mesh = SubResource("ArrayMesh_uvgdw")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "@MeshInstance3D@23"
 
-[node name="SkinPart_62" type="MeshInstance3D" parent="Skeleton3D" unique_id=643663728]
+[node name="SkinPart_62" type="MeshInstance3D" parent="Skeleton3D" unique_id=1418932236]
 material_override = SubResource("StandardMaterial3D_l5ltl")
 mesh = SubResource("ArrayMesh_ns6s8")
 skin = SubResource("Skin_l68b5")
@@ -4058,89 +4058,89 @@ skeleton = NodePath("..")
 blend_shapes/OpenHand = 1.0
 metadata/source_part = "GripHandRight"
 
-[node name="SkinPart_63" type="MeshInstance3D" parent="Skeleton3D" unique_id=1268725347]
+[node name="SkinPart_63" type="MeshInstance3D" parent="Skeleton3D" unique_id=197472327]
 material_override = SubResource("StandardMaterial3D_6aro4")
 mesh = SubResource("ArrayMesh_k0t05")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "Elbow1"
 
-[node name="SkinPart_64" type="MeshInstance3D" parent="Skeleton3D" unique_id=1083542386]
+[node name="SkinPart_64" type="MeshInstance3D" parent="Skeleton3D" unique_id=1534282247]
 material_override = SubResource("ShaderMaterial_gu3so")
 mesh = SubResource("ArrayMesh_pbeme")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "TrouserThigh"
 
-[node name="SkinPart_65" type="MeshInstance3D" parent="Skeleton3D" unique_id=449029559]
+[node name="SkinPart_65" type="MeshInstance3D" parent="Skeleton3D" unique_id=377306850]
 material_override = SubResource("StandardMaterial3D_bnuri")
 mesh = SubResource("ArrayMesh_u6rdu")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "KneePlate"
 
-[node name="SkinPart_66" type="MeshInstance3D" parent="Skeleton3D" unique_id=962645980]
+[node name="SkinPart_66" type="MeshInstance3D" parent="Skeleton3D" unique_id=1958338271]
 material_override = SubResource("ShaderMaterial_wkpe1")
 mesh = SubResource("ArrayMesh_vtvbt")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "TrouserShin"
 
-[node name="SkinPart_67" type="MeshInstance3D" parent="Skeleton3D" unique_id=392168428]
+[node name="SkinPart_67" type="MeshInstance3D" parent="Skeleton3D" unique_id=1658656300]
 material_override = SubResource("StandardMaterial3D_wwxph")
 mesh = SubResource("ArrayMesh_p8oy4")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "ShinPlate"
 
-[node name="SkinPart_68" type="MeshInstance3D" parent="Skeleton3D" unique_id=1528321505]
+[node name="SkinPart_68" type="MeshInstance3D" parent="Skeleton3D" unique_id=1682642482]
 material_override = SubResource("StandardMaterial3D_33li1")
 mesh = SubResource("ArrayMesh_yhh5y")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "ForestBoot"
 
-[node name="SkinPart_69" type="MeshInstance3D" parent="Skeleton3D" unique_id=2114555395]
+[node name="SkinPart_69" type="MeshInstance3D" parent="Skeleton3D" unique_id=1542780922]
 material_override = SubResource("ShaderMaterial_wwspx")
 mesh = SubResource("ArrayMesh_ug3gw")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "JointClothShoulder-1"
 
-[node name="SkinPart_70" type="MeshInstance3D" parent="Skeleton3D" unique_id=1047043880]
+[node name="SkinPart_70" type="MeshInstance3D" parent="Skeleton3D" unique_id=30470052]
 material_override = SubResource("ShaderMaterial_x6kjm")
 mesh = SubResource("ArrayMesh_bulwh")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "JointClothElbow-1"
 
-[node name="SkinPart_71" type="MeshInstance3D" parent="Skeleton3D" unique_id=722041319]
+[node name="SkinPart_71" type="MeshInstance3D" parent="Skeleton3D" unique_id=1206162939]
 material_override = SubResource("ShaderMaterial_xffvi")
 mesh = SubResource("ArrayMesh_uwfxp")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "JointClothKnee-1"
 
-[node name="SkinPart_72" type="MeshInstance3D" parent="Skeleton3D" unique_id=1733013348]
+[node name="SkinPart_72" type="MeshInstance3D" parent="Skeleton3D" unique_id=1742138326]
 material_override = SubResource("ShaderMaterial_y0umj")
 mesh = SubResource("ArrayMesh_phypb")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "JointClothShoulder1"
 
-[node name="SkinPart_73" type="MeshInstance3D" parent="Skeleton3D" unique_id=1637229042]
+[node name="SkinPart_73" type="MeshInstance3D" parent="Skeleton3D" unique_id=804183381]
 material_override = SubResource("ShaderMaterial_f4vi1")
 mesh = SubResource("ArrayMesh_xsbid")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "JointClothElbow1"
 
-[node name="SkinPart_74" type="MeshInstance3D" parent="Skeleton3D" unique_id=342477706]
+[node name="SkinPart_74" type="MeshInstance3D" parent="Skeleton3D" unique_id=1735344813]
 material_override = SubResource("ShaderMaterial_w76tt")
 mesh = SubResource("ArrayMesh_dh55p")
 skin = SubResource("Skin_l68b5")
 skeleton = NodePath("..")
 metadata/source_part = "JointClothKnee1"
 
-[node name="AnimationPreview" type="AnimationPlayer" parent="." unique_id=940500833]
+[node name="AnimationPreview" type="AnimationPlayer" parent="." unique_id=2131170069]
 libraries/ = ExtResource("2_pltne")

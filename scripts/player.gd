@@ -411,6 +411,7 @@ func animate(delta: float, speed: float) -> void:
 				w.position.y += path.y
 				w.position.z += path.z
 				w.rotation.y = path.w
+				w.rotation.x += clampf(pitch+0.25,-0.4,0.85)*smoothstep(0.20,0.38,t)
 				w.rotation.z *= 1-smoothstep(0.20,0.38,t)
 				w.visible = t<0.38
 	if delta>0:
@@ -511,10 +512,12 @@ func on_strike(_beat: int) -> void:
 	var action: String = combat.action
 	if action=="throw":
 		if is_instance_valid(projectile): return
+		# Sample the released pose before handing ownership to the flying weapon.
+		animate(0,0)
 		heavy_held = -1
 		var shot := Projectile.new()
 		shot.shooter = self
-		shot.direction = combat_forward()
+		shot.direction = rig.weapon.global_basis.y.normalized()
 		shot.amount = combat.damage()
 		projectile = shot
 		get_parent().add_child(shot)

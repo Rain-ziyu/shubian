@@ -8,21 +8,63 @@ var lifetime := 0.35
 var material: StandardMaterial3D
 var ghosts: Array[Node3D] = []
 var rings: Array[MeshInstance3D] = []
+static var shared_template: StandardMaterial3D
+static func template() -> StandardMaterial3D:
+	if shared_template==null:
+		shared_template = StandardMaterial3D.new()
+		shared_template.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		shared_template.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		shared_template.albedo_color = Color(0.48,0.86,0.79,0.28)
+	return shared_template
+
+static func make_snapshot_for(rig: Node3D, ghost_material: StandardMaterial3D) -> Node3D:
+	# Build only visible geometry with the ghost material from the outset.
+	# Duplicating the complete rig briefly allocates its original per-instance
+	# shader parameters, including hidden source meshes and inactive gun shadows.
+	var snapshot := Node3D.new()
+	var inverse := rig.global_transform.affine_inverse()
+	var skeletons := {}
+	for original: Skeleton3D in rig.find_children("*","Skeleton3D",true,false):
+		var clone := Skeleton3D.new()
+		clone.name = original.name
+		clone.transform = inverse*original.global_transform
+		snapshot.add_child(clone)
+		skeletons[original.get_instance_id()] = clone
+		for bone in original.get_bone_count(): clone.add_bone(original.get_bone_name(bone))
+		for bone in original.get_bone_count():
+			var parent := original.get_bone_parent(bone)
+			if parent>=0: clone.set_bone_parent(bone,parent)
+			clone.set_bone_rest(bone,original.get_bone_rest(bone))
+			clone.set_bone_pose_position(bone,original.get_bone_pose_position(bone))
+			clone.set_bone_pose_rotation(bone,original.get_bone_pose_rotation(bone))
+			clone.set_bone_pose_scale(bone,original.get_bone_pose_scale(bone))
+	for original: MeshInstance3D in rig.find_children("*","MeshInstance3D",true,false):
+		if not original.is_visible_in_tree(): continue
+		var clone := MeshInstance3D.new()
+		clone.material_override = ghost_material
+		clone.mesh = original.mesh
+		clone.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		var bones := original.get_node_or_null(original.skeleton) as Skeleton3D if original.skin!=null else null
+		if bones!=null and skeletons.has(bones.get_instance_id()):
+			skeletons[bones.get_instance_id()].add_child(clone)
+			clone.transform = bones.global_transform.affine_inverse()*original.global_transform
+			clone.skin = original.skin
+			clone.skeleton = NodePath("..")
+		else:
+			snapshot.add_child(clone)
+			clone.transform = inverse*original.global_transform
+		for shape in original.get_blend_shape_count(): clone.set_blend_shape_value(shape,original.get_blend_shape_value(shape))
+	return snapshot
+
 func _ready() -> void:
 	add_to_group("teleport_feedback")
-	material = StandardMaterial3D.new()
-	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	material.albedo_color = Color(0.48,0.86,0.79,0.28)
+	material = template().duplicate()
 	for index in 2:
-		var snapshot: Node3D = source.duplicate(0)
+		var snapshot := make_snapshot_for(source,material)
 		snapshot.name = "DepartureGhost" if index==0 else "ArrivalGhost"
 		add_child(snapshot)
 		snapshot.global_transform = departure if index==0 else arrival
-		for part in snapshot.find_children("*","MeshInstance3D",true,false):
-			part.material_override = material
-			part.material_overlay = null
-			part.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		for bones: Skeleton3D in snapshot.find_children("*","Skeleton3D",true,false): bones.force_update_all_bone_transforms()
 		ghosts.append(snapshot)
 		var ring := MeshInstance3D.new()
 		var shape := TorusMesh.new()

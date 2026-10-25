@@ -28,6 +28,9 @@ func run() -> void:
 	p.combat.set_action("throw")
 	p.combat.elapsed = 0.38
 	p.animate(0,0)
+	# Freeze the transition at the committed release pose in this manual-flight fixture.
+	p.pose_blend = 1.0
+	p.animate(0,0)
 	p.on_strike(0)
 	var shot = p.projectile
 	shot.set_physics_process(false)
@@ -44,6 +47,9 @@ func run() -> void:
 	p.rig.root.rotation.y = 0
 	p.combat.set_action("throw")
 	p.combat.elapsed = 0.38
+	p.animate(0,0)
+	# Freeze the transition at the committed release pose in this manual-flight fixture.
+	p.pose_blend = 1.0
 	p.animate(0,0)
 	p.on_strike(0)
 	shot = p.projectile
@@ -76,6 +82,9 @@ func run() -> void:
 	check(p.projectile==null and p.global_position==before,"repeated completion remains harmless")
 	p.combat.set_action("throw")
 	p.combat.elapsed = 0.38
+	p.animate(0,0)
+	# Freeze the transition at the committed release pose in this manual-flight fixture.
+	p.pose_blend = 1.0
 	p.animate(0,0)
 	p.on_strike(0)
 	shot = p.projectile
