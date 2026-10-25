@@ -21,7 +21,9 @@ static func loft(parent: Node3D, label: String, rings: Array, color: Color, star
 			var v1 := (float(rings[row+1].x)-bottom)/span
 			for item in [[a,Vector2(u0,v0)],[c,Vector2(u0,v1)],[b,Vector2(u1,v0)],[b,Vector2(u1,v0)],[c,Vector2(u0,v1)],[d,Vector2(u1,v1)]]:
 				st.set_uv(item[1])
-				st.add_vertex(item[0])
+				var point: Vector3 = item[0]
+				if label.begins_with("RainCape") or label.begins_with("CapeHem"): point = cape_drape(point)
+				st.add_vertex(point)
 	if caps:
 		st.set_smooth_group(-1)
 		for row in [0,rings.size()-1]:
@@ -43,6 +45,15 @@ static func loft(parent: Node3D, label: String, rings: Array, color: Color, star
 
 static func profile_point(ring: Vector4, angle: float) -> Vector3:
 	return Vector3(sin(angle)*ring.y,ring.x,cos(angle)*ring.z+ring.w)
+
+static func cape_drape(point: Vector3) -> Vector3:
+	# Cloth falls farther behind the shoulders. The collar stays fixed and
+	# both halves keep their central equipment slit; hem uses the same shape.
+	var weight := 1-smoothstep(1.33,1.49,point.y)
+	var angle := atan2(point.x,point.z-0.018)
+	var fold := sin(angle*6)*0.012*weight
+	point += Vector3(sin(angle)*fold,-0.055*maxf(0,cos(angle))*weight,cos(angle)*fold)
+	return point
 
 static func patch(parent: Node3D, label: String, points: Array, color: Color) -> MeshInstance3D:
 	var st := SurfaceTool.new()
@@ -142,11 +153,15 @@ static func create(root: Node3D) -> Dictionary:
 		cape.material_override.roughness = 0.92
 		loft(root,"CapeHem"+str(side),[Vector4(1.331,0.301,0.181,0.018),Vector4(1.344,0.298,0.178,0.018)],hem,begin,finish,24,false).material_override.cull_mode = BaseMaterial3D.CULL_DISABLED
 		var shoulder := loft(root,"ShoulderPlate"+str(side),[
-			Vector4(-0.08,0.095,0.085,0),Vector4(0,0.10,0.09,0),
-			Vector4(0.06,0.06,0.06,0),Vector4(0.085,0.008,0.008,0)
-		],Color("737d70"),0 if side==1 else -PI,PI if side==1 else 0,16,false)
+			Vector4(-0.08,0.065,0.060,0),Vector4(-0.05,0.095,0.085,0),
+			Vector4(0,0.110,0.095,0),Vector4(0.025,0.095,0.085,0),
+			Vector4(0.045,0.070,0.065,0),Vector4(0.055,0.035,0.032,0),
+			Vector4(0.058,0.008,0.008,0)
+		],Color("626d61"),0 if side==1 else -PI,PI if side==1 else 0,24,false)
 		shoulder.position = Vector3(side*0.27,1.43,0)
 		shoulder.material_override.cull_mode = BaseMaterial3D.CULL_DISABLED
+		shoulder.material_override.metallic = 0.35
+		shoulder.material_override.roughness = 0.65
 		shoulders[side] = shoulder
 		V.piece(root,Vector3(side*0.25,1.425,-0.085),Vector3(0.028,0.055,0.018),red)
 	# Separate front panels allow the legs to swing and leave a central split.
