@@ -31,6 +31,11 @@ func run() -> void:
 	await physics_frame
 	world.hunter.set_physics_process(false)
 	for m in get_nodes_in_group("monsters"): m.set_physics_process(false)
+	var prepared_count: int = world.navigation.cache.size()
+	check(world.navigation.cache.has(0.5),"player clearance is prepared before gameplay")
+	for monster in get_nodes_in_group("monsters"):
+		var clearance := ceilf(float(monster.data.size)*0.34*2)/2
+		check(world.navigation.cache.has(clearance),"species clearance is prepared before first pursuit: "+str(monster.data.id))
 	for clearing in Terrain.CLEARINGS:
 		var route: PackedVector3Array = world.navigation.path(Vector3(0,0,8),Vector3(clearing.x,0,clearing.y),1.5)
 		check(not route.is_empty(),"large creature route between clearing and central path")
@@ -39,6 +44,7 @@ func run() -> void:
 			for obstacle in world.navigation.obstacles:
 				if obstacle.grow(1.5).has_point(Vector2(p.x,p.z)): safe = false
 		check(safe,"forest route avoids trunks and rocks")
+	check(world.navigation.cache.size()==prepared_count,"ordinary forest routes do not create a late clearance grid")
 	print("NAVIGATION_CHECKS: ",checks," FAILURES: ",failures)
 	world.queue_free()
 	await process_frame
