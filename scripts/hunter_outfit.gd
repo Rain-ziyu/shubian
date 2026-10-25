@@ -7,7 +7,7 @@ const SKIN_TONE := Color("bd9b80")
 
 static func loft(parent: Node3D, label: String, rings: Array, color: Color, start := 0.0, end := TAU, segments := 28, caps := true) -> MeshInstance3D:
 	var garment := label in ["Undercoat","TrouserThigh","TrouserShin"]
-	if garment or label in ["Head","NoseBridge"]: rings = Profiles.smooth_profiles(rings)
+	if garment or label in ["Head","NoseBridge"] or label.begins_with("UpperArmSurface"): rings = Profiles.smooth_profiles(rings)
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_smooth_group(0)
