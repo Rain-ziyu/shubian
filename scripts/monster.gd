@@ -519,6 +519,9 @@ func receive_strike(amount: float, origin: Vector3, action: String, part := "", 
 	var factor := float(data.weak_multiplier) if weak else (float(data.front_armor) if dot_front > 0.4 and armor_integrity>0 else 1.0)
 	if data.id=="mossback" and part=="body": armor_integrity = maxf(0,armor_integrity-amount)
 	if data.id=="mossback" and armor_integrity<=0:
+		var head: MeshInstance3D = mesh.get_node("Neck/HeadSurface")
+		var exposed_head: Mesh = head.get_meta("unarmored_mesh")
+		if head.mesh!=exposed_head: head.mesh = exposed_head
 		for i in 5:
 			var plate := mesh.get_node_or_null("ArmorPlate"+str(i)) as MeshInstance3D
 			if plate: plate.visible = false

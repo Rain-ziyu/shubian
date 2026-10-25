@@ -105,6 +105,9 @@ func run() -> void:
 			var back := body.position.y+body.mesh.get_aabb().end.y
 			check(absf(top-back)<0.05,"central armor shell fits back rather than hovering")
 			for instance in [model,saved]:
+				var crown: MeshInstance3D = instance.get_node("Neck/HeadSurface")
+				var exposed_mesh: Mesh = crown.get_meta("unarmored_mesh")
+				check(crown.mesh.surface_get_arrays(0)[Mesh.ARRAY_COLOR]!=exposed_mesh.surface_get_arrays(0)[Mesh.ARRAY_COLOR] and crown.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]==exposed_mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX],"live and saved skull protection changes appearance without changing its contact surface")
 				var trunk: MeshInstance3D = instance.get_node("BodySurface")
 				var attachments := []
 				for index in 5: attachments.append(trunk.global_transform.affine_inverse()*instance.get_node("ArmorPlate"+str(index)).global_transform)

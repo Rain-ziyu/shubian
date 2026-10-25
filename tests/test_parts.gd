@@ -36,8 +36,12 @@ func run() -> void:
 		check(miss.is_empty(),"cast cannot hit distant creature")
 		m.health = old
 		if m.data.id=="mossback":
+			var crown: MeshInstance3D = m.mesh.get_node("Neck/HeadSurface")
+			var exposed_mesh: Mesh = crown.get_meta("unarmored_mesh")
+			check(crown.mesh!=exposed_mesh and crown.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]==exposed_mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX],"crown protection has distinct appearance without adding hit volume")
 			m.receive_strike(250,origin,"heavy","body")
 			check(m.armor_integrity==0 and not m.mesh.get_node("ArmorPlate0").visible,"armor break removes plate visuals")
+			check(crown.mesh==exposed_mesh,"actual armor break exposes the skull surface")
 			var after: Dictionary = m.receive_strike(10,origin,"light","body")
 			check(after.damage>normal.damage,"broken armor loses frontal reduction")
 		if m.data.id=="stormcrest":

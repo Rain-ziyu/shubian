@@ -66,6 +66,20 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 	if data.id=="thornhorn":
 		head_profile = [Vector4(-0.715,0.006,0.004,0.10),Vector4(-0.71,0.065,0.035,0.10),Vector4(-0.69,0.12,0.065,0.10),Vector4(-0.61,0.155,0.09,0.11),Vector4(-0.42,0.22,0.17,0.17),Vector4(-0.28,0.19,0.18,0.14),Vector4(-0.09,0.135,0.17,0.08),Vector4(0.12,0.10,0.15,0)]
 	var head_surface := Surface.profile(neck,"HeadSurface",head_profile,s,c.lightened(0.03))
+	if data.id=="mossback":
+		head_surface.set_meta("unarmored_mesh",head_surface.mesh)
+		var arrays: Array = head_surface.mesh.surface_get_arrays(0)
+		var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		var colors: PackedColorArray = arrays[Mesh.ARRAY_COLOR]
+		for index in vertices.size():
+			var point := vertices[index]/s
+			var crown := smoothstep(0.14,0.17,point.y)
+			var seam := smoothstep(0.04,0.18,absf(sin((point.z+0.02)*18)))
+			colors[index] = colors[index].lerp(Color("78816b"),crown*seam*0.92)
+		arrays[Mesh.ARRAY_COLOR] = colors
+		var armored := ArrayMesh.new()
+		armored.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+		head_surface.mesh = armored
 	var facial_surface: TriangleMesh = head_surface.mesh.generate_triangle_mesh() if data.id=="thornhorn" else null
 	Surface.profile(neck,"Jaw",[Vector4(-0.68,0.006*head_width,0.004,-0.04),Vector4(-0.66,0.035*head_width,0.015,-0.04),Vector4(-0.58,0.13*head_width,0.035,-0.05),Vector4(-0.30,0.145*head_width,0.055,-0.045),Vector4(-0.12,0.06,0.025,0.01)],s,c.darkened(0.16))
 	var jaw := neck.get_node("Jaw") as MeshInstance3D
