@@ -46,4 +46,4 @@ func apply(actor: CharacterBody3D, delta: float) -> void:
 	tail.force_update_all_bone_transforms()
 	clock += delta
 static func neutral() -> Dictionary:
-	return {"body_y":0.0,"body_rotation":Vector3.ZERO,"body_surface_rotation":Vector3.ZERO,"neck_rotation":Vector3.ZERO,"jaw_rotation":Vector3.ZERO,"tail_rotation":Vector3.ZERO}
+	return {"body_y":0.0,"body_rotation":Vector3.ZERO,"body_surface_rotation":Vector3.ZERO,"neck_rotation":Vector3.ZERO,"jaw_rotation":Vector3.ZERO,"tail_rotation":Vector3.ZERO,"cancelled_attack":true}

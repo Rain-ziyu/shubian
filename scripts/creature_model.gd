@@ -216,7 +216,7 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 				var land := smoothstep(0.43,0.65,clock)
 				spread = lerpf(0.55,0.18,release)*(1-land)
 				reach = lerpf(-0.30,0.65,release)*(1-land)
-			elif phase=="recover":
+			elif phase=="recover" and not pose_override.get("cancelled_attack",false):
 				var brace := smoothstep(0,0.12,clock)*(1-smoothstep(float(data.recovery)*0.6,float(data.recovery),clock))
 				spread = 0.30*brace
 				reach = -0.18*brace

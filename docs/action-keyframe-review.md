@@ -226,3 +226,9 @@ Shubian-plant-body-drive.mp4 是 4.10 秒固定帧率冻结 AI 动作研究，�
 - Capture shoulder/wrist/digit rotations at interruption and blend them toward the normal stagger pose over the same existing 220ms interval as the torso and tail. No AI, damage, attack timing, contact-volume definitions or resource rules changed.
 - Native focused report regressions-20261025-182435-246ccc passed ground 225, tail skin 97, launch 50, lunge pose 46, lunge surface 5, stagger 110. Additional settled-wrist/claw checks then passed stagger 118 in regressions-20261025-182521-8c5540. Both entry continuity and resting claw spread are covered.
 - Five-species native scripted stagger/launch study completed without engine errors. This does not establish final visual quality, human handfeel, or difficulty acceptance; those remain open.
+
+### Cancelled leap recovery no longer replays landing reach (2026-10-26)
+- Added a real interruption/recovery check for reedclaw shoulders. Before this patch both shoulders returned to the original leap landing brace after stagger ended, despite the attack being cancelled (120 checks, two failures; regressions-20261025-182706-f151a6).
+- Mark neutral interrupted recovery as a cancelled attack and skip only its forelimb landing-reach pose. Normal completed leaps retain the authored landing brace. AI recovery duration, exposed weakness, damage and resource rules are unchanged.
+- Native focused suite passed 469 checks: ground 225, launch 50, lunge pose 46, lunge surface 5, physical leap 23, stagger 120 (regressions-20261025-182721-f9857e). Normal leap checks explicitly retain low support stance and forward limbs during ordinary recovery.
+- Normal-AI state-aware input replay passed: reply/flash each three contacts, fourfold four, spin two, finisher two, HP 240, 14.97s; actual shadow resource/confirmed feedback checks passed. This is not human handfeel, difficulty, or final art acceptance.

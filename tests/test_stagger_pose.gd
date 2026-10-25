@@ -89,6 +89,9 @@ func run() -> void:
 		for frame in 18: m._physics_process(1.0/60)
 		check(m.stagger==0 and m.phase=="recover" and m.mesh.get_node("Neck").rotation.length()<0.001,"recovery does not restart abandoned attack follow-through")
 		check(m.mesh.get_node("Neck/Jaw").rotation.length()<0.001,"stagger closes the jaw smoothly and recovery does not restart the cancelled mouth action")
+		if m.data.id=="reedclaw":
+			for side in [-1,1]:
+				check(m.mesh.get_node("Forelimb"+str(side)).rotation.length()<0.001,"stagger recovery does not replay the cancelled leap landing reach")
 		check(m.health==health and p.combat.health==240,"pose blend injects no damage or health change")
 		m.stagger = 1.3
 		m.was_staggering = false
