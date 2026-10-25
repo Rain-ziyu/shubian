@@ -79,6 +79,8 @@ func run() -> void:
 		var yaw: float = m.rotation.y
 		await until_active(m)
 		check(absf(m.rotation.y-yaw)<0.001,"rear windup holds orientation")
+		check(m.mesh.position.y-float(m.mesh.get_meta("ground_offset",0.0))< -float(m.data.size)*0.015,"rear attack releases from a loaded support stance")
+		check(m.mesh.get_node("Neck").rotation.y>0.07 and m.mesh.get_node("BodySurface").rotation.y>0.04,"shoulders and neck counterbalance the coiled tail")
 		for frame in 4: await physics_frame
 		check(fighter.combat.health==240,"center target is safe before visible tail arrives")
 		await finish_hit(m)

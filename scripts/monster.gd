@@ -487,7 +487,9 @@ func advance_rear_attack(delta: float) -> void:
 			clock = 0
 			rear_attack = false
 	move_actor()
-	CreatureModel.animate(mesh,data,gait,"idle",0,0,foot_ground_height if is_on_floor() else Callable(),foot_ground_normal if is_on_floor() else Callable())
+	var load := smoothstep(0,float(move.windup),clock) if phase=="windup" else (1-smoothstep(0,0.18,clock) if phase=="active" else 0.0)
+	var rear_pose := {"body_y":-float(data.size)*0.025*load,"body_surface_rotation":Vector3(0,-tail_yaw*0.06,0.035*load),"neck_rotation":Vector3(0,-tail_yaw*0.12,0)}
+	CreatureModel.animate(mesh,data,gait,"idle",0,0,foot_ground_height if is_on_floor() else Callable(),foot_ground_normal if is_on_floor() else Callable(),false,rear_pose)
 	mesh.rotation.x = lerpf(mesh.rotation.x,0,delta*6)
 	mesh.get_node("Tail").rotation.y = tail_yaw
 	var current_tail: Transform3D = mesh.get_node("Tail").global_transform
