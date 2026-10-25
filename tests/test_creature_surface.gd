@@ -59,6 +59,18 @@ func run() -> void:
 					var talon: MeshInstance3D = wrist.get_node("Digit0/Talon")
 					check(talon.mesh.get_aabb().size.z>data.size*0.09,"hooked talon has readable length")
 		if data.id=="mistfrill":
+			for instance in [model,saved]:
+				for side in [-1,1]:
+					var sac: MeshInstance3D = instance.get_node("Neck/MistSac"+str(side))
+					Model.animate(instance,data,0,"idle",0,0)
+					var resting := sac.scale
+					Model.animate(instance,data,0,"windup",data.windup,0)
+					var inflated := sac.scale
+					check(inflated.x>resting.x*1.3 and inflated.y>resting.y*1.2,"live and saved throat sac visibly inflates during mist warning")
+					Model.animate(instance,data,0,"active",0,0)
+					check(sac.scale.is_equal_approx(inflated),"mist release begins from the inflated sac without a pose jump")
+					Model.animate(instance,data,0,"recover",0,0)
+					check(sac.scale.is_equal_approx(resting),"mist recovery resets sac pressure instead of retaining attack swelling")
 			Model.animate(model,data,0,"windup",data.windup,0)
 			check(model.get_node("Neck/Frill").scale.x>1.1,"mist frill expands during warning")
 			Model.animate(model,data,0,"idle",0,0)

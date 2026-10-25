@@ -353,7 +353,7 @@ _surfaces = [{
 }]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_586r8"]
-albedo_color = Color(0.5529412, 0.61960787, 0.39607844, 1)
+albedo_color = Color(0.5529412, 0.61960787, 0.4745098, 1)
 roughness = 0.65
 
 [sub_resource type="SphereMesh" id="SphereMesh_5u4iy"]
@@ -361,7 +361,7 @@ radial_segments = 12
 rings = 6
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_t3x48"]
-albedo_color = Color(0.5529412, 0.61960787, 0.39607844, 1)
+albedo_color = Color(0.5529412, 0.61960787, 0.4745098, 1)
 roughness = 0.65
 
 [sub_resource type="SphereMesh" id="SphereMesh_wkdmd"]
@@ -910,15 +910,17 @@ mesh = SubResource("CylinderMesh_cguyt")
 material_override = SubResource("StandardMaterial3D_83hu3")
 mesh = SubResource("ArrayMesh_1oymx")
 
-[node name="@MeshInstance3D@139" type="MeshInstance3D" parent="Neck" unique_id=949722087]
-transform = Transform3D(0.448, 0, 0, 0, 0.448, 0, 0, 0, 0.56, -0.364, 0.028, -0.672)
+[node name="MistSac-1" type="MeshInstance3D" parent="Neck" unique_id=949722087]
+transform = Transform3D(0.392, 0, 0, 0, 0.56, 0, 0, 0, 0.7, -0.364, -0.042, -0.672)
 material_override = SubResource("StandardMaterial3D_586r8")
 mesh = SubResource("SphereMesh_5u4iy")
+metadata/rest_scale = Vector3(0.392, 0.56, 0.7)
 
-[node name="@MeshInstance3D@140" type="MeshInstance3D" parent="Neck" unique_id=698673482]
-transform = Transform3D(0.448, 0, 0, 0, 0.448, 0, 0, 0, 0.56, 0.364, 0.028, -0.672)
+[node name="MistSac1" type="MeshInstance3D" parent="Neck" unique_id=698673482]
+transform = Transform3D(0.392, 0, 0, 0, 0.56, 0, 0, 0, 0.7, 0.364, -0.042, -0.672)
 material_override = SubResource("StandardMaterial3D_t3x48")
 mesh = SubResource("SphereMesh_wkdmd")
+metadata/rest_scale = Vector3(0.392, 0.56, 0.7)
 
 [node name="Hind-1" type="Node3D" parent="." unique_id=471186188]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.812, 1.6128, 0.784)

@@ -139,7 +139,10 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 			horn.position.x = side*s*0.15
 	elif data.id=="mistfrill":
 		Surface.frill(neck,s,c.lightened(0.08))
-		for side in [-1,1]: V.piece(neck,Vector3(side*s*0.13,s*0.01,-s*0.24),Vector3(s*0.16,s*0.16,s*0.20),Color("8d9e65"),true)
+		for side in [-1,1]:
+			var sac := V.piece(neck,Vector3(side*s*0.13,-s*0.015,-s*0.24),Vector3(s*0.14,s*0.20,s*0.25),Color("8d9e79"),true)
+			sac.name = "MistSac"+str(side)
+			sac.set_meta("rest_scale",sac.scale)
 	elif data.id=="stormcrest":
 		for i in 5:
 			var height: float = [0.42,0.80,1.0,0.76,0.38][i]
@@ -358,6 +361,15 @@ static func charge_visuals(root: Node3D, data: Dictionary, phase: String, clock:
 	if phase=="active": load = 1-smoothstep(0.08,0.45,clock)
 	var frill := root.get_node("Neck").get_node_or_null("Frill") as MeshInstance3D
 	if frill: frill.scale = Vector3(1+load*0.12,1+load*0.12,1)
+	if data.pattern=="mist":
+		for side in [-1,1]:
+			var sac: MeshInstance3D = root.get_node("Neck/MistSac"+str(side))
+			var rest: Vector3 = sac.get_meta("rest_scale")
+			var swelling := rest*Vector3(1+load*0.45,1+load*0.30,1+load*0.20)
+			if not sac.scale.is_equal_approx(swelling): sac.scale = swelling
+			var material := sac.material_override as StandardMaterial3D
+			var color := Color("8d9e79").lerp(Color("c3bd83"),load*0.65)
+			if not material.albedo_color.is_equal_approx(color): material.albedo_color = color
 	if data.pattern=="pulse":
 		for index in 5:
 			var crest := root.get_node_or_null("Crest"+str(index)) as MeshInstance3D

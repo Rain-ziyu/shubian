@@ -48,6 +48,9 @@ func run() -> void:
 		m.receive_strike(1,p.global_position,"reply","body")
 		var health: float = m.health
 		m._physics_process(1.0/60)
+		if m.data.pattern=="mist":
+			var sac: MeshInstance3D = m.mesh.get_node("Neck/MistSac1")
+			check(sac.scale.is_equal_approx(sac.get_meta("rest_scale")),"interrupting mist abandons the inflated pressure cue")
 		check(m.mesh.transform.is_equal_approx(body) and m.mesh.get_node("Neck").transform.is_equal_approx(neck),"stagger begins from captured body and neck: "+str(m.data.id))
 		check(m.mesh.get_node("Neck/Jaw").transform.is_equal_approx(jaw),"interruption starts from the actual loaded jaw pose")
 		check(ankle(m,"Hind1").distance_to(foot)<0.003,"stagger entry preserves actual ankle position")
