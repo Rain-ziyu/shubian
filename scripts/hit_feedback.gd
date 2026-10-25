@@ -41,7 +41,8 @@ func _ready() -> void:
 	if normal_sound==null: normal_sound = synthesize(false)
 	if weak_sound==null: weak_sound = synthesize(true)
 	sound.stream = weak_sound if weak else normal_sound
-	sound.volume_db = -13 if weak else -16
+	sound.volume_db = (-13.0 if weak else -16.0)+clampf((force-1.0)*4.0,-1.0,2.0)
+	sound.pitch_scale = clampf(1.0-(force-1.0)*0.28,0.86,1.08)
 	sound.max_distance = 24
 	add_child(sound)
 	if DisplayServer.get_name()!="headless": sound.play()
