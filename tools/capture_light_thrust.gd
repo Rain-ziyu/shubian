@@ -31,6 +31,11 @@ func run() -> void:
 	camera.look_at(Vector3(0,1,-0.6))
 	camera.fov = 35
 	camera.current = true
+	var shoulder_detail := "--shoulder" in OS.get_cmdline_user_args()
+	if shoulder_detail:
+		camera.position = Vector3(1.45,1.65,-1.35)
+		camera.look_at(Vector3(0,1.38,-0.05))
+		camera.fov = 30
 	var layer := CanvasLayer.new()
 	stage.add_child(layer)
 	var label := Label.new()
@@ -68,7 +73,7 @@ func run() -> void:
 	var paths := {"light":"Shubian-light-thrust","heavy":"Shubian-heavy-sweep","pull":"Shubian-pull-motion","throw":"Shubian-throw-motion","plant":"Shubian-plant-motion"}
 	paths["reply"] = "Shubian-reply-motion"
 	paths["finisher"] = "Shubian-kick-motion"
-	sheet.save_png(ProjectSettings.globalize_path("res://../"+str(paths[action])+".png"))
+	sheet.save_png(ProjectSettings.globalize_path("res://../"+str(paths[action])+("-shoulder" if shoulder_detail else "")+".png"))
 	stage.queue_free()
 	await process_frame
 	quit()

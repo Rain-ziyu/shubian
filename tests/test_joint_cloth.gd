@@ -16,7 +16,7 @@ func run() -> void:
 	p.set_physics_process(false)
 	await process_frame
 	var skeleton: Skeleton3D = p.rig.skinning.skeleton
-	check(p.rig.soft_joints.size()==4,"both elbows and knees have continuous joint cloth")
+	check(p.rig.soft_joints.size()==6,"shoulders, elbows and knees have continuous joint cloth")
 	for binding in p.rig.skinning.bindings:
 		if not str(binding.source.name).begins_with("JointCloth"): continue
 		var arrays: Array = binding.rendered.mesh.surface_get_arrays(0)
@@ -49,7 +49,7 @@ func run() -> void:
 				for slot in 2:
 					var bone := bones[i*4+slot]
 					point += (skeleton.get_bone_global_pose(bone)*p.rig.skinning.skin.get_bind_pose(bone)*positions[i])*weights[i*4+slot]
-				finite = finite and point.is_finite() and point.distance_to(skeleton.get_bone_global_pose(bones[i*4]).origin)<0.8
+				finite = finite and point.is_finite() and point.distance_to(skeleton.get_bone_global_pose(bones[i*4+1]).origin)<0.8
 			check(finite,"deformed joint cloth stays finite and near its limb through "+action)
 	print("JOINT_CLOTH_CHECKS: ",checks," FAILURES: ",failures)
 	stage.queue_free()

@@ -92,6 +92,7 @@ static func bind(rig: Dictionary) -> Dictionary:
 		var lower: int = indices[arm.lower.get_instance_id()]
 		var hand: int = indices[arm.hand.get_instance_id()]
 		for pair in [[upper,spine],[lower,upper],[hand,lower]]: parent_bone(skeleton,pair[0],pair[1],rests)
+		parent_bone(skeleton,indices[rig.shoulders[side].get_instance_id()],upper,rests)
 		var leg: Dictionary = rig.legs[side]
 		var thigh: int = indices[leg.thigh.get_instance_id()]
 		var shin: int = indices[leg.shin.get_instance_id()]

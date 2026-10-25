@@ -129,20 +129,24 @@ static func create(root: Node3D) -> Dictionary:
 	loft(root,"Belt",[Vector4(0.982,0.188,0.131,0),Vector4(1.012,0.184,0.127,0)],Color("34322b"))
 	V.piece(root,Vector3(0.055,0.997,-0.133),Vector3(0.07,0.044,0.013),Color("928d74"))
 	V.piece(root,Vector3(0.055,0.997,-0.141),Vector3(0.046,0.025,0.008),dark)
+	var shoulders := {}
 	for side in [-1,1]:
 		var begin := 0.22 if side==1 else -PI+0.22
 		var finish := PI-0.22 if side==1 else -0.22
 		var cape := loft(root,"RainCape"+str(side),[
-			Vector4(1.20,0.365,0.225,0.018),Vector4(1.31,0.335,0.205,0.012),
+			Vector4(1.33,0.30,0.18,0.018),Vector4(1.39,0.285,0.165,0.012),
 			Vector4(1.44,0.245,0.147,0.008),Vector4(1.49,0.10,0.08,0)
 		],green,begin,finish,24,false)
 		cape.material_override.cull_mode = BaseMaterial3D.CULL_DISABLED
 		cape.material_override.roughness = 0.92
-		loft(root,"CapeHem"+str(side),[Vector4(1.201,0.366,0.226,0.018),Vector4(1.214,0.363,0.223,0.018)],hem,begin,finish,24,false).material_override.cull_mode = BaseMaterial3D.CULL_DISABLED
-		patch(root,"ShoulderPlate"+str(side),[
-			Vector3(side*0.18,1.475,-0.07),Vector3(side*0.27,1.455,-0.08),Vector3(side*0.30,1.39,-0.06),
-			Vector3(side*0.25,1.37,0.065),Vector3(side*0.17,1.43,0.08)
-		],Color("737d70"))
+		loft(root,"CapeHem"+str(side),[Vector4(1.331,0.301,0.181,0.018),Vector4(1.344,0.298,0.178,0.018)],hem,begin,finish,24,false).material_override.cull_mode = BaseMaterial3D.CULL_DISABLED
+		var shoulder := loft(root,"ShoulderPlate"+str(side),[
+			Vector4(-0.08,0.095,0.085,0),Vector4(0,0.10,0.09,0),
+			Vector4(0.06,0.06,0.06,0),Vector4(0.085,0.008,0.008,0)
+		],Color("737d70"),0 if side==1 else -PI,PI if side==1 else 0,16,false)
+		shoulder.position = Vector3(side*0.27,1.43,0)
+		shoulder.material_override.cull_mode = BaseMaterial3D.CULL_DISABLED
+		shoulders[side] = shoulder
 		V.piece(root,Vector3(side*0.25,1.425,-0.085),Vector3(0.028,0.055,0.018),red)
 	# Separate front panels allow the legs to swing and leave a central split.
 	var skirts := {}
@@ -160,7 +164,7 @@ static func create(root: Node3D) -> Dictionary:
 	var upper_parts: Array[MeshInstance3D] = []
 	for child in root.get_children():
 		if child is MeshInstance3D and (child.transform*child.get_aabb().get_center()).y>1.1: upper_parts.append(child)
-	return {"skirts":skirts,"upper_parts":upper_parts}
+	return {"skirts":skirts,"upper_parts":upper_parts,"shoulders":shoulders}
 
 static func create_head(root: Node3D, skin: Color) -> void:
 	loft(root,"Head",[

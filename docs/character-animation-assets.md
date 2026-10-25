@@ -6,7 +6,11 @@
 
 17 个片段包括 idle、light、heavy、pull、turn、guard、reply、flash、throw、fourfold、spin、plant、wait、counter_window、finisher、dodge、hurt。片段由当前程序化姿态按 30 FPS 烘焙，供编辑器预览，不是已经完成的手工关键帧动画。
 
-两肘、两膝现有连续布料接头，以相邻上下肢骨骼的渐变权重变形。接头沿初始关节曲线建立，半径收在外层袖管和裤腿以内，避免交界处相交形成锯齿。它补充局部连接，没有将整个角色改为连续人体拓扑。运行 capture_character_turnaround.gd 并传入 --details 可额外生成肘、膝原生近景。
+两肩、两肘、两膝现有连续布料接头。肩部在躯干内衣与上臂之间混合权重，其余关节在相邻上下肢之间混合；接头收在外层服装以内。它补充局部连接，没有将整个角色改为连续人体拓扑。运行 capture_character_turnaround.gd 并传入 --details 可额外生成肘、膝原生近景。
+
+披肩下缘已提高并收窄，以露出更多上臂轮廓。肩甲是以肩关节为枢轴的曲面护片，骨骼挂在对应上臂下，不再作为固定胸前片随躯干转动；上臂截面按肘部弯曲平面定向，减少换轴造成的护甲翻转。test_shoulder_rig.gd 在横扫、格挡、投掷、插地和终结姿态中检查骨骼归属、肩部锚点、护甲范围与连续旋转。
+
+运行 capture_light_thrust.gd 并传入 -- --heavy --shoulder，可生成横扫准备、接触和跟随的原生肩部近景 Shubian-heavy-sweep-shoulder.png。Shubian-shoulder-motion.mp4 是六招动作研究，用于观察当前肩臂模型，非实战录像；完整连携输入回放另行验证。
 
 游戏仍由战斗时钟和握点求解驱动骨骼，预览播放器不自动接管战斗。wait 预览循环不决定 30 秒等待，免伤和伤害窗口不由预览动画决定。正式根运动、步态、全身平滑蒙皮、关键帧和运行时 AnimationTree 仍需制作。
 

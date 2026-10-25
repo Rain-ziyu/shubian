@@ -27,6 +27,7 @@ static func create(parent: Node3D) -> Dictionary:
 	var costume := Outfit.create(root)
 	var torso := V.pivot(root,"Torso",Vector3(0,1.08,0))
 	for part in costume.upper_parts:
+		if str(part.name).begins_with("ShoulderPlate"): continue
 		part.reparent(torso,false)
 		part.position -= torso.position
 	var joints := {}
@@ -54,12 +55,14 @@ static func create(parent: Node3D) -> Dictionary:
 		var boot := Outfit.boot(ankle)
 		legs[side] = {"hip":leg,"knee":knee,"ankle":ankle,"thigh":thigh,"shin":shin,"boot":boot}
 		joints["leg"+str(side)] = leg
-	var rig := {"root":root,"torso":torso,"joints":joints,"arms":arms,"legs":legs,"skirts":costume.skirts,"weapon":V.trident(root)}
+	var rig := {"root":root,"torso":torso,"joints":joints,"arms":arms,"legs":legs,"skirts":costume.skirts,"shoulders":costume.shoulders,"weapon":V.trident(root)}
 	rig.weapon.name = "Trident"
 	pose_arms(rig,false,0)
 	rig.soft_joints = []
 	for side in [-1,1]:
 		var arm: Dictionary = arms[side]
+		var shoulder_cloth := JointCloth.create(root,"JointClothShoulder"+str(side),Vector3(side*0.16,1.40,0),arm.shoulder.position,arm.elbow.position,0.055)
+		rig.soft_joints.append({"source":shoulder_cloth,"upper":torso.get_node("Undercoat"),"lower":arm.upper})
 		# Flexible underlayers stay inside the rigid sleeve/trouser openings to avoid intersecting rims.
 		var elbow_cloth := JointCloth.create(root,"JointClothElbow"+str(side),arm.shoulder.position,arm.elbow.position,arm.hand.position,0.054)
 		rig.soft_joints.append({"source":elbow_cloth,"upper":arm.upper,"lower":arm.lower})
@@ -93,13 +96,22 @@ static func pose_arms(rig: Dictionary, armed: bool, gait: float, grip_weight := 
 		var offset := target-shoulder
 		var distance := offset.length()
 		var middle := (shoulder+target)*0.5
-		var bend := Vector3(side*0.6,-0.7,0.3) if armed else Vector3(side*0.12,-0.3,-1)
+		var bend: Vector3 = rig.torso.basis*(Vector3(side*0.6,-0.7,0.3) if armed else Vector3(side*0.12,-0.3,-1))
 		var unit := offset.normalized()
 		bend = (bend-unit*bend.dot(unit)).normalized()
 		var height := sqrt(maxf(0,0.39*0.39-pow(distance*0.5,2)))
 		var elbow := middle+bend*height
 		segment(arm.upper,shoulder,elbow)
+		# Use the anatomical elbow plane, avoiding shortest-arc roll and pole switches.
+		var upper_axis := (elbow-shoulder).normalized()
+		var elbow_normal := unit.cross(bend).normalized()
+		arm.upper.basis = Basis(elbow_normal,upper_axis,elbow_normal.cross(upper_axis).normalized()).scaled_local(Vector3(1,shoulder.distance_to(elbow),1))
 		segment(arm.lower,elbow,target)
+		if not arm.has("rest_upper_basis"): arm.rest_upper_basis = arm.upper.basis.orthonormalized()
+		var shoulder_plate: MeshInstance3D = rig.shoulders[side]
+		shoulder_plate.position = shoulder
+		var shoulder_turn: Basis = arm.upper.basis.orthonormalized()*arm.rest_upper_basis.inverse()
+		shoulder_plate.basis = shoulder_turn
 		arm.hand.position = target
 		Hand.orient(arm.hand,elbow,rig.weapon.basis.y,clampf(main_grip if side==1 and main_grip>=0 else grip_weight,0,1) if armed else 0.0,finger_release)
 		arm.elbow.position = elbow
