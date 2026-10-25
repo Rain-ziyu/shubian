@@ -24,9 +24,12 @@ func run() -> void:
 		check(valid,"cloth UV coordinates cover every vertex and remain normalized")
 		check(binding.rendered.mesh.surface_get_arrays(0)[Mesh.ARRAY_TEX_UV]==uv,"skinned cloth preserves authored UV")
 		check(binding.rendered.material_override==material,"rendered cloth uses intended fabric material")
-	check(count==17,"eleven garments and six flexible joints receive fabric treatment")
+	check(count==15,"nine garments and six flexible joints receive fabric treatment")
 	check(rig.root.get_node("Torso/Head").material_override is StandardMaterial3D,"face retains original skin material")
 	check(rig.arms[-1].lower.material_override is StandardMaterial3D,"bracer retains armor material")
+	for side in [-1,1]:
+		var skin := rig.arms[side].upper.material_override as StandardMaterial3D
+		check(skin!=null and skin.albedo_color.is_equal_approx(H.Outfit.SKIN_TONE),"exposed upper arm shares the facial skin tone")
 	check(rig.legs[-1].boot.material_override is StandardMaterial3D,"boots retain colored sole material")
 	check(rig.weapon.get_node("Shaft").material_override is StandardMaterial3D,"weapon retains metal material")
 	var cape: ShaderMaterial = rig.root.get_node("Torso/RainCape1").material_override
@@ -37,6 +40,9 @@ func run() -> void:
 	var saved_count := 0
 	for mesh in saved.get_node("Skeleton3D").get_children():
 		if not mesh is MeshInstance3D: continue
+		if str(mesh.get_meta("source_part","")).begins_with("UpperArmSurface"):
+			var saved_skin := mesh.material_override as StandardMaterial3D
+			check(saved_skin!=null and saved_skin.albedo_color.is_equal_approx(H.Outfit.SKIN_TONE),"saved upper arm retains skin rather than cloth material")
 		var material := mesh.material_override as ShaderMaterial
 		if material!=null and material.shader.resource_path.ends_with("hunter_fabric.gdshader"):
 			saved_count += 1

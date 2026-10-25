@@ -1,6 +1,7 @@
 extends RefCounted
 ## Original mesh profiles for the approved wet-forest costume. No third-party meshes.
 const V = preload("res://scripts/visuals.gd")
+const SKIN_TONE := Color("bd9b80")
 
 static func loft(parent: Node3D, label: String, rings: Array, color: Color, start := 0.0, end := TAU, segments := 28, caps := true) -> MeshInstance3D:
 	var st := SurfaceTool.new()
@@ -115,8 +116,8 @@ static func create(root: Node3D) -> Dictionary:
 	var dark := Color("303735")
 	var green := Color("4c5e45")
 	var hem := Color("807a5e")
-	var red := Color("704439")
-	var skin := Color("bd9b80")
+	var red := Color("7e4b3c")
+	var skin := SKIN_TONE
 	loft(root,"Undercoat",[
 		Vector4(0.96,0.16,0.105,0),Vector4(1.07,0.15,0.10,0),Vector4(1.18,0.17,0.115,0),
 		Vector4(1.31,0.205,0.13,-0.006),Vector4(1.40,0.22,0.12,0),Vector4(1.46,0.185,0.09,0),Vector4(1.49,0.08,0.065,0)
@@ -125,7 +126,7 @@ static func create(root: Node3D) -> Dictionary:
 	loft(root,"Collar",[Vector4(1.43,0.10,0.076,0),Vector4(1.52,0.076,0.065,0)],Color("3b463a"))
 	ribbon(root,"CrossedCollar",[Vector3(-0.07,1.50,-0.067),Vector3(0.02,1.40,-0.13),Vector3(0.17,1.27,-0.094)],0.045,hem)
 	ribbon(root,"InnerCollar",[Vector3(0.07,1.49,-0.075),Vector3(-0.01,1.39,-0.139),Vector3(-0.15,1.30,-0.106)],0.026,Color("656b59"))
-	loft(root,"WaistSash",[Vector4(0.96,0.181,0.123,0),Vector4(1.015,0.177,0.12,0)],red)
+	loft(root,"WaistSash",[Vector4(0.94,0.181,0.123,0),Vector4(1.025,0.177,0.12,0)],red)
 	loft(root,"Belt",[Vector4(0.982,0.188,0.131,0),Vector4(1.012,0.184,0.127,0)],Color("34322b"))
 	V.piece(root,Vector3(0.055,0.997,-0.133),Vector3(0.07,0.044,0.013),Color("928d74"))
 	V.piece(root,Vector3(0.055,0.997,-0.141),Vector3(0.046,0.025,0.008),dark)

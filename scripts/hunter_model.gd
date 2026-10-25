@@ -37,7 +37,7 @@ static func create(parent: Node3D) -> Dictionary:
 	var legs := {}
 	for side in [-1,1]:
 		var shoulder := V.pivot(root,"Arm"+str(side),Vector3(side*0.27,1.43,0))
-		var upper := Outfit.loft(root,"Sleeve"+str(side),[Vector4(-0.5,0.078,0.075,0),Vector4(-0.1,0.083,0.075,0),Vector4(0.5,0.060,0.057,0)],dark)
+		var upper := Outfit.loft(root,"UpperArmSurface"+str(side),[Vector4(-0.5,0.073,0.070,0),Vector4(-0.35,0.084,0.078,-0.003),Vector4(-0.10,0.078,0.075,-0.004),Vector4(0.15,0.067,0.065,0),Vector4(0.40,0.054,0.054,0),Vector4(0.5,0.055,0.054,0)],Outfit.SKIN_TONE)
 		var lower := Outfit.loft(root,"Bracer"+str(side),[Vector4(-0.5,0.063,0.058,0),Vector4(-0.15,0.073,0.062,0),Vector4(0.35,0.058,0.052,0),Vector4(0.5,0.048,0.045,0)],armor)
 		V.piece(lower,Vector3(0,-0.06,-0.063),Vector3(0.065,0.28,0.012),Color("434b43"))
 		if side==-1:
