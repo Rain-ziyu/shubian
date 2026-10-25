@@ -28,16 +28,22 @@ static func build(actor: Node3D, hull: PackedVector2Array) -> ArrayMesh:
 	center /= boundary.size()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	# Sample each shared radial vertex once. The prior triangle soup repeated
+	# terrain height queries up to six times for the same world-space position.
+	for ring in 11:
+		for point in boundary:
+			var sample := center.lerp(point,float(ring)/10)
+			var world: Vector3 = actor.to_global(Vector3(sample.x,0,sample.y))
+			world.y = Terrain.effect_height_at(world.x,world.z)+0.08
+			st.add_vertex(world)
+	var count := boundary.size()
 	for ring in 10:
-		for i in boundary.size():
-			var next := (i+1)%boundary.size()
-			var a := center.lerp(boundary[i],float(ring)/10)
-			var b := center.lerp(boundary[i],float(ring+1)/10)
-			var c := center.lerp(boundary[next],float(ring)/10)
-			var d := center.lerp(boundary[next],float(ring+1)/10)
-			for point in ([a,b,d] if ring==0 else [a,b,c,b,d,c]):
-				var world: Vector3 = actor.to_global(Vector3(point.x,0,point.y))
-				world.y = Terrain.effect_height_at(world.x,world.z)+0.08
-				st.add_vertex(world)
+		for i in count:
+			var next := (i+1)%count
+			var a := ring*count+i
+			var b := (ring+1)*count+i
+			var c := ring*count+next
+			var d := (ring+1)*count+next
+			for index in ([a,b,d] if ring==0 else [a,b,c,b,d,c]): st.add_index(index)
 	st.generate_normals()
 	return st.commit()
