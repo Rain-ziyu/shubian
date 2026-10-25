@@ -113,6 +113,19 @@ func run() -> void:
 		light_support = light_support and grounded>=1
 	check(light_support and light_floor,"light opening and return retain support without floor penetration")
 	check(closing_lift>0.04,"light lifts the front foot when returning instead of dragging it")
+	p.combat.set_action("pull")
+	p.combat.elapsed = 0.22
+	p.animate(0,0)
+	var pull_reach: Vector3 = p.rig.root.position
+	var pull_feet := {}
+	for side in [-1,1]: pull_feet[side] = p.rig.legs[side].ankle.global_position
+	p.combat.elapsed = 0.56
+	p.animate(0,0)
+	check(p.rig.root.position.z-pull_reach.z>0.16,"hook pull shifts the body rearward with the returning shaft")
+	check(p.rig.root.position.y<pull_reach.y-0.025,"hook pull sits into the support legs")
+	check(absf(p.rig.pelvis.rotation.y)>0.04,"hook pull carries the pelvis with the chest")
+	for side in [-1,1]:
+		check(p.rig.legs[side].ankle.global_position.distance_to(pull_feet[side])<0.003,"hook pull preserves planted support feet")
 	var saved = load("res://assets/models/hunter-forest-v1.tscn").instantiate()
 	world.add_child(saved)
 	var saved_belt: MeshInstance3D = saved.get_node("Pelvis/Belt")

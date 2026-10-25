@@ -18,7 +18,7 @@ func run() -> void:
 	p.set_process_unhandled_input(false)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	p.combat.drawn = true
-	for pair in [["light",0.37,"heavy"],["heavy",0.61,"light"],["reply",0.42,"flash"]]:
+	for pair in [["light",0.37,"heavy"],["heavy",0.61,"light"],["pull",0.55,"light"],["reply",0.42,"flash"]]:
 		p.combat.set_action(pair[0])
 		p.combat.elapsed = pair[1]
 		p.animate(0,0)
