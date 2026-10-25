@@ -117,7 +117,7 @@ static func pose_arms(rig: Dictionary, armed: bool, gait: float, grip_weight := 
 		arm.elbow.position = elbow
 	Skinning.update(rig)
 
-static func pose_torso(rig: Dictionary, action: String, elapsed: float, gait: float, speed: float, delta: float, travel := Vector3.FORWARD) -> void:
+static func pose_torso(rig: Dictionary, action: String, elapsed: float, gait: float, speed: float, delta: float, travel := Vector3.FORWARD, arrival_weight := 0.0) -> void:
 	var value := Motion.sample(action,elapsed,gait,speed)
 	var rotation := Vector3(value.y,value.z,-value.z*0.08)
 	var position := Vector3(value.z*0.018,1.08,value.w)
@@ -128,6 +128,8 @@ static func pose_torso(rig: Dictionary, action: String, elapsed: float, gait: fl
 		rotation = Vector3(direction.z*0.23*weight,0,-direction.x*0.23*weight)
 		position += direction*0.03*weight
 		position.z -= value.w
+	rotation.x -= 0.07*arrival_weight
+	position.z -= 0.015*arrival_weight
 	var weight := 1-exp(-delta*12) if delta>0 else 1.0
 	rig.torso.rotation = rig.torso.rotation.move_toward(rotation,delta*6.5) if delta>0 else rotation
 	rig.torso.position = rig.torso.position.lerp(position,weight)
@@ -135,7 +137,7 @@ static func pose_torso(rig: Dictionary, action: String, elapsed: float, gait: fl
 		var arm: Dictionary = rig.arms[side]
 		arm.shoulder.position = rig.torso.transform*(arm.rest_shoulder-Vector3(0,1.08,0))
 
-static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bool, gait: float, speed: float, delta: float, ground: Callable = Callable(), ground_normal: Callable = Callable(), travel := Vector3.FORWARD) -> void:
+static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bool, gait: float, speed: float, delta: float, ground: Callable = Callable(), ground_normal: Callable = Callable(), travel := Vector3.FORWARD, arrival_weight := 0.0) -> void:
 	var drop := 0.09 if armed else 0.015
 	var walking := action=="idle" and speed>0.1
 	if walking: drop = 0.12
@@ -148,6 +150,8 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 		var landing := smoothstep(0.30,0.40,elapsed)*(1-smoothstep(0.40,0.55,elapsed))
 		drop = lerpf(drop,0.10,load*(1-smoothstep(0.42,0.55,elapsed)))+0.12*load*(1-smoothstep(0.06,0.14,elapsed))-0.05*flight+0.09*landing
 	if action=="flash": drop += 0.06*smoothstep(0,0.08,elapsed)*(1-smoothstep(0.08,0.23,elapsed))
+	if action=="throw": drop += 0.06*smoothstep(0,0.20,elapsed)*(1-smoothstep(0.20,0.38,elapsed))
+	drop += 0.08*arrival_weight
 	if action=="hurt": drop = 0.16
 	if action=="spin": drop += 0.05*sin(Motion.turn_progress(action,elapsed)*PI)
 	if action in ["light","heavy"]:
@@ -156,7 +160,7 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 		var release_from := 0.15 if action=="light" else 0.30
 		drop += 0.05*smoothstep(0,ready,elapsed)*(1-smoothstep(release_from,release,elapsed))
 	var body: Node3D = rig.root
-	var shift := Motion.sample(action,elapsed,gait,speed).w*1.6 if action in ["light","heavy","hurt","reply","finisher"] else 0.0
+	var shift := Motion.sample(action,elapsed,gait,speed).w*1.6 if action in ["light","heavy","hurt","reply","finisher","throw"] else 0.0
 	body.position.z = lerpf(body.position.z,shift,1-exp(-delta*18)) if delta>0 else shift
 	var previous_height := body.position.y
 	body.position.y = -drop
@@ -192,6 +196,10 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 			stance = lerpf(stance,0.08,support)
 			lift = sin(support*PI)*0.035
 		var target := Vector3(leg.hip.position.x,0.10-body.position.y+lift,stance)
+		if action=="throw" and side==-1:
+			var step := smoothstep(0.02,0.25,elapsed)*(1-smoothstep(0.50,0.80,elapsed))
+			target.z -= 0.08*step
+			target.y += 0.05*sin(smoothstep(0.02,0.25,elapsed)*PI)
 		if action in ["dodge","flash"]:
 			var direction := Vector3(travel.x,0,travel.z).normalized() if action=="dodge" else Vector3.FORWARD
 			if direction.is_zero_approx(): direction = Vector3.FORWARD

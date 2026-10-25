@@ -14,6 +14,8 @@ func run() -> void:
 	await physics_frame
 	var p = world.hunter
 	p.set_physics_process(false)
+	p.set_process_unhandled_input(false)
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	for m in get_nodes_in_group("monsters"): m.set_physics_process(false)
 	p.yaw = 0
 	p.combat.set_action("throw")
@@ -23,10 +25,13 @@ func run() -> void:
 	p.combat.elapsed = 0.2
 	p.animate(0,0)
 	var windup: Vector3 = p.rig.weapon.position
+	var loaded_body: Vector3 = p.rig.root.position
 	check(windup.y>start.y+0.2,"throw lifts weapon during preparation")
 	p.combat.elapsed = 0.38
 	p.animate(0,0)
 	check(p.rig.weapon.position.z<windup.z-0.25,"throw sends weapon forward into release")
+	check(loaded_body.z-p.rig.root.position.z>0.09,"throw drives the whole body forward from the loaded stance")
+	check(absf(p.to_local(p.rig.legs[1].ankle.to_global(Vector3(0,-0.1,0))).y)<0.002,"throw keeps the rear support foot grounded at release")
 	var handoff: Vector3 = p.rig.weapon.global_position
 	var axis: Vector3 = p.rig.weapon.global_basis.y.normalized()
 	p.on_strike(0)

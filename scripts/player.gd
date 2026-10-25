@@ -29,6 +29,8 @@ var body_turn_applied := 0.0
 var body_turn_pose := 0.0
 var walk_clock := 0.0
 var locomotion_motion := Vector3.ZERO
+const ARRIVAL_POSE_DURATION := 0.24
+var arrival_pose_left := 0.0
 var heavy_held := -1.0
 var lock_target: Node3D
 var message := "观察金色预警后躲避或格挡。"
@@ -245,6 +247,7 @@ func _physics_process(delta: float) -> void:
 
 func advance_physics(delta: float) -> void:
 	feedback.advance(delta)
+	arrival_pose_left = maxf(0,arrival_pose_left-delta)
 	clear_body_turn()
 	if combat.health<=0: heavy_held = -1
 	elif heavy_held>=0: heavy_held += delta
@@ -331,11 +334,12 @@ func animate(delta: float, speed: float) -> void:
 	for side in [-1,1]:
 		rig.joints["arm"+str(side)].rotation.x = -0.85 if combat.drawn else -sin(walk_clock)*side*minf(speed*0.08,0.3)
 	var leg_travel: Vector3 = rig.root.global_basis.inverse()*locomotion_motion
+	var arrival_weight := arrival_pose_weight()
 	if combat.action=="dodge":
 		var dash := Vector3(velocity.x,0,velocity.z)
 		if dash.is_zero_approx(): dash = combat_forward()
 		leg_travel = rig.root.global_basis.inverse()*dash.normalized()
-	HunterModel.pose_legs(rig,combat.action,combat.elapsed,combat.drawn,walk_clock,speed,delta,foot_ground_height if is_on_floor() else Callable(),foot_ground_normal if is_on_floor() else Callable(),leg_travel)
+	HunterModel.pose_legs(rig,combat.action,combat.elapsed,combat.drawn,walk_clock,speed,delta,foot_ground_height if is_on_floor() else Callable(),foot_ground_normal if is_on_floor() else Callable(),leg_travel,arrival_weight)
 	var w: Node3D = rig.weapon
 	w.visible = not is_instance_valid(projectile)
 	w.position = Vector3(0,1.20,-0.32) if combat.drawn else Vector3(0,1.05,0.26)
@@ -426,11 +430,16 @@ func animate(delta: float, speed: float) -> void:
 		ghosts[i].visible = combat.health>0 and i<combat.shadow_lifetimes.size()
 		if ghosts[i].visible:
 			ghosts[i].get_meta("spectral_material").set_shader_parameter("life_fade",0.2+0.8*smoothstep(0,6,combat.shadow_lifetimes[i]))
-	HunterModel.pose_torso(rig,combat.action,combat.elapsed,walk_clock,speed,delta,leg_travel)
+	HunterModel.pose_torso(rig,combat.action,combat.elapsed,walk_clock,speed,delta,leg_travel,arrival_weight)
 	var release := smoothstep(0.28,0.38,combat.elapsed) if combat.action=="throw" else 0.0
 	if is_instance_valid(projectile): release = 1.0
 	var arm_release := smoothstep(0.38,0.60,combat.elapsed) if combat.action=="throw" else (1.0 if is_instance_valid(projectile) else 0.0)
 	HunterModel.pose_arms(rig,combat.drawn or equipment_grip>0 or equipment_main>0,walk_clock,equipment_grip*(1-arm_release),equipment_main*(1-arm_release),release)
+
+func arrival_pose_weight() -> float:
+	if arrival_pose_left<=0 or combat.action not in ["idle","throw"]: return 0.0
+	var age := ARRIVAL_POSE_DURATION-arrival_pose_left
+	return smoothstep(0,0.05,age)*(1-smoothstep(0.05,ARRIVAL_POSE_DURATION,age))
 
 func planted_weapon_height() -> float:
 	var point: Vector3 = rig.root.to_global(Vector3(0,0,-0.35))
@@ -601,6 +610,7 @@ func finish_throw(point: Vector3, allow_arrival := true) -> void:
 	global_position = candidate
 	motion_epoch += 1
 	if travel>0.5:
+		arrival_pose_left = ARRIVAL_POSE_DURATION
 		var effect := TeleportFeedback.new()
 		effect.source = rig.root
 		effect.departure = departure

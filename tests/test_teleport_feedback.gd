@@ -14,8 +14,14 @@ func run() -> void:
 	await physics_frame
 	var p = world.hunter
 	p.set_physics_process(false)
+	p.set_process_unhandled_input(false)
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	p.yaw = 0
+	p.rig.root.rotation = Vector3.ZERO
 	for m in get_nodes_in_group("monsters"): m.set_physics_process(false)
 	p.global_position = Vector3(0,0.05,-10)
+	p.combat.drawn = true
+	p.animate(0,0)
 	await physics_frame
 	var before: Transform3D = p.rig.root.global_transform
 	var hp: float = p.combat.health
@@ -39,6 +45,21 @@ func run() -> void:
 			matching = matching and cloned[i].get_bone_pose(bone).is_equal_approx(source_skeletons[i].get_bone_pose(bone))
 	check(matching,"snapshot preserves skeleton poses")
 	check(p.combat.health==hp and p.combat.stamina==stamina,"presentation preserves combat resources")
+	var ready_height: float = p.rig.root.position.y
+	for tick in 3: p._physics_process(1.0/60)
+	p.animate(0,0)
+	check(p.rig.root.position.y<ready_height-0.06,"successful arrival bends knees to absorb the landing")
+	check(p.combat.action=="idle" and p.combat.elapsed==0,"arrival presentation does not introduce an action lock")
+	for side in [-1,1]:
+		var sole: Vector3 = p.rig.legs[side].ankle.to_global(Vector3(0,-0.1,0))
+		var probe := PhysicsRayQueryParameters3D.create(sole+Vector3.UP*0.5,sole-Vector3.UP*0.5,2)
+		var ground: Dictionary = p.get_world_3d().direct_space_state.intersect_ray(probe)
+		check(not ground.is_empty() and sole.y>=ground.position.y-0.003,"arrival compression keeps the actual sole above the floor")
+	check(p.combat.request("light") and p.arrival_pose_weight()==0,"arrival yields immediately to a legal follow-up attack")
+	p.take_damage(10,p.global_position+Vector3.FORWARD*3,true)
+	check(p.combat.health==hp-10 and p.combat.action=="hurt" and p.arrival_pose_weight()==0,"arrival pose grants no immunity and yields to actual hit reaction")
+	p._physics_process(0.3)
+	check(p.arrival_pose_left==0 and p.combat.elapsed>=0.29,"arrival timer expires without pausing the combat clock")
 	p.finish_throw(Vector3(0,0,-18),false)
 	check(get_nodes_in_group("teleport_feedback").size()==1,"cancelled arrival creates no effect")
 	p.finish_throw(p.global_position)
