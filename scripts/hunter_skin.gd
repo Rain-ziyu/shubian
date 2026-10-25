@@ -90,6 +90,26 @@ static func bind(rig: Dictionary) -> Dictionary:
 		bindings.append({"source":source,"bone":bone,"rendered":rendered})
 		indices[source.get_instance_id()] = bone
 		rests[bone] = rest
+	# The collar stays on the torso while the outer cloth yields to a raised arm.
+	# Reuse the anatomical upper-arm bones instead of adding simulated cloth bones.
+	for binding in bindings:
+		var label := str(binding.source.name)
+		if not label.begins_with("RainCape") and not label.begins_with("CapeHem"): continue
+		var side := -1 if label.ends_with("-1") else 1
+		var upper: int = indices[rig.arms[side].upper.get_instance_id()]
+		var arrays: Array = binding.rendered.mesh.surface_get_arrays(0)
+		var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		var bones := PackedInt32Array()
+		var weights := PackedFloat32Array()
+		for point in vertices:
+			var arm_weight := 0.70*smoothstep(0.16,0.29,absf(point.x))*(1-smoothstep(1.42,1.49,point.y))
+			bones.append_array(PackedInt32Array([binding.bone,upper,0,0]))
+			weights.append_array(PackedFloat32Array([1-arm_weight,arm_weight,0,0]))
+		arrays[Mesh.ARRAY_BONES] = bones
+		arrays[Mesh.ARRAY_WEIGHTS] = weights
+		var mesh := ArrayMesh.new()
+		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+		binding.rendered.mesh = mesh
 	for source in sources:
 		if rig.torso.is_ancestor_of(source): parent_bone(skeleton,indices[source.get_instance_id()],spine,rests)
 		elif rig.pelvis.is_ancestor_of(source): parent_bone(skeleton,indices[source.get_instance_id()],pelvis,rests)

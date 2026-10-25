@@ -72,6 +72,7 @@ static func create(parent: Node3D) -> Dictionary:
 	for side in [-1,1]:
 		var arm: Dictionary = arms[side]
 		var shoulder_cloth := JointCloth.create(root,"JointClothShoulder"+str(side),Vector3(side*0.16,1.40,0),arm.shoulder.position,arm.elbow.position,0.055)
+		shoulder_cloth.material_override = V.mat(Outfit.SKIN_TONE)
 		rig.soft_joints.append({"source":shoulder_cloth,"upper":torso.get_node("Undercoat"),"lower":arm.upper})
 		# Flexible underlayers stay inside the rigid sleeve/trouser openings to avoid intersecting rims.
 		var elbow_cloth := JointCloth.create(root,"JointClothElbow"+str(side),arm.shoulder.position,arm.elbow.position,arm.hand.position,0.054)

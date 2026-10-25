@@ -18,6 +18,21 @@ func run() -> void:
 	var skeleton: Skeleton3D = p.rig.skinning.skeleton
 	check(p.rig.soft_joints.size()==6,"shoulders, elbows and knees have continuous joint cloth")
 	for binding in p.rig.skinning.bindings:
+		var label := str(binding.source.name)
+		if not label.begins_with("RainCape") and not label.begins_with("CapeHem"): continue
+		var arrays: Array = binding.rendered.mesh.surface_get_arrays(0)
+		var positions: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		var bones: PackedInt32Array = arrays[Mesh.ARRAY_BONES]
+		var weights: PackedFloat32Array = arrays[Mesh.ARRAY_WEIGHTS]
+		var arm := skeleton.find_bone("LeftUpperArm" if label.ends_with("-1") else "RightUpperArm")
+		var yielding := 0
+		var collar_fixed := true
+		for vertex in positions.size():
+			if bones[vertex*4+1]==arm and weights[vertex*4+1]>0.1: yielding += 1
+			if absf(positions[vertex].x)<0.14: collar_fixed = collar_fixed and weights[vertex*4+1]<0.0001
+		check(yielding>20,"cape edge follows the corresponding upper arm: "+label)
+		check(collar_fixed,"cape collar retains its torso attachment: "+label)
+	for binding in p.rig.skinning.bindings:
 		if not str(binding.source.name).begins_with("JointCloth"): continue
 		var arrays: Array = binding.rendered.mesh.surface_get_arrays(0)
 		var positions: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
