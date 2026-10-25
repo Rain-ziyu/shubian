@@ -128,6 +128,18 @@ func run() -> void:
 	var last := above_head+Vector3.RIGHT*0.02
 	check(not preload("res://scripts/monster_parts.gd").sweep(mist,first,last,0.075).is_empty(),"fixture exposes empty-space contact in old head proxy")
 	check(detector.cast(mist,first,last,0.075).is_empty(),"melee padding does not grant a head hit above the visible skull")
+	var moss = monsters.mossback
+	moss.CreatureModel.animate(moss.mesh,moss.data,1.4,"idle",0,0)
+	var moss_tail: Node3D = moss.mesh.get_node("Tail")
+	var club_rings: Array[Vector4] = TailSkin.contact_profile(moss_tail,moss.tail_rings)
+	var widest := -1
+	for index in moss.tail_rings.size():
+		if moss.tail_rings[index].x>moss.data.size*0.70 and (widest<0 or moss.tail_rings[index].z>moss.tail_rings[widest].z): widest = index
+	var club := club_rings[widest]
+	var center: Vector3 = moss_tail.to_global(Vector3(club.w,club.y,club.x))
+	var club_hit: Dictionary = detector.cast(moss,center+Vector3.RIGHT*1.2,center-Vector3.RIGHT*1.2)
+	check(not club_hit.is_empty() and club_hit.part=="tail_tip","posed bone club contacts distal tail rather than soft root")
+	check(not moss.weak_part_active("tail_tip") and moss.weak_part_active("tail"),"club does not inherit tail-root weakness")
 	print("PROJECTILE_PART_CHECKS: ",checks," FAILURES: ",failures)
 	stage.queue_free()
 	await process_frame

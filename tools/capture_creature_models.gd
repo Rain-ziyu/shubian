@@ -88,6 +88,14 @@ func run() -> void:
 		await RenderingServer.frame_post_draw
 		var result := root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-creature-"+str(data.species[index].id)+".png"))
 		if result!=OK: error = result
+		if data.species[index].id=="mossback":
+			camera.position = holder.position+Vector3(size*2.0,size*1.2,size*2.8)
+			camera.look_at(holder.position+Vector3(0,size*0.40,1.3))
+			title.text = "SHUBIAN / MOSSBACK / FLEXIBLE ROOT - BONE CLUB"
+			await process_frame
+			await RenderingServer.frame_post_draw
+			result = root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-creature-mossback-rear.png"))
+			if result!=OK: error = result
 		holder.hide()
 	stage.queue_free()
 	await process_frame

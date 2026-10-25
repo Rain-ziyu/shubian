@@ -93,7 +93,20 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 					Surface.profile(finger,"Talon",[Vector4(-0.17,0.0015,0.002,-0.082),Vector4(-0.15,0.005,0.009,-0.040),Vector4(-0.12,0.010,0.016,-0.014),Vector4(-0.07,0.013,0.018,-0.012)],s,Color("c1b99a"))
 	var tail := V.pivot(root,"Tail",Vector3(0,y*0.85,s*0.45))
 	var length := 1.55 if data.id=="reedclaw" else (0.85 if data.id=="thornhorn" else 1.10)
-	Surface.profile(tail,"TailSurface",[Vector4(-0.06,0.14,0.15,0),Vector4(0.14*length,0.125,0.125,-0.015),Vector4(0.40*length,0.085,0.085,-0.035),Vector4(0.70*length,0.045,0.04,-0.055),Vector4(0.96*length,0.008,0.008,-0.065)],s,c)
+	var tail_profile := [Vector4(-0.06,0.14,0.15,0),Vector4(0.14*length,0.125,0.125,-0.015),Vector4(0.40*length,0.085,0.085,-0.035),Vector4(0.70*length,0.045,0.04,-0.055),Vector4(0.96*length,0.008,0.008,-0.065)]
+	if data.id=="mossback":
+		tail_profile = [Vector4(-0.06,0.14,0.15,0),Vector4(0.40*length,0.05,0.055,-0.035),Vector4(0.73*length,0.165,0.13,-0.055),Vector4(0.86*length,0.155,0.13,-0.055),Vector4(0.96*length,0.025,0.025,-0.065)]
+	var tail_surface := Surface.profile(tail,"TailSurface",tail_profile,s,c)
+	if data.id=="mossback":
+		var arrays: Array = tail_surface.mesh.surface_get_arrays(0)
+		var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		var colors: PackedColorArray = arrays[Mesh.ARRAY_COLOR]
+		for vertex in vertices.size():
+			colors[vertex] = colors[vertex].lerp(Color("a29d81"),0.75*smoothstep(0.50*length,0.69*length,vertices[vertex].z/s))
+		arrays[Mesh.ARRAY_COLOR] = colors
+		var mesh := ArrayMesh.new()
+		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+		tail_surface.mesh = mesh
 	if data.id=="mossback":
 		for i in 5:
 			var taper := 1.0-absf(i-2)*0.12
