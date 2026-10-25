@@ -123,6 +123,11 @@ func run() -> void:
 		var center: Vector3 = claw.to_global(Vector3(0,-reed.data.size*0.014,-reed.data.size*0.12))
 		var hit: Dictionary = detector.cast(reed,center+Vector3.RIGHT*0.20,center-Vector3.RIGHT*0.20)
 		check(not hit.is_empty() and hit.part=="limb" and hit.surface=="Talon","visible articulated talon contact remains a limb")
+	var above_head: Vector3 = mist.mesh.get_node("Neck").to_global(Vector3(0,mist.data.size*0.37,-mist.data.size*0.40))
+	var first := above_head-Vector3.RIGHT*0.02
+	var last := above_head+Vector3.RIGHT*0.02
+	check(not preload("res://scripts/monster_parts.gd").sweep(mist,first,last,0.075).is_empty(),"fixture exposes empty-space contact in old head proxy")
+	check(detector.cast(mist,first,last,0.075).is_empty(),"melee padding does not grant a head hit above the visible skull")
 	print("PROJECTILE_PART_CHECKS: ",checks," FAILURES: ",failures)
 	stage.queue_free()
 	await process_frame

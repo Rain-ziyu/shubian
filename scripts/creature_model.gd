@@ -161,9 +161,9 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 	if phase=="windup":
 		var fraction := clampf(clock/float(data.windup),0,1)
 		neck.rotation.x = (0.35 if data.pattern=="charge" else -0.20)*fraction
-		root.position.y = -0.45*smoothstep(0,0.4,clock) if data.pattern=="pulse" else 0.0
+		root.position.y = -float(data.size)*0.30*smoothstep(0,0.4,clock) if data.pattern=="pulse" else 0.0
 	elif phase=="active":
-		if data.pattern=="pulse": root.position.y = -0.45*(1-smoothstep(0,0.3,clock))
+		if data.pattern=="pulse": root.position.y = -float(data.size)*0.30*(1-smoothstep(0,0.3,clock))
 	else: root.position.y = 0
 	if data.pattern=="sweep":
 		var load := smoothstep(0,float(data.windup),clock) if phase=="windup" else (1-smoothstep(0,0.08,clock) if phase=="active" else 0.0)

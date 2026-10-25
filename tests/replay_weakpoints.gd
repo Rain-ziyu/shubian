@@ -38,7 +38,7 @@ func control() -> void:
 		var head: Vector3 = monster.Parts.volumes(monster)[0].center
 		var tip: Vector3 = fighter.weapon_contact_points(c.action,0)[0]
 		events.append({"t":snappedf(elapsed,0.01),"range":away.length(),"action":c.action,"phase":monster.phase,"pitch":fighter.pitch,"tip_to_head":tip.distance_to(head)})
-	var desired := 3.1 if monster.data.pattern=="mist" else 1.85
+	var desired := 3.1
 	var movement := -radial if away.length()>desired+0.1 else (radial if away.length()<desired-0.1 else Vector3.ZERO)
 	if monster.data.pattern=="pulse":
 		var rear: Vector3 = monster.global_basis.z

@@ -26,6 +26,12 @@ func run() -> void:
 		Model.animate(model,data,0,"windup",data.windup,0)
 		var full := cue(model,data)
 		check(empty<partial and partial<full,"charge cue builds progressively: "+str(data.id))
+		if data.pattern=="pulse":
+			var body: MeshInstance3D = model.get_node("BodySurface")
+			var lowest := INF
+			for vertex in body.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+				lowest = minf(lowest,body.to_global(vertex).y)
+			check(lowest>=0,"deep pulse anticipation keeps visible belly above flat ground")
 		var loaded_body := model.transform
 		var loaded_neck := neck.transform
 		Model.animate(model,data,0,"active",0,0)

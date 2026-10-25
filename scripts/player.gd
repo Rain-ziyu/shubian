@@ -9,7 +9,7 @@ const Combat = preload("res://scripts/combat/trident_combat.gd")
 const Visuals = preload("res://scripts/visuals.gd")
 const Projectile = preload("res://scripts/trident_projectile.gd")
 const HunterModel = preload("res://scripts/hunter_model.gd")
-const Parts = preload("res://scripts/monster_parts.gd")
+var melee_contact = preload("res://scripts/monster_projectile_contact.gd").new()
 const HitFeedback = preload("res://scripts/hit_feedback.gd")
 const WeaponTrail = preload("res://scripts/weapon_trail.gd")
 var weapon_trail: MeshInstance3D
@@ -356,15 +356,18 @@ func animate(delta: float, speed: float) -> void:
 				w.rotation.x -= 0.20*recoil
 				w.rotation.z -= 0.25*recoil
 			"light":
+				w.position.y += maxf(0,clampf(pitch+0.25,-0.4,0.85))*0.5
 				var path := HunterModel.Motion.interpolate(HunterModel.Motion.LIGHT_WEAPON,t)
 				w.position.y += path.y
 				w.position.z += path.z
 				w.rotation.x += path.w+clampf(pitch+0.25,-0.4,0.85)
 			"fourfold":
+				w.position.y += maxf(0,clampf(pitch+0.25,-0.4,0.85))*0.5
 				var path := HunterModel.Motion.interpolate(HunterModel.Motion.FOURFOLD_WEAPON,t)
 				w.position.z += path.z
 				w.rotation.x += path.w+clampf(pitch+0.25,-0.4,0.85)
 			"flash":
+				w.position.y += maxf(0,clampf(pitch+0.25,-0.4,0.85))*0.5
 				var pulse := 0.0
 				for hit_time in Combat.MOVES[combat.action].hits:
 					pulse = maxf(pulse,exp(-pow((t-float(hit_time))/0.09,2)))
@@ -376,6 +379,7 @@ func animate(delta: float, speed: float) -> void:
 				w.position.z += path.z
 				w.rotation.x += path.w
 			"heavy":
+				w.position.y += maxf(0,clampf(pitch+0.25,-0.4,0.85))*0.5
 				var path := HunterModel.Motion.interpolate(HunterModel.Motion.HEAVY_WEAPON,t)
 				w.position.y += 0.22*smoothstep(0,0.18,t)*(1-smoothstep(0.30,0.43,t))
 				w.rotation.y = path.y
@@ -564,8 +568,8 @@ func update_weapon_contacts() -> void:
 			if m.health<=0 or window.victims.has(m.get_instance_id()): continue
 			var contact := {}
 			for index in points.size():
-				var candidate := Parts.sweep(m,previous[index],points[index],radius)
-				if candidate.is_empty() and index>0: candidate = Parts.sweep(m,points[index-1],points[index],radius)
+				var candidate := melee_contact.cast(m,previous[index],points[index],radius)
+				if candidate.is_empty() and index>0: candidate = melee_contact.cast(m,points[index-1],points[index],radius)
 				if not candidate.is_empty():
 					contact = candidate
 					break

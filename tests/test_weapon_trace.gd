@@ -86,10 +86,10 @@ func run() -> void:
 	p.pitch = 0.65
 	p.animate(0,0)
 	var raised_tip: Vector3 = p.weapon_contact_points("light",0)[0]
-	check(raised_tip.y>2.1,"looking upward raises actual thrust tip above crouched stance")
+	check(raised_tip.y>2.4,"looking upward lifts the arms and actual thrust tip above crouched stance")
 	p.on_strike(0)
 	p.update_weapon_contacts()
-	check(storm.disrupted>0,"raised visible tip can hit charged spine from close rear position")
+	check(storm.disrupted==0,"raised tip below visible high spine cannot gain a proxy weakpoint hit")
 	storm.global_position = Vector3(40,0,40)
 	var mist = monsters[2]
 	mist.global_position = Vector3(0,0,3)
