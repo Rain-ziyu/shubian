@@ -52,6 +52,12 @@ func run() -> void:
 	p.combat.elapsed = 0.61
 	p.animate(0,0)
 	check(p.rig.torso.rotation.y>0.20,"heavy follows through across the body")
+	var follow_weapon: Transform3D = p.rig.weapon.transform
+	var follow_torso: Transform3D = p.rig.torso.transform
+	p.combat.elapsed = 0.70
+	p.animate(0,0)
+	check(p.rig.weapon.transform.is_equal_approx(follow_weapon),"heavy settles at far side before reversing into recovery")
+	check(p.rig.torso.transform.is_equal_approx(follow_torso),"chest holds the same follow-through as the held shaft")
 	var face: Node3D = p.rig.torso.get_node("Head")
 	var relative_face: Basis = p.rig.root.global_basis.inverse()*face.global_basis
 	check(absf(relative_face.get_euler().y)<0.22,"heavy gaze stays near target while chest follows through")
