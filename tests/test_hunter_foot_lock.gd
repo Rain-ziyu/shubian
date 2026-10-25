@@ -50,7 +50,35 @@ func run() -> void:
 	check(not rig.legs[-1].hip.has_meta("turn_plant_world") and not rig.legs[1].hip.has_meta("turn_plant_world"),"airborne pose releases world anchors")
 	H.pose_legs(rig,"idle",0,true,0,0,0,func(_point: Vector3): return 0.0)
 	check(not rig.legs[-1].hip.has_meta("turn_plant_world") and not rig.legs[1].hip.has_meta("turn_plant_world"),"leaving turn releases old stance anchors")
-	print("HUNTER_FOOT_LOCK_CHECKS: ",checks," FAILURES: ",failures," HELD_FRAMES: ",held," WORST_DRIFT: ",worst)
+	held = 0
+	worst = 0
+	previous.clear()
+	var previous_feet := {}
+	var foot_jump := 0.0
+	var jump_sample := {}
+	for frame in 175:
+		var t := minf(float(frame)/120,1.45)
+		rig.root.rotation.y = TAU*H.Motion.turn_progress("finisher",t)
+		H.pose_legs(rig,"finisher",t,true,0,0,1.0/120,func(_point: Vector3): return 0.0)
+		for side in [-1,1]:
+			var leg: Dictionary = rig.legs[side]
+			var foot: Vector3 = leg.ankle.global_position
+			if previous_feet.has(side) and foot.distance_to(previous_feet[side])>foot_jump:
+				foot_jump = foot.distance_to(previous_feet[side])
+				jump_sample = {"time":t,"side":side,"from":str(previous_feet[side]),"to":str(foot),"anchored":leg.hip.has_meta("turn_plant_world")}
+			previous_feet[side] = foot
+			if not leg.hip.has_meta("turn_plant_world"):
+				previous.erase(side)
+				continue
+			var anchor: Vector3 = leg.hip.get_meta("turn_plant_world")
+			if previous.has(side) and anchor.distance_to(previous[side])<0.001:
+				held += 1
+				worst = maxf(worst,foot.distance_to(anchor))
+			previous[side] = anchor
+	check(held>=8 and worst<0.003,"finisher rotation keeps planted stance feet fixed between steps")
+	check(foot_jump<0.065,"finisher stepping and kick handoff avoid a visible ankle jump at 120Hz")
+	print("HUNTER_FOOT_LOCK_CHECKS: ",checks," FAILURES: ",failures," HELD_FRAMES: ",held," WORST_DRIFT: ",worst," FINISHER_STEP: ",foot_jump)
+	print("FINISHER_FOOT_SAMPLE: ",JSON.stringify(jump_sample))
 	actor.queue_free()
 	await process_frame
 	quit(1 if failures else 0)

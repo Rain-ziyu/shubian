@@ -10,6 +10,16 @@ func check(condition: bool, label: String) -> void:
 		printerr("FAIL: ", label)
 
 func _initialize() -> void:
+	for landed in [true,false]:
+		var early = Combat.new()
+		early.set_action("reply")
+		early.advance(0.08)
+		check(not early.request("flash") and early.buffered=="flash","early flash input retained")
+		early.advance(0.18)
+		if landed: early.confirm_hit()
+		early.advance(0.15)
+		check(early.action==("flash" if landed else "reply"),"buffered flash requires actual reply contact")
+		check(early.shadow_lifetimes.is_empty(),"starting or missing flash grants no shadow")
 	var c = Combat.new()
 	check(c.request("light"), "light draws weapon")
 	check(c.drawn and not c.request("light"), "no self cancel")

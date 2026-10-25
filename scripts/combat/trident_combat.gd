@@ -57,6 +57,12 @@ func request(next: String) -> bool:
 	if not MOVES.has(next): return false
 	if next == "plant" and not drawn: return false
 	if next == "reply" and guard_reward <= 0: return false
+	# Keep the intended follow-up while the butt strike is still travelling.
+	# Execution still requires confirm_hit to open the flash window.
+	if next == "flash" and action == "reply" and elapsed < float(MOVES.reply.chain):
+		buffered = next
+		buffer_life = float(MOVES.reply.chain) - elapsed + 0.05
+		return false
 	if next == "flash" and flash_window <= 0: return false
 	if next in ["wait", "finisher", "hurt"]: return false
 	if action != "idle":

@@ -145,7 +145,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.button_index==MOUSE_BUTTON_LEFT and event.pressed:
 			var next := "light"
 			if event.alt_pressed: next = "turn"
-			elif event.ctrl_pressed: next = "flash" if combat.flash_window>0 else "fourfold"
+			elif event.ctrl_pressed: next = "flash" if combat.flash_window>0 or combat.action=="reply" else "fourfold"
 			elif combat.guard_reward>0: next = "reply"
 			request_action(next)
 		if event.button_index==MOUSE_BUTTON_RIGHT:
@@ -333,7 +333,7 @@ func animate(delta: float, speed: float) -> void:
 		pose_drawn = combat.drawn
 		pose_blend = 0.0
 	walk_clock += delta*speed*2.6
-	if combat.action in ["turn","spin"]: body_turn_pose = wrapf(TAU*HunterModel.Motion.turn_progress(combat.action,combat.elapsed),-PI,PI)
+	if combat.action in ["turn","spin","finisher"]: body_turn_pose = wrapf(TAU*HunterModel.Motion.turn_progress(combat.action,combat.elapsed),-PI,PI)
 	else: body_turn_pose = lerp_angle(body_turn_pose,0,1-exp(-18*delta)) if delta>0 else 0.0
 	if absf(body_turn_pose)<0.00001: body_turn_pose = 0
 	body_turn_applied = body_turn_pose
@@ -396,6 +396,7 @@ func animate(delta: float, speed: float) -> void:
 				if combat.action=="finisher": w.rotation.y = HunterModel.Motion.interpolate(HunterModel.Motion.FINISHER_WEAPON,t).y
 				if combat.action=="spin":
 					w.position.z += 0.06*sin(HunterModel.Motion.turn_progress("spin",t)*PI)
+				if combat.action in ["spin","finisher"]:
 					# Carry the grip center around with the chest instead of leaving
 					# the shaft behind the back halfway through the body turn.
 					w.position = w.position.rotated(Vector3.UP,body_turn_applied)

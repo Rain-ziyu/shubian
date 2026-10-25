@@ -25,6 +25,22 @@ func run() -> void:
 	var p = world.hunter
 	p.set_physics_process(false)
 	for m in get_nodes_in_group("monsters"): m.set_physics_process(false)
+	p.combat.set_action("reply")
+	p.combat.advance(0.08)
+	var followup := InputEventMouseButton.new()
+	followup.button_index = MOUSE_BUTTON_LEFT
+	followup.pressed = true
+	followup.ctrl_pressed = true
+	p._unhandled_input(followup)
+	check(p.combat.buffered=="flash","early Ctrl left selects flash rather than resource combo")
+	p.combat.advance(0.18)
+	p.combat.confirm_hit()
+	p.combat.advance(0.15)
+	check(p.combat.action=="flash","early Ctrl left executes after confirmed reply")
+	p.combat.confirm_hit()
+	check(p.combat.shadow_lifetimes.size()==1,"confirmed flash earns one shadow")
+	p.combat.shadow_lifetimes.clear()
+	p.combat.set_action("idle")
 	mouse(p,true)
 	p.heavy_held = 0.2
 	mouse(p,false)

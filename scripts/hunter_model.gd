@@ -161,6 +161,8 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 	# stagger, turn and kick poses retain their existing solve and timing.
 	var previous_action: String = rig.get("stance_action","")
 	var discontinuity: bool = rig.get("stance_epoch",motion_epoch)!=motion_epoch
+	var finisher_reset: bool = previous_action!="finisher" or elapsed<float(rig.get("finisher_last_time",elapsed)) or discontinuity
+	rig.finisher_last_time = elapsed
 	if delta<=0 or discontinuity or action not in BLENDED_STANCES or previous_action not in BLENDED_STANCES:
 		rig.stance_age = STANCE_BLEND_SECONDS
 	elif previous_action!=action:
@@ -207,8 +209,12 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 	var lowest := 0.0
 	for side in [-1,1]:
 		var leg: Dictionary = rig.legs[side]
+		if action!="finisher" or finisher_reset:
+			if leg.hip.has_meta("finisher_release_from"): leg.hip.remove_meta("finisher_release_from")
+			if leg.hip.has_meta("finisher_release_at"): leg.hip.remove_meta("finisher_release_at")
 		var stance := -0.16 if side==-1 else 0.14
 		if not armed: stance = 0
+		if action=="finisher": stance *= lerpf(0.5,1.0,smoothstep(0.43,0.55,elapsed))
 		if action=="guard": stance *= lerpf(1.0,1.4,smoothstep(0,0.18,elapsed))
 		if action=="reply": stance *= 1.4
 		var lift := 0.0
@@ -225,10 +231,10 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 				var swing := (phase-PI/2)/(TAU-PI/2)
 				stance = lerpf(stride,-stride,smoothstep(0,1,swing))
 				lift = sin(swing*PI)*0.14
-		if action in ["turn","spin"]:
+		if action in ["turn","spin"] or (action=="finisher" and elapsed<0.55):
 			var turning := Motion.turn_progress(action,elapsed)
-			lift += maxf(0,sin(turning*TAU*2+(PI if side==1 else 0)))*0.09
-		if action=="finisher" and side==-1:
+			lift += maxf(0,sin(turning*TAU*2+(PI if side==1 else 0)))*0.09*(1-smoothstep(0.43,0.55,elapsed) if action=="finisher" else 1.0)
+		if action=="finisher" and side==-1 and elapsed>=0.55:
 			var support := smoothstep(0.55,0.82,elapsed)*(1-smoothstep(1.16,1.40,elapsed))
 			stance = lerpf(stance,0.08,support)
 			lift = sin(support*PI)*0.035
@@ -287,7 +293,8 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 			target.y += lerpf(0.55,0.62,extension)*weight
 			target.z = lerpf(target.z,lerpf(-0.18,-0.72,extension)-body.position.z,weight)
 		var turning := Motion.turn_progress(action,elapsed)
-		var planted: bool = action in ["turn","spin"] and turning>0 and turning<1 and lift<0.001 and ground.is_valid()
+		var turning_stance: bool = action in ["turn","spin"] or (action=="finisher" and elapsed<0.55)
+		var planted: bool = turning_stance and turning>0 and turning<1 and lift<0.001 and ground.is_valid()
 		var walk_planted: bool = walking and lift<0.001 and ground.is_valid()
 		var anchor_key := "walk_plant_world" if walking else "turn_plant_world"
 		var inactive_key := "turn_plant_world" if walking else "walk_plant_world"
@@ -299,7 +306,22 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 			if planted and Vector2(anchor.x-leg.hip.position.x,anchor.z).length()<0.32 and (anchor-leg.hip.position).length()<0.78:
 				target = anchor
 				anchored = true
-			else: leg.hip.remove_meta(anchor_key)
+			else:
+				if action=="finisher" and ground.is_valid() and not discontinuity and body.global_position.distance_to(leg.hip.get_meta(anchor_key))<1.5:
+					leg.hip.set_meta("finisher_release_from",leg.hip.get_meta(anchor_key))
+					leg.hip.set_meta("finisher_release_at",elapsed)
+				leg.hip.remove_meta(anchor_key)
+		if action=="finisher" and leg.hip.has_meta("finisher_release_from"):
+			var release_from: Vector3 = body.to_local(leg.hip.get_meta("finisher_release_from"))
+			var released := smoothstep(float(leg.hip.get_meta("finisher_release_at")),float(leg.hip.get_meta("finisher_release_at"))+0.14,elapsed)
+			target.x = lerpf(release_from.x,target.x,released)
+			target.z = lerpf(release_from.z,target.z,released)
+			if released<1:
+				planted = false
+				if lift<0.001 and not (side==1 and elapsed>=0.60): target.y += sin(released*PI)*0.035
+			if released>=1:
+				leg.hip.remove_meta("finisher_release_from")
+				leg.hip.remove_meta("finisher_release_at")
 		planting[side] = planted
 		# Keep the attacking foot on its authored arc; sample support/swing feet only.
 		if ground.is_valid() and not (action=="finisher" and side==1 and elapsed>=0.60 and elapsed<1.32):

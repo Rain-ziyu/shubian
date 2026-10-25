@@ -49,6 +49,7 @@ static func sample(action: String, elapsed: float, gait: float, speed: float) ->
 static func turn_progress(action: String, elapsed: float) -> float:
 	if action=="turn": return smoothstep(0.10,0.58,elapsed)
 	if action=="spin": return smoothstep(0.08,1.08,elapsed)
+	if action=="finisher": return (interpolate(FINISHER_WEAPON,minf(elapsed,0.74)).y+1.5)/TAU
 	return 0.0
 
 static func interpolate(keys: Array, elapsed: float) -> Vector4:

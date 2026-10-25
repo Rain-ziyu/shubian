@@ -81,6 +81,25 @@ func run() -> void:
 	var spin_health: float = p.combat.health
 	p.take_damage(20,p.global_position+Vector3.FORWARD*3,true)
 	check(p.combat.action=="spin" and is_equal_approx(p.combat.health,spin_health-20),"spinning body retains armor while taking actual damage")
+	p.combat.set_action("finisher")
+	previous = 0
+	total = 0
+	lifted = 0
+	grip_stays_forward = true
+	for frame in 91:
+		p.combat.elapsed = float(frame)/120
+		p.animate(0,0)
+		var angle: float = p.rig.root.rotation.y
+		if frame>0: total += wrapf(angle-previous,-PI,PI)
+		previous = angle
+		grip_stays_forward = grip_stays_forward and p.rig.weapon.position.z< -0.20
+		if p.combat.elapsed<0.50: lifted = maxf(lifted,absf(p.rig.legs[-1].ankle.global_position.y-p.rig.legs[1].ankle.global_position.y))
+	check(absf(total-TAU)<0.002,"finisher turns the whole body once before the forward kick")
+	check(lifted>0.05,"finisher rotation includes stepping before kick preparation")
+	check(grip_stays_forward,"finisher carries its two-hand grip in front of the turning chest")
+	p.combat.elapsed = 0.95
+	p.animate(0,0)
+	check(absf(wrapf(p.rig.root.rotation.y,-PI,PI))<0.002 and is_zero_approx(p.yaw),"finisher returns to committed forward heading before kick contact")
 	print("TURN_BODY_CHECKS: ",checks," FAILURES: ",failures)
 	world.queue_free()
 	await process_frame

@@ -37,6 +37,7 @@ func rejected(c, next: String) -> void:
 	elif next in ["fourfold","spin"] and c.shadow_lifetimes.is_empty(): reason = "枪影不足 · 格挡反击后闪刺获取"
 	elif next=="dodge" and c.stamina<28: reason = "耐力不足 · 无法闪避"
 	elif next=="plant" and not c.drawn: reason = "先拔枪，再插地迎击"
+	elif next=="flash" and c.flash_window<=0: reason = "反击尚未命中 · 命中后才能闪刺"
 	elif next==c.action: reason = "同一动作不能连发 · 衔接其他动作"
 	show_event(reason,Color("e7c88b"),0.8,1)
 static func phase(c) -> Dictionary:

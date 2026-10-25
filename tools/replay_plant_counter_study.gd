@@ -6,6 +6,7 @@ var stage_clock := 0.0
 var stage := 0
 var beats := 0
 var counter_seen := false
+var spin_captured := false
 func setup() -> void:
 	await super.setup()
 	fighter.combat.set_action("idle")
@@ -38,6 +39,9 @@ func step() -> void:
 		"idle":"准备与收势", "plant":"双手举杆 · 插枪", "wait":"稳住架势 · 等待",
 		"counter_window":"反制窗口", "finisher":"旋枪 · 收杆 · 踢击 / 命中节拍：%d / 2" % beats
 	}.get(fighter.combat.action,fighter.combat.action)
+	if fighter.combat.action=="finisher" and fighter.combat.elapsed>=0.55 and not spin_captured:
+		spin_captured = true
+		capture_spin.call_deferred()
 	if fighter.combat.action=="finisher" and fighter.combat.elapsed>=0.95 and not captured:
 		captured = true
 		capture_kick.call_deferred()
@@ -47,6 +51,9 @@ func step() -> void:
 func capture_kick() -> void:
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-finisher-kick.png"))
+func capture_spin() -> void:
+	await RenderingServer.frame_post_draw
+	root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-finisher-spin.png"))
 func finish() -> void:
 	var passed: bool = counter_seen and beats==2 and fighter.combat.health==240 and stage==5
 	print("PLANT_COUNTER_STUDY: counter=",counter_seen," beats=",beats," health=",fighter.combat.health," passed=",passed)
