@@ -208,7 +208,7 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 	body.position.z = lerpf(body.position.z,shift,1-exp(-delta*18)) if delta>0 else shift
 	var previous_height := body.position.y
 	body.position.y = -drop
-	var hip_turn := Motion.sample(action,elapsed,gait,speed).z*0.45 if action in ["light","heavy","pull","fourfold","throw","flash"] else 0.0
+	var hip_turn := Motion.sample(action,elapsed,gait,speed).z*0.45 if action in ["light","heavy","pull","fourfold","throw","flash","guard","reply"] else 0.0
 	rig.pelvis.rotation.y = lerp_angle(rig.pelvis.rotation.y,hip_turn,1-exp(-delta*18)) if delta>0 else hip_turn
 	for side in [-1,1]: rig.legs[side].hip.position = rig.pelvis.transform*Vector3(side*0.14,0,0)
 	var targets := {}

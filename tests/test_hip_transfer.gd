@@ -151,6 +151,19 @@ func run() -> void:
 	check(absf(p.rig.pelvis.rotation.y)>0.04,"hook pull carries the pelvis with the chest")
 	for side in [-1,1]:
 		check(p.rig.legs[side].ankle.global_position.distance_to(pull_feet[side])<0.003,"hook pull preserves planted support feet")
+	for sample in [["guard",0.18],["reply",0.12],["reply",0.26],["reply",0.42]]:
+		p.combat.set_action(sample[0])
+		p.combat.elapsed = sample[1]
+		p.animate(0,0)
+		check(absf(p.rig.pelvis.rotation.y)>0.04 and absf(p.rig.pelvis.rotation.y)<absf(p.rig.torso.rotation.y),"guard/reply hips support the chest turn without locking to it")
+		var grounded := 0
+		for side in [-1,1]:
+			var leg: Dictionary = p.rig.legs[side]
+			var sole: Vector3 = p.to_local(leg.ankle.to_global(Vector3(0,-0.1,0)))
+			if sole.y<0.003: grounded += 1
+			check(sole.y>= -0.003,"guard/reply pelvic rotation does not sink the support foot")
+			check(leg.hip.position.distance_to(p.rig.pelvis.transform*Vector3(side*0.14,0,0))<0.001,"guard/reply thigh sockets follow the anatomical pelvis")
+		check(grounded>=1,"guard/reply retain a support foot during the turn")
 	var saved = load("res://assets/models/hunter-forest-v1.tscn").instantiate()
 	world.add_child(saved)
 	var saved_belt: MeshInstance3D = saved.get_node("Pelvis/Belt")
