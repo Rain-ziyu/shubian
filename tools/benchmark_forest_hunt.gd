@@ -15,6 +15,8 @@ var sample_limit := 0.0
 var draw_started_us := 0
 var last_draw_ms := 0.0
 var recent_events: Array[Dictionary] = []
+var previous_pipelines := {}
+var compilation_events: Array[Dictionary] = []
 func setup() -> void:
 	if DisplayServer.get_name()=="headless":
 		printerr("Forest benchmark requires native rendering")
@@ -45,6 +47,7 @@ func setup() -> void:
 	for node: Node in profile_nodes.values(): node.set_meta("measure_frame_cost",true)
 	started_us = Time.get_ticks_usec()
 	previous_us = started_us
+	previous_pipelines = pipeline_counts()
 	process_frame.connect(sample_frame)
 	RenderingServer.frame_pre_draw.connect(begin_draw)
 	RenderingServer.frame_post_draw.connect(end_draw)
@@ -59,11 +62,23 @@ func control() -> void:
 	var start := Time.get_ticks_usec()
 	super.control()
 	controller_us += Time.get_ticks_usec()-start
+func pipeline_counts() -> Dictionary:
+	return {"canvas":int(Performance.get_monitor(Performance.PIPELINE_COMPILATIONS_CANVAS)),"mesh":int(Performance.get_monitor(Performance.PIPELINE_COMPILATIONS_MESH)),"surface":int(Performance.get_monitor(Performance.PIPELINE_COMPILATIONS_SURFACE)),"draw":int(Performance.get_monitor(Performance.PIPELINE_COMPILATIONS_DRAW)),"specialization":int(Performance.get_monitor(Performance.PIPELINE_COMPILATIONS_SPECIALIZATION))}
 func sample_frame() -> void:
 	if finished: return
 	var now := Time.get_ticks_usec()
 	var frame_ms := (now-previous_us)/1000.0
 	previous_us = now
+	var pipeline_totals := pipeline_counts()
+	var pipeline_delta := {}
+	var compiled := false
+	for key in pipeline_totals:
+		pipeline_delta[key] = int(pipeline_totals[key])-int(previous_pipelines.get(key,0))
+		compiled = compiled or int(pipeline_delta[key])>0
+	if compiled:
+		compilation_events.append({"wall_seconds":(now-started_us)/1000000.0,"simulation_seconds":elapsed,"species":monster.data.id if is_instance_valid(monster) else "travel","phase":monster.phase if is_instance_valid(monster) else "travel","player_action":fighter.combat.action,"delta":pipeline_delta})
+		if compilation_events.size()>256: compilation_events.pop_front()
+	previous_pipelines = pipeline_totals
 	var costs := {}
 	for component in profile_nodes:
 		var total: int = profile_nodes[component].get_meta("frame_cost_total_us",0)
@@ -78,7 +93,7 @@ func sample_frame() -> void:
 		maximum_physics_ms = maxf(maximum_physics_ms,Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS)*1000)
 		maximum_process_ms = maxf(maximum_process_ms,Performance.get_monitor(Performance.TIME_PROCESS)*1000)
 	if frame_ms>33.33:
-		stalls.append({"ms":snappedf(frame_ms,0.01),"species":monster.data.id if is_instance_valid(monster) else "travel","phase":monster.phase if is_instance_valid(monster) else "travel","wall_seconds":(now-started_us)/1000000.0,"script_cost_ms":costs,"render_submission_ms":last_draw_ms,"process_ms":Performance.get_monitor(Performance.TIME_PROCESS)*1000,"physics_ms":Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS)*1000,"recent_contacts":recent_events.slice(maxi(0,recent_events.size()-6)).duplicate(true)})
+		stalls.append({"ms":snappedf(frame_ms,0.01),"species":monster.data.id if is_instance_valid(monster) else "travel","phase":monster.phase if is_instance_valid(monster) else "travel","wall_seconds":(now-started_us)/1000000.0,"script_cost_ms":costs,"render_submission_ms":last_draw_ms,"pipeline_compilation_delta":pipeline_delta,"pipeline_compilation_totals":pipeline_totals,"player_action":fighter.combat.action,"process_ms":Performance.get_monitor(Performance.TIME_PROCESS)*1000,"physics_ms":Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS)*1000,"recent_contacts":recent_events.slice(maxi(0,recent_events.size()-6)).duplicate(true)})
 	if sample_limit>0 and elapsed>=sample_limit: finish.call_deferred()
 func stats(values: Array[float]) -> Dictionary:
 	if values.is_empty(): return {}
@@ -94,6 +109,8 @@ func finish() -> void:
 	if finished: return
 	var report := {"all_frames":stats(timings),"after_two_seconds":stats(steady),"stalls":stalls,"maximum_physics_ms":maximum_physics_ms,"maximum_process_ms":maximum_process_ms,"viewport":str(root.get_visible_rect().size),"adapter":RenderingServer.get_video_adapter_name(),"wall_seconds":(Time.get_ticks_usec()-started_us)/1000000.0,"simulation_seconds":elapsed,"scope":"native uncapped real-time full forest hunt from normal spawn, five AI active, no resource resets; local hardware only; excludes initial scene loading; privileged controller, not human difficulty acceptance"}
 	report["peak_script_cost_ms"] = profile_peaks
+	report["pipeline_compilations"] = pipeline_counts()
+	report["pipeline_compilation_events"] = compilation_events
 	report["sample_limit_seconds"] = sample_limit
 	report["contact_events"] = recent_events
 	if sample_limit>0: report["scope"] = "partial native real-time forest sample, all five AI active, no resource resets; not a full expedition or human difficulty acceptance"

@@ -1,4 +1,7 @@
-param([string]$GodotPath = 'D:/Godot/Godot_v4.7.2-stable_win64_console.exe')
+param(
+    [string]$GodotPath = 'D:/Godot/Godot_v4.7.2-stable_win64_console.exe',
+    [ValidateSet('gl_compatibility','mobile')][string]$RenderingMethod = 'gl_compatibility'
+)
 $ErrorActionPreference = 'Stop'
 $projectPath = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $runName = 'forest-realtime-' + (Get-Date -Format 'yyyyMMdd-HHmmss') + '-' + [guid]::NewGuid().ToString('N').Substring(0,6)
@@ -9,7 +12,8 @@ $dirty = [bool](git -C $projectPath status --porcelain --untracked-files=no)
 $benchmark = Join-Path $projectPath 'tools/benchmark_forest_hunt.gd'
 $controller = Join-Path $projectPath 'tests/replay_forest_hunt.gd'
 $engineLog = Join-Path $reportPath 'engine.log'
-$lines = @(& $GodotPath --path $projectPath --script $benchmark --log-file $engineLog 2>&1 | ForEach-Object {
+$requestedRenderDriver = if ($RenderingMethod -eq 'mobile') { 'vulkan' } else { 'opengl3' }
+$lines = @(& $GodotPath --path $projectPath --rendering-method $RenderingMethod --rendering-driver $requestedRenderDriver --script $benchmark --log-file $engineLog 2>&1 | ForEach-Object {
     $line = "$_"
     if ($line -match '^FOREST_HUNT_TARGET:|^FOREST_HUNT_DAMAGE:') { Write-Host $line }
     $line
@@ -29,8 +33,20 @@ $huntPassed = $code -eq 0 -and $runtimeErrors.Count -eq 0 -and $null -ne $hunt -
 # The steady-state budget excludes only the first two seconds after scene setup.
 $steady = $performance.after_two_seconds
 $budgetMet = $null -ne $performance -and $steady.frames -gt 0 -and $steady.p99_ms -le 16.67 -and $steady.over_33ms -eq 0
+$renderInfo = @($lines | Where-Object { $_ -match '^Vulkan |^OpenGL ' })
+$backendConfirmed = if ($RenderingMethod -eq 'mobile') {
+    @($renderInfo | Where-Object { $_ -match '^Vulkan .*Forward Mobile' }).Count -gt 0
+} else {
+    @($renderInfo | Where-Object { $_ -match '^OpenGL .*Compatibility' }).Count -gt 0
+}
 $summary = [pscustomobject]@{
-    passed = $huntPassed -and $budgetMet
+    passed = $huntPassed -and $budgetMet -and $backendConfirmed
+    backend_confirmed = $backendConfirmed
+    requested_rendering_method = $RenderingMethod
+    requested_rendering_driver = $requestedRenderDriver
+    renderer_startup = $renderInfo
+    pipeline_compilation_monitors_applicable = $backendConfirmed -and $RenderingMethod -eq 'mobile'
+    pipeline_compilation_monitor_scope = 'Godot pipeline precompilation monitors describe Forward+/Mobile pipelines. Compatibility zeros cannot exclude OpenGL shader compilation; compilation deltas alone do not establish the cause of a stall.'
     hunt_passed = $huntPassed
     local_frame_budget_met = $budgetMet
     source_revision = $revision
