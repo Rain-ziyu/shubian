@@ -21,7 +21,26 @@ func run() -> void:
 		var model := Model.create(holder,species)
 		var neck: Node3D = model.get_node("Neck")
 		var speed := 13.0 if species.pattern=="charge" else 10.0
+		var head: MeshInstance3D = neck.get_node("HeadSurface")
+		var nose := Vector3.ZERO
+		var nearest := INF
+		for point: Vector3 in head.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+			if point.z<nearest:
+				nearest = point.z
+				nose = point
+		Model.animate(model,species,0,"idle",0,0)
+		var resting_nose := head.to_global(nose)
 		Model.animate(model,species,1.1,"windup",species.windup,0)
+		if species.pattern=="charge":
+			var loaded_nose := head.to_global(nose)
+			print("CHARGE_NOSE: resting=",resting_nose.y," loaded=",loaded_nose.y)
+			check(loaded_nose.y<resting_nose.y-0.35,"charge lowers the snout toward its forward attack instead of lifting it")
+			var clearance := INF
+			for name in ["HeadSurface","Jaw","BrowHorn-1","BrowHorn1"]:
+				var part: MeshInstance3D = neck.get_node(name)
+				for point: Vector3 in part.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]: clearance = minf(clearance,part.to_global(point).y)
+			check(clearance>0.05,"lowered head jaw and horns retain ground clearance")
+
 		var loaded := model.transform
 		var neck_loaded := neck.transform
 		var foot_loaded := sole(model.get_node("Hind1"))
@@ -78,6 +97,20 @@ func run() -> void:
 		check(absf(sole(model.get_node("Hind1")).y)<0.002,"recovery compression keeps actual sole on ground")
 		Model.animate(model,species,3.0,"recover",species.recovery,0)
 		check(absf(model.position.y)<0.001 and absf(neck.rotation.x)<0.001,"recovery returns body and neck to neutral")
+		if species.pattern=="charge":
+			for slope in [-0.3,-0.2,0.0,0.2,0.3]:
+				var ground := func(point: Vector3) -> float: return point.z*slope
+				var terrain_up := Vector3(0,1,-slope).normalized()
+				var normal := func(_point: Vector3) -> Vector3: return terrain_up
+				Model.animate(model,species,0,"windup",species.windup,0,ground,normal)
+				var margin := INF
+				for name in ["HeadSurface","Jaw","BrowHorn-1","BrowHorn1"]:
+					var part: MeshInstance3D = neck.get_node(name)
+					for vertex: Vector3 in part.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+						var point := part.to_global(vertex)
+						margin = minf(margin,point.y-float(ground.call(point)))
+				print("CHARGE_SLOPE_CLEARANCE: slope=",slope," margin=",margin," pitch=",neck.rotation.x)
+				check(margin>0.05,"charge posture keeps head and horns above the sloping ground")
 	print("LUNGE_POSE_CHECKS: ",checks," FAILURES: ",failures)
 	holder.queue_free()
 	await process_frame

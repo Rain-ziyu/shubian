@@ -5,6 +5,7 @@ const Surface = preload("res://scripts/creature_surface.gd")
 const TailSkin = preload("res://scripts/creature_tail_skin.gd")
 const LegSkin = preload("res://scripts/creature_leg_skin.gd")
 const GAIT_PER_METER := 4.2
+const CHARGE_NECK_PITCH := -0.35
 
 static func jaw_pose(data: Dictionary, phase: String, clock: float) -> Transform3D:
 	var ready: float = {"sweep":0.16,"charge":0.08,"leap":0.10,"mist":0.30,"pulse":0.04}[data.pattern]
@@ -204,7 +205,7 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 	root.position.y = 0
 	if phase=="windup":
 		var fraction := clampf(clock/float(data.windup),0,1)
-		neck.rotation.x = (0.35 if data.pattern=="charge" else -0.20)*fraction
+		neck.rotation.x = (CHARGE_NECK_PITCH if data.pattern=="charge" else -0.20)*fraction
 		root.position.y = -float(data.size)*0.30*smoothstep(0,0.4,clock) if data.pattern=="pulse" else 0.0
 	elif phase=="active":
 		if data.pattern=="pulse": root.position.y = -float(data.size)*0.30*(1-smoothstep(0,0.3,clock))
@@ -217,17 +218,24 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 		neck.rotation.x = angles.x
 		neck.rotation.y = angles.y
 	if data.pattern=="charge":
+		var charge_pitch := CHARGE_NECK_PITCH
+		if ground_normal.is_valid() and phase in ["windup","active","recover"]:
+			var up: Vector3 = root.global_basis.inverse()*ground_normal.call(root.global_position)
+			var incline := atan2(up.z,up.y)
+			# The level torso lowers to the downhill support foot. Allow extra
+			# clearance uphill so the long jaw does not enter the rising bank.
+			charge_pitch += clampf(incline*(1.5 if incline>0 else 1.0),-0.30,0.50)
 		var compression := float(data.size)*0.05
 		if phase=="windup":
 			var load := smoothstep(0,float(data.windup),clock)
-			neck.rotation.x = 0.35*load
+			neck.rotation.x = charge_pitch*load
 			root.position.y = -compression*load
 		elif phase=="active":
-			neck.rotation.x = 0.35
+			neck.rotation.x = charge_pitch
 			root.position.y = -compression
 		elif phase=="recover":
 			var release := 1-smoothstep(0,0.55,clock)
-			neck.rotation.x = 0.35*release
+			neck.rotation.x = charge_pitch*release
 			root.position.y = -compression*release
 	elif data.pattern=="leap":
 		var compression := float(data.size)*0.10
