@@ -386,7 +386,8 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 			var attached := trunk.transform*bind
 			if not plate.transform.is_equal_approx(attached): plate.transform = attached
 	# Bend knees when the torso lowers; solve the planted foot back to actor ground.
-	if phase=="idle": root.position.y -= float(data.size)*0.045*minf(speed/2,1)
+	var stride_weight := float(pose_override.get("stride_weight",1.0)) if phase=="idle" else 1.0
+	if phase=="idle": root.position.y -= float(data.size)*0.045*minf(speed/2,1)*stride_weight
 	var limb_speed := speed
 	if data.pattern in ["charge","leap"] and phase=="active":
 		limb_speed *= smoothstep(0,0.12,clock)*(1-smoothstep(0.53,0.65,clock))
@@ -408,8 +409,8 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 				var lift := 0.0
 				var foot_basis := Basis.IDENTITY
 				if limb_speed>0.1:
-					target.z = sin(step)*side*minf(float(data.size)*0.16,limb_speed*0.06)
-					lift = maxf(0,cos(step)*side)*minf(float(data.size)*0.10,limb_speed*0.035)
+					target.z = sin(step)*side*minf(float(data.size)*0.16,limb_speed*0.06)*stride_weight
+					lift = maxf(0,cos(step)*side)*minf(float(data.size)*0.10,limb_speed*0.035)*stride_weight
 					target.y += lift
 				if data.pattern=="leap" and phase=="active":
 					var tuck := smoothstep(0.04,0.24,clock)*(1-smoothstep(0.40,0.63,clock))

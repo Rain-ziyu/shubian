@@ -1,5 +1,6 @@
 extends SceneTree
 ## Observe ordinary AI approach -> windup; no forced attack transition.
+const Model = preload("res://scripts/creature_model.gd")
 var checks := 0
 var failures := 0
 func check(ok: bool, label: String) -> void:
@@ -19,10 +20,11 @@ func feet(actor: Node3D) -> Dictionary:
 func run() -> void:
 	var world = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(world)
-	await physics_frame
-	await physics_frame
 	world.hunter.set_physics_process(false)
 	world.hunter.set_process_unhandled_input(false)
+	world.hunter.position = Vector3(200,0,200)
+	await physics_frame
+	await physics_frame
 	var actors := get_nodes_in_group("monsters")
 	for actor in actors: actor.set_physics_process(false)
 	for actor in actors:
@@ -32,11 +34,32 @@ func run() -> void:
 		var prior_world_y: float = actor.mesh.global_position.y
 		var prior_feet := feet(actor)
 		var walked := false
+		var walking_frames := 0
 		var observed := false
 		for frame in 900:
 			await physics_frame
 			var height: float = actor.mesh.position.y-float(actor.mesh.get_meta("ground_offset",0))
-			walked = walked or Vector2(actor.velocity.x,actor.velocity.z).length()>1
+			var moving := Vector2(actor.velocity.x,actor.velocity.z).length()>1
+			if moving and not walked:
+				var current := feet(actor)
+				var lift_jump := 0.0
+				for name in prior_feet:
+					var before: Vector3 = prior_feet[name]
+					var after: Vector3 = current[name]
+					var old_clearance: float = before.y-actor.global_position.y-actor.foot_ground_height(before)
+					var new_clearance: float = after.y-actor.global_position.y-actor.foot_ground_height(after)
+					lift_jump = maxf(lift_jump,absf(new_clearance-old_clearance))
+				print("APPROACH_START: ",actor.data.id," body=",absf(height-prior_height)," lift=",lift_jump)
+				check(absf(height-prior_height)<0.01,"starting pursuit builds the crouch instead of dropping instantly: "+str(actor.data.id))
+				check(lift_jump<0.025,"starting pursuit builds the swing instead of lifting instantly: "+str(actor.data.id))
+			walked = walked or moving
+			if moving:
+				walking_frames += 1
+				if walking_frames==15:
+					var canonical := Model.create(world,actor.data)
+					Model.animate(canonical,actor.data,actor.gait,"idle",0,Vector2(actor.velocity.x,actor.velocity.z).length())
+					check(absf(height-canonical.position.y)<0.002,"pursuit reaches authored walking load after the start blend: "+str(actor.data.id))
+					canonical.queue_free()
 			if actor.phase=="windup":
 				observed = true
 				var current := feet(actor)
