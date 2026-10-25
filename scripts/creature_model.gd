@@ -66,7 +66,7 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 		for front in ([false,true] if quad else [false]):
 			var leg := V.pivot(root,("Front" if front else "Hind")+str(side),Vector3(side*s*0.29,y*0.9,-s*0.31 if front else s*0.28))
 			var bottom := -y*0.9/s+0.075
-			Surface.vertical(leg,"LegSurface",[Vector4(bottom,0.055,0.06,0.025),Vector4(bottom*0.78,0.066,0.075,0.05),Vector4(bottom*0.56,0.092,0.09,-0.04),Vector4(bottom*0.28,0.13,0.12,-0.02),Vector4(0.025,0.13,0.14,0)],s,c)
+			Surface.vertical(leg,"LegSurface",[Vector4(bottom,0.055,0.06,0.025),Vector4(bottom*0.78,0.066,0.075,0.05),Vector4(bottom*0.56,0.092,0.09,-0.04),Vector4(bottom*0.28,0.13,0.12,-0.02),Vector4(0.025,0.16,0.16,0),Vector4(0.11,0.14,0.14,0),Vector4(0.19,0.055,0.065,0),Vector4(0.205,0.005,0.005,0)],s,c)
 			var foot_y := -y*0.9+s*0.05
 			var foot := V.piece(leg,Vector3(0,foot_y,-s*0.10),Vector3(s*0.21,s*0.10,s*0.35),c.darkened(0.25),true)
 			foot.name = "Foot"

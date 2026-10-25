@@ -16,8 +16,12 @@ void fragment() {
 	float mottling = noise(wrapped*2.3+UV.y*pattern_count);
 	float pattern = smoothstep(0.35,0.75,mottling);
 	if (pattern_style==1) {
-		float stripe = sin(UV.y*pattern_count*6.2831853+wrapped.x*slant*3.0+mottling*0.6);
-		pattern = smoothstep(0.12,0.7,stripe);
+		float stripe = sin(UV.y*pattern_count*6.2831853+wrapped.x*slant*3.0+(mottling-0.5)*3.0);
+		// Broken dorsal markings leave the belly clear instead of encircling it
+		// like stacked tubes. Fade toward the underside without a hard boundary.
+		float dorsal = smoothstep(-0.55,0.25,wrapped.y);
+		float broken = smoothstep(0.25,0.60,noise(wrapped*5.0+UV.y*pattern_count*1.7));
+		pattern = smoothstep(0.12,0.7,stripe)*dorsal*mix(0.3,1.0,broken);
 	} else if (pattern_style==2) {
 		vec2 spots = vec2(UV.x*16.0,UV.y*pattern_count);
 		spots.x += mod(floor(spots.y),2.0)*0.5;

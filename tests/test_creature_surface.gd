@@ -20,6 +20,15 @@ func run() -> void:
 		var normal: Vector3 = arrays[Mesh.ARRAY_NORMAL][index]
 		alignment += Vector3(point.x,point.y,0).normalized().dot(normal)
 	check(alignment/(28*6)>0.9,"creature surface normals point outward")
+	var curved := Surface.profile(holder,"BodySurface",[Vector4(-1,0.1,0.2,0),Vector4(0,0.5,0.6,0.1),Vector4(1,0.2,0.3,0)],1,Color.WHITE)
+	var curved_vertices: PackedVector3Array = curved.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+	var bounded := true
+	var curved_section := false
+	for vertex in curved_vertices:
+		bounded = bounded and absf(vertex.x)<=0.5001 and vertex.y<=0.7001 and vertex.y>= -0.5001
+		if is_equal_approx(vertex.z,-0.5) and vertex.x>0.3: curved_section = true
+	check(bounded,"curved surface preserves authored maximum body volume")
+	check(curved_section,"actual body mesh rounds longitudinal silhouette between authored sections")
 	var database: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://resources/monsters.json"))
 	for data in database.species:
 		var model := Model.create(holder,data)
