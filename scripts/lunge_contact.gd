@@ -32,4 +32,3 @@ func update(actor: CharacterBody3D, active: bool) -> Dictionary:
 	previous_feet = target.global_position
 	previous_epoch = target.motion_epoch
 	return result
-
