@@ -65,6 +65,10 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 	var head_profile := [Vector4(-0.715,0.012*head_width,0.008,0.06),Vector4(-0.707,0.025*head_width,0.016,0.06),Vector4(-0.69,0.035*head_width,0.02,0.06),Vector4(-0.61,0.14*head_width,0.065,0.085),Vector4(-0.42,0.19*head_width,0.14,0.14),Vector4(-0.28,0.16*head_width,0.145,0.12),Vector4(-0.09,0.135,0.17,0.08),Vector4(0.12,0.10,0.15,0)]
 	if data.id=="thornhorn":
 		head_profile = [Vector4(-0.715,0.006,0.004,0.10),Vector4(-0.71,0.065,0.035,0.10),Vector4(-0.69,0.12,0.065,0.10),Vector4(-0.61,0.155,0.09,0.11),Vector4(-0.42,0.22,0.17,0.17),Vector4(-0.28,0.19,0.18,0.14),Vector4(-0.09,0.135,0.17,0.08),Vector4(0.12,0.10,0.15,0)]
+	elif data.id=="stormcrest":
+		# Broad cropped muzzle and tall orbital vault distinguish the heavy caster
+		# from the low armored grazer without lengthening its forward reach.
+		head_profile = [Vector4(-0.715,0.010,0.010,0.060),Vector4(-0.70,0.055,0.035,0.060),Vector4(-0.675,0.10,0.060,0.065),Vector4(-0.64,0.145,0.085,0.075),Vector4(-0.57,0.17,0.10,0.085),Vector4(-0.43,0.205,0.18,0.15),Vector4(-0.28,0.19,0.19,0.14),Vector4(-0.09,0.14,0.18,0.08),Vector4(0.12,0.10,0.15,0)]
 	var head_surface := Surface.profile(neck,"HeadSurface",head_profile,s,c.lightened(0.03))
 	if data.id=="mossback":
 		head_surface.set_meta("unarmored_mesh",head_surface.mesh)
@@ -81,7 +85,9 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 		armored.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
 		head_surface.mesh = armored
 	var facial_surface: TriangleMesh = head_surface.mesh.generate_triangle_mesh()
-	Surface.profile(neck,"Jaw",[Vector4(-0.68,0.006*head_width,0.004,-0.04),Vector4(-0.66,0.035*head_width,0.015,-0.04),Vector4(-0.58,0.13*head_width,0.035,-0.05),Vector4(-0.30,0.145*head_width,0.055,-0.045),Vector4(-0.12,0.06,0.025,0.01)],s,c.darkened(0.16))
+	var jaw_profile := [Vector4(-0.68,0.006*head_width,0.004,-0.04),Vector4(-0.66,0.035*head_width,0.015,-0.04),Vector4(-0.58,0.13*head_width,0.035,-0.05),Vector4(-0.30,0.145*head_width,0.055,-0.045),Vector4(-0.12,0.06,0.025,0.01)]
+	if data.id=="stormcrest": jaw_profile = [Vector4(-0.69,0.008,0.005,-0.04),Vector4(-0.67,0.040,0.018,-0.045),Vector4(-0.64,0.10,0.032,-0.050),Vector4(-0.60,0.145,0.040,-0.055),Vector4(-0.40,0.165,0.055,-0.055),Vector4(-0.20,0.13,0.050,-0.025),Vector4(-0.12,0.060,0.025,0.010)]
+	Surface.profile(neck,"Jaw",jaw_profile,s,c.darkened(0.16))
 	var jaw := neck.get_node("Jaw") as MeshInstance3D
 	var hinge := Vector3(0,s*0.01,-s*0.12)
 	var jaw_arrays: Array = jaw.mesh.surface_get_arrays(0)
@@ -118,7 +124,7 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 			brow.position.y = -s*0.025
 		for tooth in 5:
 			H.tapered(neck,Vector3(side*s*0.10*head_width,-s*0.005,s*(-0.56+tooth*0.045)),s*0.014,s*0.001,s*0.06,Color("c6c5aa"))
-			H.tapered(jaw,Vector3(side*s*0.095*head_width,-s*0.015,s*(-0.5375+tooth*0.045))-hinge,s*0.001,s*0.010,s*0.035,Color("b6b79d"))
+			H.tapered(jaw,Vector3(side*s*0.095*head_width,s*(0.005 if data.id=="stormcrest" else -0.015),s*(-0.5375+tooth*0.045))-hinge,s*0.001,s*0.010,s*0.035,Color("b6b79d"))
 		for front in ([false,true] if quad else [false]):
 			var leg := V.pivot(root,("Front" if front else "Hind")+str(side),Vector3(side*s*0.29,y*0.9,-s*0.31 if front else s*0.28))
 			var bottom := -y*0.9/s+0.075

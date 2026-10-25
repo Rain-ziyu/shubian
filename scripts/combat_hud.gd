@@ -144,6 +144,7 @@ static func followup(c, held: float) -> String:
 	if c.action=="counter_window": return "迎击架势 · 接住来袭攻击"
 	if c.guard_reward>0: return "格挡成功 · 左键枪尾反击"
 	if c.flash_window>0: return "追击机会 · Ctrl+左键闪刺"
+	if c.action=="reply": return "枪尾反击中 · 可预输入 Ctrl+左键，命中后闪刺"
 	if held>=0:
 		if held<c.THROW_HOLD_TIME: return "松开右键横扫 · 继续按住准备投枪"
 		return "投枪就绪 · 松开右键" if can_release_throw(c) else "蓄力完成 · 等待收势再松开"

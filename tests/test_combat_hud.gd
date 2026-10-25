@@ -36,6 +36,10 @@ func run() -> void:
 	ui.update_state(p,2)
 	check("Ctrl+左键闪刺" in ui.context.text,"reply followup window is visible")
 	c.flash_window = 0
+	c.set_action("reply")
+	ui.update_state(p,2)
+	check("可预输入" in ui.context.text and "命中后闪刺" in ui.context.text,"travelling reply explains buffered input without promising a confirmed hit")
+	c.set_action("idle")
 	p.heavy_held = 0.2
 	ui.update_state(p,2)
 	check("继续按住" in ui.context.text,"short heavy hold explains throw preparation")
