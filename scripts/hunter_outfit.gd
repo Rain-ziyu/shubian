@@ -328,9 +328,10 @@ static func create_head(root: Node3D, skin: Color) -> void:
 		ribbon(root,"UpperLid"+str(side),[Vector3(side*0.033,1.713,-0.109),Vector3(side*0.056,1.720,-0.112),Vector3(side*0.079,1.714,-0.099)],0.0035,skin.darkened(0.18))
 		ribbon(root,"LowerLid"+str(side),[Vector3(side*0.034,1.709,-0.109),Vector3(side*0.056,1.705,-0.112),Vector3(side*0.076,1.709,-0.102)],0.0025,skin.darkened(0.06))
 		ribbon(root,"Brow"+str(side),[Vector3(side*0.025,1.744,-0.115),Vector3(side*0.056,1.75,-0.114),Vector3(side*0.086,1.74,-0.101)],0.006,Color("3c342b"))
-	loft(root,"NoseBridge",[Vector4(1.655,0.013,0.011,-0.117),Vector4(1.669,0.017,0.012,-0.128),Vector4(1.686,0.013,0.011,-0.123),Vector4(1.720,0.008,0.008,-0.117),Vector4(1.732,0.004,0.006,-0.113)],skin,0,TAU,24)
+	loft(root,"NoseBridge",[Vector4(1.652,0.004,0.005,-0.117),Vector4(1.658,0.015,0.009,-0.121),Vector4(1.667,0.018,0.013,-0.126),Vector4(1.676,0.015,0.012,-0.126),Vector4(1.691,0.010,0.009,-0.121),Vector4(1.720,0.007,0.007,-0.116),Vector4(1.732,0.003,0.005,-0.113)],skin,0,TAU,24)
 	blob(root,"UpperLip",Vector3(0,1.634,-0.1085),Vector3(0.055,0.006,0.008),Color("9a7262"))
 	blob(root,"LowerLip",Vector3(0,1.6285,-0.1085),Vector3(0.050,0.006,0.008),Color("b28a74"))
+	detail_face(root,skin)
 	create_hair(root)
 	# Adult ranger proportions: reduce the head assembly around the neck joint,
 	# preserving the face/hair registration and leaving the collar anchor intact.
@@ -341,6 +342,43 @@ static func create_head(root: Node3D, skin: Color) -> void:
 		var part := root.get_child(index) as Node3D
 		part.transform = proportion*part.transform
 		part.set_meta("head_assembly",true)
+
+static func detail_face(root: Node3D, skin: Color) -> void:
+	for label in ["Head","NoseBridge","Ear-1","Ear1"]:
+		var part := root.get_node(label) as MeshInstance3D
+		var arrays: Array = part.mesh.surface_get_arrays(0)
+		var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		var colors := PackedColorArray()
+		var ear: bool = label.begins_with("Ear")
+		for index in vertices.size():
+			var point := vertices[index]
+			var color := skin
+			if ear:
+				var bowl := exp(-pow(point.y/0.24,2)-pow(point.z/0.28,2))*smoothstep(0.20,0.45,absf(point.x))
+				point.x -= signf(point.x)*0.12*bowl
+				vertices[index] = point
+				color = skin.darkened(0.04).lerp(Color("a87765"),bowl*0.55)
+			elif label=="Head":
+				var front := 1-smoothstep(-0.07,0.01,point.z)
+				var cheek := exp(-pow((absf(point.x)-0.078)/0.042,2)-pow((point.y-1.673)/0.030,2))*front
+				var socket := exp(-pow((absf(point.x)-0.057)/0.030,2)-pow((point.y-1.714)/0.015,2))*front
+				color = skin.lerp(Color("b68873"),cheek*0.35).darkened(socket*0.055)
+			else:
+				var nostril := exp(-pow((absf(point.x)-0.010)/0.005,2)-pow((point.y-1.660)/0.005,2))*(1-smoothstep(-0.125,-0.117,point.z))
+				color = skin.lerp(Color("765b50"),nostril*0.55)
+			colors.append(color)
+		arrays[Mesh.ARRAY_VERTEX] = vertices
+		arrays[Mesh.ARRAY_COLOR] = colors
+		var mesh := ArrayMesh.new()
+		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+		if ear:
+			var surface := SurfaceTool.new()
+			surface.create_from(mesh,0)
+			surface.generate_normals()
+			mesh = surface.commit()
+		part.mesh = mesh
+		part.material_override = V.mat(Color.WHITE)
+		part.material_override.vertex_color_use_as_albedo = true
 
 static func create_hair(root: Node3D) -> void:
 	var st := SurfaceTool.new()
