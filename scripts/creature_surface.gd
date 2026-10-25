@@ -92,15 +92,23 @@ static func vertical(parent: Node3D, label: String, profiles: Array, scale: floa
 static func frill(parent: Node3D, scale: float, color: Color) -> MeshInstance3D:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var center := Vector3(0,0.18,0.055)*scale
-	for index in 32:
-		st.set_color(color.darkened(0.18))
-		st.add_vertex(center)
-		for edge in [index,index+1]:
-			var angle := float(edge)/32*TAU
-			var scallop := 1.0 if edge%2==0 else 0.92
-			st.set_color(color.lightened(0.12 if edge%2==0 else 0.0))
-			st.add_vertex(Vector3(sin(angle)*0.46*scallop,0.18+cos(angle)*0.36*scallop,0.05+absf(sin(angle))*0.045)*scale)
+	st.set_smooth_group(0)
+	# A bowed membrane with radial tension folds, rather than a flat triangle fan.
+	# Keep the authored outer envelope and existing whole-frill animation pivot.
+	for ring in 5:
+		for column in 64:
+			var cells := [Vector2i(0,column),Vector2i(1,column),Vector2i(1,column+1)] if ring==0 else [Vector2i(ring,column),Vector2i(ring+1,column),Vector2i(ring,column+1),Vector2i(ring,column+1),Vector2i(ring+1,column),Vector2i(ring+1,column+1)]
+			for cell in cells:
+				var radius := float(cell.x)/5
+				var angle := float(cell.y)/64*TAU
+				var scallop := 0.96+0.04*cos(angle*16)
+				var fold := sin(radius*PI)
+				var depth := 0.055-0.005*radius+absf(sin(angle))*0.045*radius+(0.065+0.010*cos(angle*16))*fold
+				var point := Vector3(sin(angle)*0.46*scallop*radius,0.18+cos(angle)*0.36*scallop*radius,depth)*scale
+				var ridge := pow(0.5+0.5*cos(angle*16),6)*fold
+				st.set_color(color.darkened(0.20).lerp(color.lightened(0.10),radius).lightened(ridge*0.055))
+				st.set_uv(Vector2(0.5+sin(angle)*radius*0.5,0.5+cos(angle)*radius*0.5))
+				st.add_vertex(point)
 	st.generate_normals()
 	var mesh := MeshInstance3D.new()
 	mesh.name = "Frill"
