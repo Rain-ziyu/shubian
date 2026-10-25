@@ -42,6 +42,23 @@ func run() -> void:
 		for side in [-1,1]: settled[side] = p.rig.legs[side].ankle.global_position
 		p.animate(0,0)
 		for side in [-1,1]: check(settled[side].distance_to(p.rig.legs[side].ankle.global_position)<0.002,"stance reaches authored pose after transition")
+	# A late sweep has the largest return angle. Check its whole handoff, not
+	# only the first frame, where a short blend can hide its peak rotation speed.
+	p.combat.set_action("heavy")
+	p.combat.elapsed = 0.60
+	p.animate(0,0)
+	check(p.combat.request("light"),"late heavy accepts the ordinary light chain")
+	var previous_tip: Vector3 = p.rig.weapon.get_node("TipContact").global_position
+	var peak_step := 0.0
+	for frame in 10:
+		p.combat.advance(1.0/60)
+		p.animate(1.0/60,0)
+		var tip: Vector3 = p.rig.weapon.get_node("TipContact").global_position
+		peak_step = maxf(peak_step,previous_tip.distance_to(tip))
+		previous_tip = tip
+	print("HEAVY_LIGHT_RETURN_STEP: ",peak_step)
+	check(peak_step<0.28,"late heavy to light avoids a rapid mid-transition weapon jump at60Hz")
+	check(is_equal_approx(p.combat.elapsed,10.0/60),"smoother weapon return does not delay the light combat clock")
 	p.combat.set_action("light")
 	p.combat.elapsed = 0.4
 	p.animate(0,0)

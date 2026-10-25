@@ -327,6 +327,9 @@ func animate(delta: float, speed: float) -> void:
 	if combat.action!=pose_action or combat.drawn!=pose_drawn:
 		equipment_route = combat.drawn!=pose_drawn
 		pose_duration = 0.30 if pose_drawn and not combat.drawn else 0.10
+		# Let the far-side sweep return through the light thrust's anticipation.
+		# Finish before its0.25s contact; guard/dodge and draw routes stay responsive.
+		if not equipment_route and pose_action=="heavy" and combat.action=="light": pose_duration = 0.15
 		equipment_from = equipment_grip
 		equipment_main_from = equipment_main
 		pose_from = rig.weapon.transform
