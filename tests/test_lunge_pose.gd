@@ -43,11 +43,18 @@ func run() -> void:
 			var arm: Node3D = model.get_node("Forelimb1")
 			Model.animate(model,species,0,"windup",species.windup,0)
 			var loaded_arm := arm.transform
+			var wrist: Node3D = arm.get_node("Wrist")
+			var loaded_wrist := wrist.transform
+			var finger: Node3D = wrist.get_node("Digit1")
+			var loaded_finger := finger.transform
+			check(wrist.rotation.x>0.2 and absf(finger.rotation.y)>0.3,"anticipation opens wrist and fans fingers")
 			check(absf(arm.rotation.z)>0.4,"leap anticipation spreads front limbs")
 			Model.animate(model,species,0,"active",0,speed)
 			check(arm.transform.is_equal_approx(loaded_arm),"front limb takeoff joins loaded pose")
+			check(wrist.transform.is_equal_approx(loaded_wrist) and finger.transform.is_equal_approx(loaded_finger),"wrist and fingers join takeoff without a snap")
 			Model.animate(model,species,0.0,"active",0.30,speed,Callable(),Callable(),true)
 			check(arm.rotation.x>0.5,"airborne front limbs reach forward")
+			check(wrist.rotation.x< -0.3 and finger.rotation.x< -0.25,"airborne claws close through articulated wrist and fingers")
 			var tucked := sole(model.get_node("Hind1"))
 			Model.animate(model,species,2.7,"active",0.30,speed,Callable(),Callable(),true)
 			check(sole(model.get_node("Hind1")).distance_to(tucked)<0.002,"airborne leg pose does not depend on running gait")
@@ -55,6 +62,7 @@ func run() -> void:
 			Model.animate(model,species,2.7,"active",0.65,speed,Callable(),Callable(),true)
 			check(absf(sole(model.get_node("Hind1")).y)<0.002,"feet extend back to landing support")
 			check(arm.rotation.length()<0.001,"front limbs settle before recovery")
+			check(absf(wrist.rotation.x)<0.001 and absf(finger.rotation.x)<0.001 and absf(finger.rotation.y+0.20)<0.001,"landing returns wrist and fingers to rest")
 		Model.animate(model,species,3.0,"active",0.65,speed)
 		var end_body := model.transform
 		var end_neck := neck.transform

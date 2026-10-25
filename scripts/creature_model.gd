@@ -148,6 +148,19 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 				spread = lerpf(0.55,0.18,release)*(1-land)
 				reach = lerpf(-0.30,0.65,release)*(1-land)
 		arm.rotation = Vector3(reach,0,-side*spread)
+		var wrist := arm.get_node_or_null("Wrist") as Node3D
+		if wrist!=null:
+			var opened := smoothstep(0,float(data.windup),clock) if phase=="windup" else 0.0
+			var grasp := 0.0
+			if phase=="active":
+				var release := smoothstep(0.04,0.22,clock)
+				var settle := 1-smoothstep(0.43,0.65,clock)
+				opened = (1-release)*settle
+				grasp = release*settle
+			wrist.rotation.x = 0.25*opened-0.35*grasp
+			for digit in [-1,0,1]:
+				var finger: Node3D = wrist.get_node("Digit"+str(digit))
+				finger.rotation = Vector3(-0.30*grasp,-digit*(0.20+0.16*opened+0.08*grasp),0)
 	var tail := root.get_node("Tail") as Node3D
 	var tail_gait := gait*(1.7/GAIT_PER_METER)
 	tail.rotation.y = sin(tail_gait*0.5)*0.12
