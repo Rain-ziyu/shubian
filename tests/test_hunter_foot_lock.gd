@@ -77,7 +77,27 @@ func run() -> void:
 			previous[side] = anchor
 	check(held>=8 and worst<0.003,"finisher rotation keeps planted stance feet fixed between steps")
 	check(foot_jump<0.065,"finisher stepping and kick handoff avoid a visible ankle jump at 120Hz")
-	print("HUNTER_FOOT_LOCK_CHECKS: ",checks," FAILURES: ",failures," HELD_FRAMES: ",held," WORST_DRIFT: ",worst," FINISHER_STEP: ",foot_jump)
+	actor.position = Vector3.ZERO
+	rig.root.rotation = Vector3.ZERO
+	var balls := {}
+	var pivot_drift := 0.0
+	for frame in 41:
+		var time := 0.30+frame*0.01
+		H.pose_legs(rig,"heavy",time,true,0,0,0,func(_point: Vector3): return 0.0)
+		for side in [-1,1]:
+			var ball: Vector3 = rig.legs[side].boot.to_global(Vector3(0,-0.5,-0.3))
+			if frame==0: balls[side] = ball
+			pivot_drift = maxf(pivot_drift,ball.distance_to(balls[side]))
+	check(pivot_drift<0.002,"heavy sole rotates around the planted forefoot instead of sliding across flat ground")
+	var rear: Node3D = rig.legs[1].boot
+	var leading: Node3D = rig.legs[-1].boot
+	check(rear.global_basis.orthonormalized().get_euler().y>0.35 and leading.global_basis.orthonormalized().get_euler().y>0.10,"rear and lead support feet turn with the sweep")
+	var before_sole: Basis = rear.global_basis.orthonormalized()
+	H.pose_legs(rig,"light",0,true,0,0,1.0/60,func(_point: Vector3): return 0.0)
+	check(before_sole.get_rotation_quaternion().angle_to(rear.global_basis.orthonormalized().get_rotation_quaternion())<0.14,"heavy into light blends the support foot heading")
+	H.pose_legs(rig,"heavy",0.92,true,0,0,0,func(_point: Vector3): return 0.0)
+	check(absf(rear.global_basis.orthonormalized().get_euler().y)<0.001,"completed heavy recovers the neutral foot heading")
+	print("HUNTER_FOOT_LOCK_CHECKS: ",checks," FAILURES: ",failures," HELD_FRAMES: ",held," WORST_DRIFT: ",worst," FINISHER_STEP: ",foot_jump," HEAVY_PIVOT_DRIFT: ",pivot_drift)
 	print("FINISHER_FOOT_SAMPLE: ",JSON.stringify(jump_sample))
 	actor.queue_free()
 	await process_frame

@@ -54,6 +54,11 @@ static func turn_progress(action: String, elapsed: float) -> float:
 	if action=="finisher": return (interpolate(FINISHER_WEAPON,minf(elapsed,0.74)).y+1.5)/TAU
 	return 0.0
 
+static func sweep_foot_yaw(side: int, elapsed: float) -> float:
+	# Open after the stance lands, then turn the rear support into the sweep.
+	var drive := smoothstep(0.30,0.50,elapsed)*(1-smoothstep(0.70,0.92,elapsed))
+	return (0.16 if side==-1 else 0.42)*drive
+
 static func interpolate(keys: Array, elapsed: float) -> Vector4:
 	if elapsed<=float(keys[0].x): return keys[0]
 	for index in range(1,keys.size()):

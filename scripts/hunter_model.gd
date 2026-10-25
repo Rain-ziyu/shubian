@@ -168,7 +168,10 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 		rig.stance_age = STANCE_BLEND_SECONDS
 	elif previous_action!=action:
 		rig.stance_from = {}
-		for side in [-1,1]: rig.stance_from[side] = rig.legs[side].ankle.global_position
+		rig.sole_from = {}
+		for side in [-1,1]:
+			rig.stance_from[side] = rig.legs[side].ankle.global_position
+			rig.sole_from[side] = float(rig.legs[side].get("sole_yaw",0.0))
 		rig.stance_age = 0.0
 	rig.stance_action = action
 	rig.stance_epoch = motion_epoch
@@ -217,6 +220,8 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 	var lowest := 0.0
 	for side in [-1,1]:
 		var leg: Dictionary = rig.legs[side]
+		var desired_sole_yaw := Motion.sweep_foot_yaw(side,elapsed) if action=="heavy" else 0.0
+		leg.sole_yaw = lerp_angle(float(rig.sole_from.get(side,0.0)),desired_sole_yaw,stance_weight) if stance_weight<1 and rig.has("sole_from") else desired_sole_yaw
 		if action!="finisher" or finisher_reset:
 			if leg.hip.has_meta("finisher_release_from"): leg.hip.remove_meta("finisher_release_from")
 			if leg.hip.has_meta("finisher_release_at"): leg.hip.remove_meta("finisher_release_at")
@@ -288,6 +293,10 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 			target.x += side*(0.12 if side==-1 else 0.10)*support
 			if side==-1: target.z -= 0.06*support
 			target.y += sin(opening*PI)*0.055+sin(closing*PI)*0.045
+		# Shift the ankle by the inverse sole rotation so the forefoot remains
+		# at its stance point while the heel turns; the leg IK follows the ankle.
+		var forefoot := Vector3(0,0,-0.15)
+		target += forefoot-Basis(Vector3.UP,float(leg.sole_yaw))*forefoot
 		if walking:
 			var direction := Vector3(travel.x,0,travel.z).normalized()
 			if direction.length_squared()<0.001: direction = Vector3.FORWARD
@@ -355,7 +364,7 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 		if action=="finisher" and side==1:
 			var extension := smoothstep(0.80,0.95,elapsed)*(1-smoothstep(1.02,1.32,elapsed))
 			normals[side] = Vector3.UP.rotated(Vector3.RIGHT,PI/4*extension)
-		pose_sole(leg,normals[side])
+		pose_sole(leg,normals[side],float(leg.sole_yaw))
 		var anchor_key := "walk_plant_world" if walking else "turn_plant_world"
 		if planting[side] and not leg.hip.has_meta(anchor_key) and (not walking or (target-leg.hip.position).length()<0.78):
 			leg.hip.set_meta(anchor_key,leg.ankle.global_position)
@@ -365,10 +374,10 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 			for part: MeshInstance3D in rig.skirts[side].get_children():
 				if part.get_blend_shape_count()>0: part.set_blend_shape_value(0,flex)
 
-static func pose_sole(leg: Dictionary, normal: Vector3) -> void:
+static func pose_sole(leg: Dictionary, normal: Vector3, yaw := 0.0) -> void:
 	# Tilt the Foot bone around the sole anchor, preserving the solved leg lengths.
 	# The ankle controller is level in rig space after pose_leg.
-	var tilt := Basis(Quaternion(Vector3.UP,normal.normalized()))
+	var tilt := Basis(Quaternion(Vector3.UP,normal.normalized()))*Basis(Vector3.UP,yaw)
 	leg.boot.basis = tilt.scaled_local(Vector3(0.18,0.15,0.30))
 	leg.boot.position = Vector3(0,-0.10,0)+tilt*Vector3(0,0.075,-0.06)
 
