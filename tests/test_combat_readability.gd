@@ -17,6 +17,23 @@ func run() -> void:
 	var monsters := get_nodes_in_group("monsters")
 	for m in monsters: m.set_physics_process(false)
 	var m = monsters[0]
+	# Ordinary-hit recoil is visible without granting a gameplay interrupt.
+	for side in [-1,1]:
+		m.phase = "windup"
+		m.clock = 0.2
+		m.stagger = 0
+		var before_clock: float = m.clock
+		var source: Vector3 = m.global_position+m.global_basis*Vector3(side*3,0,0)
+		m.receive_strike(1,source,"fourfold","body")
+		check(m.phase=="windup" and m.clock==before_clock and m.stagger==0,"fourfold recoil does not restart or stagger the enemy")
+		m.mesh.set_meta("impact_age",0.045)
+		m.CreatureModel.animate(m.mesh,m.data,0,"idle",0,0)
+		check(m.mesh.get_node("Neck").rotation.y*side>0.02 and m.mesh.get_node("BodySurface").rotation.z*side>0.015,"visible recoil follows the actual incoming side")
+		m.mesh.set_meta("impact_age",0.26)
+		m.CreatureModel.animate(m.mesh,m.data,0,"idle",0,0)
+		check(m.mesh.get_node("Neck").rotation.length()<0.001 and m.mesh.get_node("BodySurface").rotation.length()<0.001,"repeated recoil fully returns to authored pose")
+	m.phase = "idle"
+	m.clock = 0
 	var ui = world.combat_hud
 	m.global_position = p.global_position+Vector3(0,0,-6)
 	p.lock_target = null

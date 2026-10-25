@@ -209,6 +209,8 @@ func _physics_process(delta: float) -> void:
 	if started: set_meta("frame_cost_total_us",int(get_meta("frame_cost_total_us",0))+Time.get_ticks_usec()-started)
 
 func advance_physics(delta: float) -> void:
+	var impact_age: float = mesh.get_meta("impact_age",0.26)
+	if impact_age<0.26: mesh.set_meta("impact_age",minf(0.26,impact_age+delta))
 	wall_stun = maxf(0,wall_stun-delta)
 	rear_cooldown = maxf(0,rear_cooldown-delta)
 	rear_tell.visible = false
@@ -543,4 +545,9 @@ func receive_strike(amount: float, origin: Vector3, action: String, part := "", 
 	elif action == "reply":
 		velocity += -toward*5
 		stagger = maxf(stagger,0.45)
+	if health>0 and stagger<=0:
+		var local_source := global_basis.inverse()*toward
+		var strength := (1.4 if weak else 1.0)*(1.25 if action in ["heavy","turn","throw"] else 0.65 if action=="fourfold" else 1.0)
+		mesh.set_meta("impact_rotation",Vector3(-local_source.z*0.065,local_source.x*0.055,local_source.x*0.045)*strength)
+		mesh.set_meta("impact_age",0.0)
 	return {"hit":true,"weak":weak,"damage":amount*factor,"part":part if part!="" else "legacy-direction","armor_broken":armor_integrity<=0}

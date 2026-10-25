@@ -170,6 +170,7 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 	return root
 
 static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, clock: float, speed: float, ground: Callable = Callable(), ground_normal: Callable = Callable(), physical_flight := false, pose_override: Dictionary = {}) -> void:
+	root.get_node("BodySurface").rotation.z = 0.0
 	# Front limbs articulate at their shoulder attachment, independently of gait.
 	# Carry the loaded silhouette into takeoff, then reach before landing.
 	for side in [-1,1]:
@@ -281,6 +282,13 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 		neck.rotation = pose_override.get("neck_rotation",neck.rotation)
 		neck.get_node("Jaw").rotation = pose_override.get("jaw_rotation",neck.get_node("Jaw").rotation)
 		tail.rotation.y = float(pose_override.get("tail_y",tail.rotation.y))
+	# Additive recoil never pauses AI. Stagger owns its captured-pose transition.
+	var impact_age: float = root.get_meta("impact_age",0.26)
+	if impact_age<0.26 and phase!="stagger":
+		var weight := smoothstep(0,0.045,impact_age)*(1-smoothstep(0.045,0.26,impact_age))
+		var impulse: Vector3 = root.get_meta("impact_rotation",Vector3.ZERO)
+		neck.rotation += Vector3(impulse.x,impulse.y,0)*weight
+		root.get_node("BodySurface").rotation.z += impulse.z*weight
 	if data.id=="mossback":
 		var trunk: MeshInstance3D = root.get_node("BodySurface")
 		for index in 5:
