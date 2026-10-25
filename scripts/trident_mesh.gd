@@ -5,6 +5,7 @@ static func material(color: Color, metal := false, glow := false) -> StandardMat
 	result.albedo_color = color
 	result.metallic = 0.75 if metal else 0
 	result.roughness = 0.38 if metal else 0.8
+	result.vertex_color_use_as_albedo = metal
 	result.emission_enabled = glow
 	result.emission = color
 	return result
@@ -38,11 +39,13 @@ static func blade(parent: Node3D, label: String, outline: PackedVector2Array, ap
 		inset.append(outline[index]+bisector*minf(0.010,0.003/maxf(0.15,bisector.dot(normal))))
 	var indices := Geometry2D.triangulate_polygon(inset)
 	for side in [-1,1]:
+		st.set_color(Color(0.68,0.74,0.78))
 		for index in range(0,indices.size(),3):
 			var triangle := [indices[index],indices[index+1],indices[index+2]]
 			if side==1: triangle.reverse()
 			for vertex in triangle:
 				st.add_vertex(Vector3(inset[vertex].x,inset[vertex].y,side*0.012))
+		st.set_color(Color(0.95,0.98,1.0))
 		for index in outline.size():
 			var next := (index+1)%outline.size()
 			var a := Vector3(outline[index].x,outline[index].y,0)
