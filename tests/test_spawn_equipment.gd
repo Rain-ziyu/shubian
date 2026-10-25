@@ -29,6 +29,11 @@ func run() -> void:
 	check(p.rig.weapon.position.distance_to(back)<0.2,"first draw begins continuously at back")
 	check(p.combat.health==240 and p.combat.shadow_lifetimes.is_empty(),"initialization does not grant combat resources")
 	print("SPAWN_EQUIPMENT_CHECKS: ",checks," FAILURES: ",failures)
+	# Assertions above still inspect the first ready frame. Let queued native
+	# environment textures finish creating before destroying their owners.
+	await process_frame
+	if DisplayServer.get_name()!="headless": await RenderingServer.frame_post_draw
 	world.queue_free()
 	await process_frame
+	if DisplayServer.get_name()!="headless": await RenderingServer.frame_post_draw
 	quit(1 if failures else 0)
