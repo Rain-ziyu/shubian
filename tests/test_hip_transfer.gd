@@ -113,6 +113,31 @@ func run() -> void:
 		light_support = light_support and grounded>=1
 	check(light_support and light_floor,"light opening and return retain support without floor penetration")
 	check(closing_lift>0.04,"light lifts the front foot when returning instead of dragging it")
+	p.combat.set_action("flash")
+	p.combat.elapsed = 0.08
+	p.animate(0,0)
+	var flash_load: Vector3 = p.rig.root.position
+	p.combat.elapsed = 0.23
+	p.animate(0,0)
+	check(flash_load.z-p.rig.root.position.z>0.15,"flash drives the pelvis forward from its loaded support")
+	check(p.rig.root.position.y-flash_load.y>0.05,"flash extends the loaded leg at contact")
+	check(absf(p.rig.pelvis.rotation.y)>0.04,"flash hips turn with the chest")
+	var flash_support := true
+	var flash_floor := true
+	var flash_return := {-1:0.0,1:0.0}
+	for frame in 71:
+		p.combat.elapsed = minf(float(frame)/120,0.58)
+		p.animate(0,0)
+		var grounded := 0
+		for side in [-1,1]:
+			var sole: Vector3 = p.to_local(p.rig.legs[side].ankle.to_global(Vector3(0,-0.1,0)))
+			if sole.y<0.003: grounded += 1
+			flash_floor = flash_floor and sole.y>= -0.003
+			if p.combat.elapsed>0.30: flash_return[side] = maxf(flash_return[side],sole.y)
+		flash_support = flash_support and grounded>=1
+	check(flash_support and flash_floor,"flash staggered return steps retain grounded support without penetration")
+	check(flash_return[-1]>0.035 and flash_return[1]>0.025,"both flash return steps lift instead of sliding")
+	check(absf(p.rig.root.position.z)<0.001 and absf(p.rig.pelvis.rotation.y)<0.001,"flash settles body and hips to neutral at its actual end")
 	p.combat.set_action("pull")
 	p.combat.elapsed = 0.22
 	p.animate(0,0)

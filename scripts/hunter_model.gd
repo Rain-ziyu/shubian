@@ -204,11 +204,11 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 		# The sweep loads into the rear support leg before transferring forward.
 		drop += (0.10 if action=="heavy" else 0.075)*smoothstep(0,ready,elapsed)*(1-smoothstep(release_from,release,elapsed))
 	var body: Node3D = rig.root
-	var shift := Motion.sample(action,elapsed,gait,speed).w*1.6 if action in ["light","heavy","pull","fourfold","hurt","guard","reply","finisher","throw"] else 0.0
+	var shift := Motion.sample(action,elapsed,gait,speed).w*1.6 if action in ["light","heavy","pull","fourfold","hurt","guard","reply","finisher","throw","flash"] else 0.0
 	body.position.z = lerpf(body.position.z,shift,1-exp(-delta*18)) if delta>0 else shift
 	var previous_height := body.position.y
 	body.position.y = -drop
-	var hip_turn := Motion.sample(action,elapsed,gait,speed).z*0.45 if action in ["light","heavy","pull","fourfold","throw"] else 0.0
+	var hip_turn := Motion.sample(action,elapsed,gait,speed).z*0.45 if action in ["light","heavy","pull","fourfold","throw","flash"] else 0.0
 	rig.pelvis.rotation.y = lerp_angle(rig.pelvis.rotation.y,hip_turn,1-exp(-delta*18)) if delta>0 else hip_turn
 	for side in [-1,1]: rig.legs[side].hip.position = rig.pelvis.transform*Vector3(side*0.14,0,0)
 	var targets := {}
@@ -261,9 +261,13 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 				reach = lerpf(-0.10,0.16,smoothstep(0.08,0.33,elapsed))*step if side==lead else -0.20*step*(1-smoothstep(0.18,0.43,elapsed))
 				lift = sin(smoothstep(0.04 if side==lead else 0.10,0.34 if side==lead else 0.44,elapsed)*PI)*(0.16 if side==lead else 0.12)
 			else:
-				var drive := smoothstep(0.08,0.23,elapsed)*(1-smoothstep(0.30,0.58,elapsed))
+				var return_start := 0.30 if side==lead else 0.47
+				var return_end := 0.47 if side==lead else 0.58
+				var returning := smoothstep(return_start,return_end,elapsed)
+				var drive := smoothstep(0.08,0.23,elapsed)*(1-returning)
 				reach = (0.18 if side==lead else -0.12)*drive
 				lift = sin(smoothstep(0.02,0.23,elapsed)*PI)*0.10 if side==lead else 0.0
+				lift += sin(returning*PI)*(0.045 if side==lead else 0.035)
 			target += direction*reach
 			target.y += lift
 		if action=="reply" and side==-1:

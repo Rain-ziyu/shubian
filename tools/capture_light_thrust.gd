@@ -46,7 +46,7 @@ func run() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	p.yaw = 0
 	var action := "light"
-	for candidate in ["heavy","pull","throw","plant","guard","reply","finisher"]:
+	for candidate in ["heavy","pull","throw","plant","guard","reply","finisher","flash"]:
 		if "--"+candidate in OS.get_cmdline_user_args(): action = candidate
 	p.combat.set_action(action)
 	if action=="plant":
@@ -58,6 +58,7 @@ func run() -> void:
 		times["reply"] = [0.12,0.26,0.42]
 		times["guard"] = [0.0,0.09,0.18]
 		times["finisher"] = [0.80,0.95,1.14]
+		times["flash"] = [0.08,0.23,0.39]
 		var t: float = times[action][i]
 		p.combat.elapsed = t
 		p.animate(0,0)
@@ -75,6 +76,7 @@ func run() -> void:
 	paths["reply"] = "Shubian-reply-motion"
 	paths["guard"] = "Shubian-guard-motion"
 	paths["finisher"] = "Shubian-kick-motion"
+	paths["flash"] = "Shubian-flash-motion"
 	sheet.save_png(ProjectSettings.globalize_path("res://../"+str(paths[action])+("-shoulder" if shoulder_detail else "")+".png"))
 	stage.queue_free()
 	await process_frame
