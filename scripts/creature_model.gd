@@ -354,6 +354,8 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 		neck.rotation.x = -0.20*(1-smoothstep(0,0.30,clock))
 	if not pose_override.is_empty():
 		root.position.y = float(pose_override.get("body_y",root.position.y))
+		if pose_override.has("body_y_from"):
+			root.position.y = lerpf(float(pose_override.body_y_from),root.position.y,float(pose_override.get("blend",1.0)))
 		root.rotation = pose_override.get("body_rotation",root.rotation)
 		root.get_node("BodySurface").rotation = pose_override.get("body_surface_rotation",root.get_node("BodySurface").rotation)
 		neck.rotation = pose_override.get("neck_rotation",neck.rotation)

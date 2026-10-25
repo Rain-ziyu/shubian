@@ -5,6 +5,8 @@ const Hazard = preload("res://scripts/hazard.gd")
 const CreatureModel = preload("res://scripts/creature_model.gd")
 const Parts = preload("res://scripts/monster_parts.gd")
 const StaggerPose = preload("res://scripts/creature_stagger_pose.gd")
+const ApproachPose = preload("res://scripts/creature_approach_pose.gd")
+var approach_pose := {}
 const Defeat = preload("res://scripts/creature_defeat.gd")
 var defeat = Defeat.new()
 var stagger_pose = StaggerPose.new()
@@ -306,6 +308,7 @@ func advance_physics(delta: float) -> void:
 				rear_attack = data.has("rear_attack") and rear_cooldown<=0 and offset.normalized().dot(-global_basis.z)< -0.35
 				if rear_attack: rear_cooldown = 5.0
 				CombatAudio.emit_at(get_parent(),"warning",global_position+Vector3.UP*float(data.size)*0.7)
+				approach_pose = ApproachPose.capture(self)
 				phase = "windup"
 				clock = 0
 				target_point = target.global_position
@@ -398,7 +401,9 @@ func advance_physics(delta: float) -> void:
 	gait += delta*minf(Vector2(velocity.x,velocity.z).length(),float(data.speed)*1.2)*CreatureModel.GAIT_PER_METER
 	var grounded_pose: bool = is_on_floor() and not (phase=="active" and data.pattern=="leap")
 	if phase!="recover": stagger_recovery = false
-	CreatureModel.animate(mesh,data,gait,phase,clock,Vector2(velocity.x,velocity.z).length(),foot_ground_height if grounded_pose else Callable(),foot_ground_normal if grounded_pose else Callable(),data.pattern=="leap",StaggerPose.neutral() if stagger_recovery else {})
+	var preparation: Dictionary = StaggerPose.neutral() if stagger_recovery else {}
+	if phase=="windup": preparation.merge(ApproachPose.sample(approach_pose,clock))
+	CreatureModel.animate(mesh,data,gait,phase,clock,Vector2(velocity.x,velocity.z).length(),foot_ground_height if grounded_pose else Callable(),foot_ground_normal if grounded_pose else Callable(),data.pattern=="leap",preparation)
 	if data.pattern in ["charge","leap"]:
 		var contact := lunge_contact.update(self,phase=="active" and not rear_attack and not attack_done)
 		if not contact.is_empty() and clear_line_to(contact.feet):
@@ -489,6 +494,7 @@ func advance_rear_attack(delta: float) -> void:
 	move_actor()
 	var load := smoothstep(0,float(move.windup),clock) if phase=="windup" else (1-smoothstep(0,0.18,clock) if phase=="active" else 0.0)
 	var rear_pose := {"body_y":-float(data.size)*0.025*load,"body_surface_rotation":Vector3(0,-tail_yaw*0.06,0.035*load),"neck_rotation":Vector3(0,-tail_yaw*0.12,0)}
+	if phase=="windup": rear_pose.merge(ApproachPose.sample(approach_pose,clock))
 	CreatureModel.animate(mesh,data,gait,"idle",0,0,foot_ground_height if is_on_floor() else Callable(),foot_ground_normal if is_on_floor() else Callable(),false,rear_pose)
 	mesh.rotation.x = lerpf(mesh.rotation.x,0,delta*6)
 	mesh.get_node("Tail").rotation.y = tail_yaw
