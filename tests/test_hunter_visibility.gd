@@ -105,6 +105,14 @@ func run() -> void:
 			check(pose_pixels<20,str(sample[0])+" clear attack pose avoids self highlighting")
 			print("OCCLUSION_POSE_PIXELS: ",sample[0],"=",pose_pixels)
 
+	wall.visible = true
+	wall.position = Vector3.ZERO
+	var ring := TorusMesh.new()
+	ring.inner_radius = 0.6
+	ring.outer_radius = 1.2
+	wall.mesh = ring
+	check(not cue.foreign_blocks(Vector3(0,3,0),Vector3.ZERO),"open space inside a mesh bounding box does not create a false obstruction")
+	check(cue.foreign_blocks(Vector3(0.9,3,0),Vector3(0.9,0,0)),"actual foreground mesh surface still blocks the hunter")
 	check(part.material_override==original and p.combat.health==hp,"presentation preserves material and health")
 	p.combat.health = 0
 	cue._physics_process(0)

@@ -80,6 +80,23 @@ func run() -> void:
 	p.animate(1.0/60,0)
 	check(before.distance_to(p.rig.torso.rotation)<0.12,"runtime action change blends torso rather than snapping")
 	check(is_zero_approx(p.combat.elapsed),"presentation does not advance authoritative combat time")
+	p.combat.set_action("heavy")
+	p.combat.elapsed = 0.18
+	p.animate(0,0)
+	var high_ready: float = p.rig.weapon.position.y
+	var ready_tip: Vector3 = p.rig.weapon.to_global(p.rig.weapon.get_node("TipContact").position)
+	p.combat.elapsed = 0.30
+	p.animate(0,0)
+	check(ready_tip.distance_to(p.rig.weapon.get_node("TipContact").global_position)<0.002,"heavy holds its readable loaded silhouette before acceleration")
+	p.combat.set_action("light")
+	p.combat.elapsed = 0.11
+	p.animate(0,0)
+	check(high_ready-p.rig.weapon.position.y>0.3,"heavy chest-high windup is distinct from the low thrust preparation")
+	var loaded: float = p.rig.root.position.z
+	p.combat.elapsed = 0.25
+	p.animate(0,0)
+	check(loaded>0.02 and p.rig.root.position.z< -0.07,"thrust shifts the whole body from back-loaded to forward drive")
+	check(absf(p.to_local(p.rig.legs[-1].ankle.to_global(Vector3(0,-0.1,0))).y)<0.002,"driving stance keeps the leading sole grounded at contact")
 	print("TORSO_MOTION_CHECKS: ",checks," FAILURES: ",failures)
 	world.queue_free()
 	await process_frame

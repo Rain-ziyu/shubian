@@ -18,6 +18,7 @@ var action_audio_beats := {}
 const TeleportFeedback = preload("res://scripts/teleport_feedback.gd")
 const HunterVisibility = preload("res://scripts/hunter_visibility.gd")
 var combat = Combat.new()
+var feedback = preload("res://scripts/combat_feedback.gd").new()
 var rig: Dictionary
 var mount: Node3D
 var yaw := 0.0
@@ -109,7 +110,9 @@ func _exit_tree() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if combat.health<=0 and event is InputEventMouseButton and event.button_index in [MOUSE_BUTTON_LEFT,MOUSE_BUTTON_RIGHT]: return
 	if is_instance_valid(projectile):
-		if event is InputEventMouseButton and event.button_index in [MOUSE_BUTTON_LEFT,MOUSE_BUTTON_RIGHT]: return
+		if event is InputEventMouseButton and event.button_index in [MOUSE_BUTTON_LEFT,MOUSE_BUTTON_RIGHT]:
+			if event.pressed: feedback.show_event("投枪飞行中 · 等待武器回收",Color("e7c88b"),0.8,1)
+			return
 		if event is InputEventKey and (InputKeys.code(event) in [KEY_Q,KEY_E,KEY_R] or (InputKeys.code(event)==KEY_SPACE and event.ctrl_pressed)): return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		apply_look(event.relative)
@@ -118,14 +121,14 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_ESCAPE:
 				heavy_held = -1
 				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if Input.mouse_mode==Input.MOUSE_MODE_CAPTURED else Input.MOUSE_MODE_CAPTURED
-			KEY_Q: combat.request("guard")
-			KEY_E: combat.request("pull")
+			KEY_Q: request_action("guard")
+			KEY_E: request_action("pull")
 			KEY_R:
-				if combat.request("sheathe"): heavy_held = -1
+				if request_action("sheathe"): heavy_held = -1
 			KEY_TAB: cycle_lock(event.shift_pressed)
-			KEY_SPACE: combat.request("plant" if event.ctrl_pressed else "dodge")
+			KEY_SPACE: request_action("plant" if event.ctrl_pressed else "dodge")
 			KEY_CTRL:
-				if combat.action=="wait": combat.request("counter_window")
+				if combat.action=="wait": request_action("counter_window")
 			KEY_F5: get_tree().reload_current_scene()
 	if event is InputEventMouseButton:
 		if event.pressed and event.button_index==MOUSE_BUTTON_MIDDLE:
@@ -136,14 +139,20 @@ func _unhandled_input(event: InputEvent) -> void:
 			if event.alt_pressed: next = "turn"
 			elif event.ctrl_pressed: next = "flash" if combat.flash_window>0 else "fourfold"
 			elif combat.guard_reward>0: next = "reply"
-			combat.request(next)
+			request_action(next)
 		if event.button_index==MOUSE_BUTTON_RIGHT:
 			if event.pressed:
-				if event.ctrl_pressed: combat.request("spin")
+				if event.ctrl_pressed: request_action("spin")
 				else: heavy_held = 0
 			elif heavy_held>=0:
-				combat.request("throw" if heavy_held>=Combat.THROW_HOLD_TIME else "heavy")
+				request_action("throw" if heavy_held>=Combat.THROW_HOLD_TIME else "heavy")
 				heavy_held = -1
+
+func request_action(next: String) -> bool:
+	var accepted: bool = combat.request(next)
+	if accepted and next=="sheathe": feedback.show_event("收枪")
+	elif not accepted and combat.health>0: feedback.rejected(combat,next)
+	return accepted
 
 func apply_look(relative: Vector2) -> void:
 	if absf(relative.x)>0.01: camera_manual_time = 0.75
@@ -174,6 +183,7 @@ func combat_forward() -> Vector3:
 	return global_basis*Vector3.FORWARD.rotated(Vector3.UP,rig.root.rotation.y-body_turn_applied)
 
 func on_action_changed(next: String) -> void:
+	feedback.action_changed(next)
 	clear_body_turn()
 	if next!="idle": heavy_held = -1
 	strike_windows.clear()
@@ -229,6 +239,7 @@ func cycle_lock(reverse := false) -> void:
 	camera_manual_time = 0
 
 func _physics_process(delta: float) -> void:
+	feedback.advance(delta)
 	clear_body_turn()
 	if combat.health<=0: heavy_held = -1
 	elif heavy_held>=0: heavy_held += delta
@@ -324,6 +335,12 @@ func animate(delta: float, speed: float) -> void:
 		var t: float = combat.elapsed
 		var p := clampf(t/float(Combat.MOVES[combat.action].duration),0,1)
 		match combat.action:
+			"hurt":
+				var recoil := smoothstep(0,0.08,t)*(1-smoothstep(0.16,0.55,t))
+				w.position.y -= 0.18*recoil
+				w.position.z += 0.12*recoil
+				w.rotation.x -= 0.20*recoil
+				w.rotation.z -= 0.25*recoil
 			"light":
 				var path := HunterModel.Motion.interpolate(HunterModel.Motion.LIGHT_WEAPON,t)
 				w.position.y += path.y
@@ -346,6 +363,7 @@ func animate(delta: float, speed: float) -> void:
 				w.rotation.x += path.w
 			"heavy":
 				var path := HunterModel.Motion.interpolate(HunterModel.Motion.HEAVY_WEAPON,t)
+				w.position.y += 0.22*smoothstep(0,0.18,t)*(1-smoothstep(0.30,0.43,t))
 				w.rotation.y = path.y
 				w.position.z += path.z
 				w.rotation.x += clampf(pitch+0.25,-0.4,0.85)*1.22
@@ -430,6 +448,11 @@ func take_damage(amount: float, origin: Vector3, blockable: bool, interrupt := t
 	var exhausted_guard: bool = combat.action=="guard" and combat.elapsed>=0.12 and blockable and front and combat.stamina<15
 	var previous_health: float = combat.health
 	var result: String = combat.receive_damage(amount,blockable,front,interrupt)
+	if result=="guarded": feedback.show_event("格挡成功 · 左键反击",Color("f3d58b"),0.85,2)
+	elif result=="counter": feedback.show_event("迎击成功 · 旋枪踢击",Color("f3d58b"),0.85,2)
+	elif result=="armored": feedback.show_event("霸体承伤 · 动作继续",Color("e7c88b"),0.8,2)
+	elif result=="immune": feedback.show_event("闪避免伤" if combat.action=="dodge" else "反击免伤",Color("bde4d4"),0.55,1)
+	elif result=="hurt" and exhausted_guard: feedback.show_event("耐力耗尽 · 格挡被击破",Color("f0947d"),1.15,3)
 	if result=="guarded": CombatAudio.emit_at(get_parent(),"guard",global_position+Vector3.UP)
 	elif combat.health<previous_health: CombatAudio.emit_at(get_parent(),"hurt",global_position+Vector3.UP)
 	message = {"counter":"反击成功！旋转踢击，不消耗枪影。","guarded":"格挡成功：左键反击，再 Ctrl+左键闪刺。","immune":"免伤","armored":"霸体承伤：动作继续","hurt":"受击！注意预警与站位。"}.get(result,result)

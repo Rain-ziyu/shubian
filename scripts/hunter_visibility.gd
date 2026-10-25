@@ -6,6 +6,7 @@ var sources: Array[MeshInstance3D] = []
 var material: ShaderMaterial
 var occluded := false
 var visual_bounds := {}
+var triangle_meshes := {}
 func _ready() -> void:
 	hunter = get_parent()
 	material = ShaderMaterial.new()
@@ -27,6 +28,7 @@ func _physics_process(_delta: float) -> void:
 		parts[index].set_instance_shader_parameter("blocked_part",blocked)
 		occluded = occluded or blocked
 	material.set_shader_parameter("enabled",occluded)
+	material.set_shader_parameter("hurt_flash",hunter.feedback.hurt_flash/0.22 if hunter.combat.health>0 else 0.0)
 
 func foreign_blocks(camera_position: Vector3, destination: Vector3) -> bool:
 	# Broad actor capsules can extend into empty space around a visible monster.
@@ -40,5 +42,14 @@ func foreign_blocks(camera_position: Vector3, destination: Vector3) -> bool:
 		if not visual_bounds.has(id): visual_bounds[id] = monster.mesh.find_children("*","MeshInstance3D",true,false)
 		for mesh in visual_bounds[id]:
 			if not is_instance_valid(mesh) or not mesh.is_visible_in_tree(): continue
-			if mesh.get_aabb().intersects_segment(mesh.to_local(camera_position),mesh.to_local(destination))!=null: return true
+			var local_start: Vector3 = mesh.to_local(camera_position)
+			var local_end: Vector3 = mesh.to_local(destination)
+			if mesh.get_aabb().intersects_segment(local_start,local_end)==null: continue
+			# Empty space inside a large head/body bounding box is not an obstruction.
+			var geometry_id: int = mesh.mesh.get_instance_id()
+			if not triangle_meshes.has(geometry_id): triangle_meshes[geometry_id] = mesh.mesh.generate_triangle_mesh()
+			var triangles: TriangleMesh = triangle_meshes[geometry_id]
+			if triangles==null: continue
+			var contact: Dictionary = triangles.intersect_segment(local_start,local_end)
+			if not contact.is_empty() and mesh.to_global(contact.position).distance_to(destination)>0.15: return true
 	return false

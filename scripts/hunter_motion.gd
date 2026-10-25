@@ -4,16 +4,16 @@ extends RefCounted
 # Seconds, height offset, fore/aft offset, yaw offset.
 const THROW_WEAPON := [Vector4(0,0,0,0),Vector4(0.20,0.25,0.20,-0.25),Vector4(0.38,0.02,-0.15,0),Vector4(0.60,0,-0.06,0),Vector4(0.80,0,0,0)]
 # Seconds, yaw offset, fore/aft offset, unused.
-const HEAVY_WEAPON := [Vector4(0,0,0,0),Vector4(0.18,-0.90,0.025,0),Vector4(0.43,-0.097826,0,0),Vector4(0.60,0.95,0,0),Vector4(0.92,0,0,0)]
+const HEAVY_WEAPON := [Vector4(0,0,0,0),Vector4(0.18,-0.90,0.025,0),Vector4(0.30,-0.90,0.025,0),Vector4(0.43,-0.097826,0,0),Vector4(0.60,0.95,0,0),Vector4(0.92,0,0,0)]
 # Seconds, height offset, fore/aft offset, pitch offset.
 const PULL_WEAPON := [Vector4(0,0,0,0),Vector4(0.22,0,-0.12,0.12),Vector4(0.40,0,0.04,0.12),Vector4(0.58,0,0.20,0.12),Vector4(0.86,0,0,0)]
-const LIGHT_WEAPON := [Vector4(0,0,0,0),Vector4(0.11,-0.08,0.09,-0.12),Vector4(0.25,0,-0.15,0.18),Vector4(0.34,0.02,-0.10,0.27),Vector4(0.48,0.01,-0.03,0.12),Vector4(0.66,0,0,0)]
+const LIGHT_WEAPON := [Vector4(0,0,0,0),Vector4(0.11,-0.13,0.12,-0.12),Vector4(0.15,-0.13,0.12,-0.12),Vector4(0.25,0,-0.15,0.18),Vector4(0.34,0.02,-0.10,0.27),Vector4(0.48,0.01,-0.03,0.12),Vector4(0.66,0,0,0)]
 const FOURFOLD_WEAPON := [Vector4(0,0,0,0),Vector4(0.08,0,0.04,0.06),Vector4(0.18,0,-0.15,0.18),Vector4(0.28,0,0.035,0.06),Vector4(0.33,0,0.04,0.06),Vector4(0.43,0,-0.15,0.18),Vector4(0.53,0,0.035,0.06),Vector4(0.58,0,0.04,0.06),Vector4(0.68,0,-0.15,0.18),Vector4(0.78,0,0.035,0.06),Vector4(0.83,0,0.04,0.06),Vector4(0.93,0,-0.15,0.18),Vector4(1.03,0,0.035,0.06),Vector4(1.25,0,0,0)]
 # Seconds, unused, fore/aft offset from the braced guard, unused.
 const REPLY_WEAPON := [Vector4(0,0,0,0),Vector4(0.12,0,0.035,0),Vector4(0.26,0,-0.169,0),Vector4(0.42,0,-0.06,0),Vector4(0.67,0,0,0)]
 const KEYS := {
-	"light":[Vector4(0,0,0,0),Vector4(0.11,0.035,-0.10,0.012),Vector4(0.25,-0.10,0.10,-0.035),Vector4(0.40,-0.04,0.04,-0.01),Vector4(0.66,0,0,0)],
-	"heavy":[Vector4(0,0,0,0),Vector4(0.18,0.04,-0.30,0.02),Vector4(0.43,-0.08,0.08,-0.025),Vector4(0.61,-0.04,0.28,-0.015),Vector4(0.92,0,0,0)],
+	"light":[Vector4(0,0,0,0),Vector4(0.11,0.06,-0.16,0.025),Vector4(0.15,0.06,-0.16,0.025),Vector4(0.25,-0.16,0.20,-0.055),Vector4(0.40,-0.07,0.10,-0.025),Vector4(0.66,0,0,0)],
+	"heavy":[Vector4(0,0,0,0),Vector4(0.18,0.05,-0.60,0.035),Vector4(0.30,0.05,-0.60,0.035),Vector4(0.43,-0.12,0.28,-0.05),Vector4(0.61,-0.06,0.65,-0.02),Vector4(0.92,0,0,0)],
 	"pull":[Vector4(0,0,0,0),Vector4(0.25,-0.08,-0.13,-0.025),Vector4(0.40,-0.035,-0.02,-0.01),Vector4(0.56,0.12,0.13,0.045),Vector4(0.86,0,0,0)],
 	"guard":[Vector4(0,0,0,0),Vector4(0.18,0.06,-0.12,0.018),Vector4(1.20,0.06,-0.12,0.018),Vector4(1.40,0,0,0)],
 	"reply":[Vector4(0,0,-0.10,0),Vector4(0.12,0.04,-0.14,0.02),Vector4(0.26,-0.13,0.16,-0.045),Vector4(0.42,-0.04,0.06,-0.01),Vector4(0.67,0,0,0)],
@@ -21,7 +21,7 @@ const KEYS := {
 	"plant":[Vector4(0,0,0,0),Vector4(0.30,-0.20,0,-0.025),Vector4(0.55,-0.12,0,-0.015),Vector4(0.65,-0.08,0,0)],
 	"finisher":[Vector4(0,0,0,0),Vector4(0.22,-0.08,-0.25,-0.02),Vector4(0.43,-0.08,0.22,-0.02),Vector4(0.67,0.04,-0.10,0.01),Vector4(0.95,0.20,-0.12,0.035),Vector4(1.14,0.10,-0.04,0.02),Vector4(1.45,0,0,0)],
 	"throw":[Vector4(0,0,0,0),Vector4(0.20,0.09,-0.23,0.02),Vector4(0.38,-0.15,0.20,-0.045),Vector4(0.80,0,0,0)],
-	"hurt":[Vector4(0,0,0,0),Vector4(0.12,0.18,-0.06,0.025),Vector4(0.55,0,0,0)]
+	"hurt":[Vector4(0,0,0,0),Vector4(0.08,0.30,-0.12,0.045),Vector4(0.22,0.20,-0.08,0.03),Vector4(0.55,0,0,0)]
 }
 static func sample(action: String, elapsed: float, gait: float, speed: float) -> Vector4:
 	if KEYS.has(action): return interpolate(KEYS[action],elapsed)

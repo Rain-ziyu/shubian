@@ -93,6 +93,9 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 		if data.pattern=="pulse": root.position.y = -0.45*(1-smoothstep(0,0.3,clock))
 	else: root.position.y = 0
 	if data.pattern=="sweep":
+		var load := smoothstep(0,float(data.windup),clock) if phase=="windup" else (1-smoothstep(0,0.08,clock) if phase=="active" else 0.0)
+		root.position.y = -float(data.size)*0.045*load
+		root.get_node("BodySurface").rotation.z = -0.08*load
 		var angles := sweep_angles(phase,clock,float(data.windup),float(data.recovery))
 		neck.rotation.x = angles.x
 		neck.rotation.y = angles.y

@@ -1,6 +1,7 @@
 extends CanvasLayer
 const InputKeys = preload("res://scripts/input_keys.gd")
-const ACTION_NAMES := {"light":"斜刺","heavy":"横扫","pull":"钩齿回拉","turn":"转身甩枪","guard":"枪尾架势","reply":"枪尾反击","flash":"闪刺","throw":"投枪","fourfold":"枪意 · 四连刺","spin":"枪意 · 旋枪","plant":"插地蓄势","wait":"插地等待","counter_window":"迎击架势","finisher":"旋枪踢击","dodge":"闪避","hurt":"受击"}
+const Feedback = preload("res://scripts/combat_feedback.gd")
+const ACTION_NAMES = Feedback.NAMES
 const PART_NAMES := {"body":"躯干","head":"头部","tail":"尾部","flank":"侧腹","spine":"背棘"}
 var surface: Control
 var status: Label
@@ -19,6 +20,9 @@ var target_hint: Label
 var notice: Label
 var throw_charge: ProgressBar
 var throw_charge_text: Label
+var action_phase: Label
+var action_progress: ProgressBar
+var action_event: Label
 func text_at(position: Vector2, size: int) -> Label:
 	var label := Label.new()
 	label.position = position
@@ -107,6 +111,26 @@ func _ready() -> void:
 	target_hint.offset_top = 145
 	target_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	target_hint.add_theme_color_override("font_color",Color("e6c57c"))
+	action_phase = text_at(Vector2.ZERO,19)
+	action_phase.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	action_phase.offset_left = -220
+	action_phase.offset_right = 220
+	action_phase.offset_top = -185
+	action_phase.offset_bottom = -150
+	action_phase.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	action_progress = bar_at(Vector2.ZERO,Vector2(300,6),1,Color("8bbbad"))
+	action_progress.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	action_progress.offset_left = -150
+	action_progress.offset_right = 150
+	action_progress.offset_top = -146
+	action_progress.offset_bottom = -140
+	action_event = text_at(Vector2.ZERO,25)
+	action_event.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	action_event.offset_left = -260
+	action_event.offset_right = 260
+	action_event.offset_top = 115
+	action_event.offset_bottom = 155
+	action_event.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 func _unhandled_key_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and InputKeys.code(event)==KEY_F1:
 		help.visible = not help.visible
@@ -130,6 +154,19 @@ static func followup(c, held: float) -> String:
 	return "Q 架势 → 左键反击 → Ctrl+左键闪刺获得枪影"
 func update_state(fighter, defeated: int) -> void:
 	var c = fighter.combat
+	var phase: Dictionary = Feedback.phase(c)
+	var showing: bool = c.health>0 and defeated<5 and c.action!="idle"
+	action_phase.visible = showing
+	action_progress.visible = showing
+	action_phase.text = str(ACTION_NAMES.get(c.action,""))+" · "+str(phase.text)
+	action_phase.add_theme_color_override("font_color",phase.color)
+	action_progress.modulate = phase.color
+	if showing:
+		action_progress.max_value = float(c.MOVES[c.action].duration)
+		action_progress.value = c.elapsed
+	action_event.text = fighter.feedback.text
+	action_event.add_theme_color_override("font_color",fighter.feedback.color)
+	action_event.visible = c.health>0 and defeated<5 and fighter.feedback.remaining>0
 	var charging: bool = fighter.heavy_held>=0 and c.health>0 and defeated<5 and not is_instance_valid(fighter.projectile)
 	throw_charge.visible = charging
 	throw_charge_text.visible = charging

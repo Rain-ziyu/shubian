@@ -109,8 +109,8 @@ static func pose_torso(rig: Dictionary, action: String, elapsed: float, gait: fl
 	var value := Motion.sample(action,elapsed,gait,speed)
 	var rotation := Vector3(value.y,value.z,-value.z*0.08)
 	var position := Vector3(value.z*0.018,1.08,value.w)
-	var weight := minf(1,delta*16) if delta>0 else 1.0
-	rig.torso.rotation = rig.torso.rotation.lerp(rotation,weight)
+	var weight := 1-exp(-delta*12) if delta>0 else 1.0
+	rig.torso.rotation = rig.torso.rotation.move_toward(rotation,delta*6.5) if delta>0 else rotation
 	rig.torso.position = rig.torso.position.lerp(position,weight)
 	for side in [-1,1]:
 		var arm: Dictionary = rig.arms[side]
@@ -124,7 +124,14 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 	if action in ["plant","wait","counter_window"]: drop = 0.18
 	if action=="dodge": drop = 0.22
 	if action=="hurt": drop = 0.16
+	if action in ["light","heavy"]:
+		var ready := 0.11 if action=="light" else 0.18
+		var release := 0.25 if action=="light" else 0.43
+		var release_from := 0.15 if action=="light" else 0.30
+		drop += 0.05*smoothstep(0,ready,elapsed)*(1-smoothstep(release_from,release,elapsed))
 	var body: Node3D = rig.root
+	var shift := Motion.sample(action,elapsed,gait,speed).w*1.6 if action in ["light","heavy","hurt"] else 0.0
+	body.position.z = lerpf(body.position.z,shift,1-exp(-delta*18)) if delta>0 else shift
 	var previous_height := body.position.y
 	body.position.y = -drop
 	var targets := {}
@@ -158,11 +165,18 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 			stance = lerpf(stance,0.08,support)
 			lift = sin(support*PI)*0.035
 		var target := Vector3(leg.hip.position.x,0.10-body.position.y+lift,stance)
+		if action in ["light","heavy"] and side==-1:
+			var step := smoothstep(0.03,0.18,elapsed)*(1-smoothstep(0.42,0.66 if action=="light" else 0.92,elapsed))
+			target.z -= step*(0.10 if action=="light" else 0.06)
+			if action=="heavy": target.x -= step*0.07
+			var swing := smoothstep(0.03,0.18,elapsed)
+			target.y += sin(swing*PI)*0.065
 		if walking:
 			var direction := Vector3(travel.x,0,travel.z).normalized()
 			if direction.length_squared()<0.001: direction = Vector3.FORWARD
 			target.x -= direction.x*stance
 			target.z = -direction.z*stance
+		target.z -= body.position.z
 		normals[side] = Vector3.UP
 		if action=="finisher" and side==1:
 			var chamber := smoothstep(0.60,0.80,elapsed)

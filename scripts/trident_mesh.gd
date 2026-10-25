@@ -47,7 +47,7 @@ static func blade(parent: Node3D, label: String, outline: PackedVector2Array, ap
 static func create(parent: Node3D, spectral: bool) -> Node3D:
 	var root := Node3D.new()
 	parent.add_child(root)
-	var metal := material(Color("68736a"),true)
+	var metal := material(Color("b9c5bb"),true)
 	var shaft := material(Color("303c36"),true)
 	var wrap := material(Color("68463c"))
 	var jade := material(Color("9bd4b8"),false,true)
