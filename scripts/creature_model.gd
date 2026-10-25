@@ -80,7 +80,7 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 		var armored := ArrayMesh.new()
 		armored.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
 		head_surface.mesh = armored
-	var facial_surface: TriangleMesh = head_surface.mesh.generate_triangle_mesh() if data.id=="thornhorn" else null
+	var facial_surface: TriangleMesh = head_surface.mesh.generate_triangle_mesh()
 	Surface.profile(neck,"Jaw",[Vector4(-0.68,0.006*head_width,0.004,-0.04),Vector4(-0.66,0.035*head_width,0.015,-0.04),Vector4(-0.58,0.13*head_width,0.035,-0.05),Vector4(-0.30,0.145*head_width,0.055,-0.045),Vector4(-0.12,0.06,0.025,0.01)],s,c.darkened(0.16))
 	var jaw := neck.get_node("Jaw") as MeshInstance3D
 	var hinge := Vector3(0,s*0.01,-s*0.12)
@@ -107,12 +107,12 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 		nostril.material_override.albedo_color = Color("142118")
 		nostril.material_override.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		var eye := V.piece(neck,Vector3(side*s*eye_x,s*0.20,-s*0.43),Vector3(s*0.028,s*0.02,s*0.045),Color("dba75d"),true)
-		if data.id=="thornhorn": eye.name = "Eye"+str(side)
-		var pupil := V.piece(neck,Vector3(side*s*(eye_x+0.011*head_width),s*0.20,-s*0.436),Vector3(s*0.006,s*0.018,s*0.012),Color("1c2721"),true)
-		if data.id=="thornhorn": pupil.name = "Pupil"+str(side)
+		eye.name = "Eye"+str(side)
+		var pupil := V.piece(neck,Vector3(side*s*(eye_x+0.013),s*0.20,-s*0.436),Vector3(s*0.006,s*0.018,s*0.012),Color("1c2721"),true)
+		pupil.name = "Pupil"+str(side)
 		var brow := Surface.profile(neck,"EyeRidge"+str(side),[Vector4(-0.51,0.001,0.001,0.225),Vector4(-0.46,0.018,0.012,0.245),Vector4(-0.41,0.028,0.014,0.255),Vector4(-0.35,0.020,0.012,0.245),Vector4(-0.30,0.001,0.001,0.22)],s,c.darkened(0.14))
 		brow.position.x = side*s*0.15*head_width
-		if data.id=="thornhorn": brow.position.x = side*s*(eye_x-0.008)
+		brow.position.x = side*s*(eye_x-0.008)
 		if data.id=="reedclaw":
 			# Seat the ridge against the orbital roof instead of floating above it.
 			brow.position.y = -s*0.025

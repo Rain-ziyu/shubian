@@ -860,22 +860,22 @@ material_override = SubResource("StandardMaterial3D_0ckfs")
 mesh = SubResource("CylinderMesh_a7uqj")
 
 [node name="Nostril-1" type="MeshInstance3D" parent="Neck" unique_id=1907156501]
-transform = Transform3D(0.1176, 0, 0, 0, 0.0252, 0, 0, 0, 0.147, -0.315, 0.4578, -2.688)
+transform = Transform3D(0.1176, 0, 0, 0, 0.0252, 0, 0, 0, 0.147, -0.32114995, 0.4578, -2.688)
 material_override = SubResource("StandardMaterial3D_omsyf")
 mesh = SubResource("SphereMesh_40vgo")
 
-[node name="@MeshInstance3D@186" type="MeshInstance3D" parent="Neck" unique_id=369386397]
-transform = Transform3D(0.1176, 0, 0, 0, 0.084, 0, 0, 0, 0.189, -0.6636, 0.84, -1.806)
+[node name="Eye-1" type="MeshInstance3D" parent="Neck" unique_id=369386397]
+transform = Transform3D(0.1176, 0, 0, 0, 0.084, 0, 0, 0, 0.189, -0.7359816, 0.84, -1.806)
 material_override = SubResource("StandardMaterial3D_71xx0")
 mesh = SubResource("SphereMesh_lmctj")
 
-[node name="@MeshInstance3D@187" type="MeshInstance3D" parent="Neck" unique_id=826927193]
-transform = Transform3D(0.0252, 0, 0, 0, 0.0756, 0, 0, 0, 0.0504, -0.7098, 0.84, -1.8312)
+[node name="Pupil-1" type="MeshInstance3D" parent="Neck" unique_id=826927193]
+transform = Transform3D(0.0252, 0, 0, 0, 0.0756, 0, 0, 0, 0.0504, -0.7905816, 0.84, -1.8312)
 material_override = SubResource("StandardMaterial3D_blut2")
 mesh = SubResource("SphereMesh_7rwx8")
 
 [node name="EyeRidge-1" type="MeshInstance3D" parent="Neck" unique_id=351711747]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.63, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.70238155, 0, 0)
 material_override = SubResource("StandardMaterial3D_8q8i6")
 mesh = SubResource("ArrayMesh_v6lag")
 
@@ -905,22 +905,22 @@ material_override = SubResource("StandardMaterial3D_lns6v")
 mesh = SubResource("CylinderMesh_d7lr2")
 
 [node name="Nostril1" type="MeshInstance3D" parent="Neck" unique_id=284331215]
-transform = Transform3D(0.1176, 0, 0, 0, 0.0252, 0, 0, 0, 0.147, 0.315, 0.4578, -2.688)
+transform = Transform3D(0.1176, 0, 0, 0, 0.0252, 0, 0, 0, 0.147, 0.32083714, 0.4578, -2.688)
 material_override = SubResource("StandardMaterial3D_4drfo")
 mesh = SubResource("SphereMesh_jxvkf")
 
-[node name="@MeshInstance3D@203" type="MeshInstance3D" parent="Neck" unique_id=668773799]
-transform = Transform3D(0.1176, 0, 0, 0, 0.084, 0, 0, 0, 0.189, 0.6636, 0.84, -1.806)
+[node name="Eye1" type="MeshInstance3D" parent="Neck" unique_id=668773799]
+transform = Transform3D(0.1176, 0, 0, 0, 0.084, 0, 0, 0, 0.189, 0.73622334, 0.84, -1.806)
 material_override = SubResource("StandardMaterial3D_0a22g")
 mesh = SubResource("SphereMesh_kvfsq")
 
-[node name="@MeshInstance3D@204" type="MeshInstance3D" parent="Neck" unique_id=388415908]
-transform = Transform3D(0.0252, 0, 0, 0, 0.0756, 0, 0, 0, 0.0504, 0.7098, 0.84, -1.8312)
+[node name="Pupil1" type="MeshInstance3D" parent="Neck" unique_id=388415908]
+transform = Transform3D(0.0252, 0, 0, 0, 0.0756, 0, 0, 0, 0.0504, 0.79082334, 0.84, -1.8312)
 material_override = SubResource("StandardMaterial3D_wwta6")
 mesh = SubResource("SphereMesh_ddpdw")
 
 [node name="EyeRidge1" type="MeshInstance3D" parent="Neck" unique_id=829202761]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.63, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7026233, 0, 0)
 material_override = SubResource("StandardMaterial3D_ogbf8")
 mesh = SubResource("ArrayMesh_03xf5")
 

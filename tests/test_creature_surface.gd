@@ -68,6 +68,19 @@ func run() -> void:
 						var contact := surface.intersect_segment(Vector3(side*float(data.size)*2,point.y,point.z),Vector3(0,point.y,point.z))
 						var clearance: float = absf(point.x)-absf(contact.get("position",Vector3.ZERO).x)
 						check(not contact.is_empty() and clearance>0.003*float(data.size) and clearance<0.02*float(data.size),"facial feature sits at visible skull surface: "+label+str(side))
+		for instance in [model,saved]:
+			var skull: MeshInstance3D = instance.get_node("Neck/HeadSurface")
+			var skull_triangles := skull.mesh.generate_triangle_mesh()
+			for side in [-1,1]:
+				var eye: MeshInstance3D = instance.get_node("Neck/Eye"+str(side))
+				var pupil: MeshInstance3D = instance.get_node("Neck/Pupil"+str(side))
+				var eye_point := eye.position
+				var seat := skull_triangles.intersect_segment(Vector3(side*float(data.size)*2,eye_point.y,eye_point.z),Vector3(0,eye_point.y,eye_point.z))
+				check(not seat.is_empty() and absf(eye_point.x)>absf(seat.get("position",Vector3.ZERO).x),"live and saved eye is not buried inside skull: "+str(data.id))
+				var eye_triangles := eye.mesh.generate_triangle_mesh()
+				var pupil_point := eye.to_local(pupil.global_position)
+				var iris_seat := eye_triangles.intersect_segment(Vector3(side*float(data.size),pupil_point.y,pupil_point.z),Vector3(0,pupil_point.y,pupil_point.z))
+				check(not iris_seat.is_empty() and absf(pupil_point.x)+float(data.size)*0.003>absf(iris_seat.get("position",Vector3.ZERO).x),"live and saved pupil protrudes beyond eye surface: "+str(data.id))
 		if data.id=="reedclaw":
 			for instance in [model,saved]:
 				var points: PackedVector3Array = instance.get_node("BodySurface").mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
