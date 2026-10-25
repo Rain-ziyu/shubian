@@ -7,6 +7,10 @@ func run() -> void:
 	world.hunter.set_physics_process(false)
 	for monster in get_nodes_in_group("monsters"): monster.set_physics_process(false)
 	world.hunter.lock_target = get_nodes_in_group("monsters")[0]
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--species="):
+			for monster in get_nodes_in_group("monsters"):
+				if monster.data.id==argument.trim_prefix("--species="): world.hunter.lock_target = monster
 	var charging := "--charge" in OS.get_cmdline_user_args()
 	if charging:
 		world.hunter.heavy_held = 0.225

@@ -40,5 +40,5 @@ func finish_contact() -> void:
 	print("MOSS_ROOT_CONTACT: ",JSON.stringify({"passed":passed,"root_hits":root_hits,"root_damage":root_damage,"health":fighter.combat.health,"scope":"normal AI and action request at controlled rear starting position; no injected damage or resources; one contact, not victory or human difficulty acceptance"}))
 	world.queue_free()
 	await process_frame
-	await RenderingServer.frame_post_draw
+	if DisplayServer.get_name()!="headless": await RenderingServer.frame_post_draw
 	quit(0 if passed else 1)

@@ -86,7 +86,7 @@ func _ready() -> void:
 	hints.offset_top = -34
 	hints.text = "WASD 移动  ·  空格闪避  ·  中键锁定 / Tab 切换  ·  F1 操作说明  ·  F5 重试"
 	help = text_at(Vector2(22,280),17)
-	help.text = "操作说明 · 不暂停战斗\n左键斜刺 / 右键短按横扫、长按松开投枪瞬移\nE 回拉 / Alt+左键转身 / Q 架势 / R 收枪\n架势内不恢复耐力，每次成功格挡消耗 15\n格挡成功 → 左键反击 → Ctrl+左键闪刺\n有枪影：Ctrl+左键四连刺 / Ctrl+右键旋枪\n拔枪后 Ctrl+空格插地，再按 Ctrl 迎击\nTab 切换目标 / Shift+Tab 反向切换\n锁定时视角跟随 / 鼠标横向拖动暂时接管\nShift 奔跑 / Esc 切换鼠标 / F1 收起说明"
+	help.text = "操作说明 · 不暂停战斗\n左键斜刺 / 右键短按横扫、长按松开投枪瞬移\nE 回拉 / Alt+左键转身 / Q 架势 / R 收枪\n架势内不恢复耐力，每次成功格挡消耗 15\n格挡成功 → 左键反击 → Ctrl+左键闪刺\n有枪影：Ctrl+左键四连刺 / Ctrl+右键旋枪\n拔枪后 Ctrl+空格插地，再按 Ctrl 迎击\nTab 切换目标 / Shift+Tab 反向切换\n锁定跟随 / 鼠标上下调整枪尖高度\nShift 奔跑 / Esc 切换鼠标 / F1 收起说明"
 	help.hide()
 	target_text = text_at(Vector2.ZERO,17)
 	target_text.anchor_left = 0.5
