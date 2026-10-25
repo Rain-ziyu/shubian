@@ -8,9 +8,10 @@ static func profile(actor: Node3D) -> PackedVector2Array:
 		var time := lerpf(0.08,0.45,float(sample)/19)
 		var angles := Model.sweep_angles("active",time,actor.data.windup,actor.data.recovery)
 		var pose := Transform3D(Basis.from_euler(Vector3(angles.x,angles.y,0)),neck.position)
-		for rings in actor.head_rings:
-			for ring in rings:
-				var center: Vector3 = pose*Vector3(ring.w,ring.y,ring.x)
+		for part in actor.head_rings.size():
+			var part_pose := Transform3D.IDENTITY if part==0 else Model.jaw_pose(actor.data,"active",time)
+			for ring in actor.head_rings[part]:
+				var center: Vector3 = pose*part_pose*Vector3(ring.w,ring.y,ring.x)
 				# Include the hunter capsule, sphere-sample padding and a conservative pose margin.
 				var radius: float = (ring.z+0.32+0.04+0.20)/cos(PI/12)
 				for i in 12:

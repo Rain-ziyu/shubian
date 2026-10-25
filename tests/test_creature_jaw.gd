@@ -1,0 +1,45 @@
+extends SceneTree
+const Model = preload("res://scripts/creature_model.gd")
+const Contact = preload("res://scripts/tail_contact.gd")
+var checks := 0
+var failures := 0
+func check(ok: bool, label: String) -> void:
+	checks += 1
+	if not ok:
+		failures += 1
+		printerr("FAIL: ",label)
+func _initialize() -> void: call_deferred("run")
+func run() -> void:
+	var stage := Node3D.new()
+	root.add_child(stage)
+	var species: Array = JSON.parse_string(FileAccess.get_file_as_string("res://resources/monsters.json")).species
+	for data in species:
+		var mesh := Model.create(stage,data)
+		var neck := mesh.get_node("Neck") as Node3D
+		var jaw := neck.get_node("Jaw") as MeshInstance3D
+		var hinge := Vector3(0,float(data.size)*0.01,-float(data.size)*0.12)
+		var tip := Vector3(0,-float(data.size)*0.04,-float(data.size)*0.66)-hinge
+		Model.animate(mesh,data,0,"idle",0,0)
+		var closed := neck.to_local(jaw.to_global(tip))
+		Model.animate(mesh,data,0,"active",0.15,0)
+		var open := neck.to_local(jaw.to_global(tip))
+		check(closed.y-open.y>float(data.size)*0.10,str(data.id)+" visibly lowers the mandible during its attack")
+		check(jaw.global_position.distance_to(neck.to_global(hinge))<0.001,"editable jaw node rotates around its fixed rear hinge")
+		check(jaw.has_node("MouthFloor"),"mouth interior stays attached to the mandible")
+		var loaded := Model.jaw_pose(data,"windup",float(data.windup))
+		check(loaded.is_equal_approx(Model.jaw_pose(data,"active",0)),"jaw joins anticipation to attack without a snap")
+		check(Model.jaw_pose(data,"active",0.65).is_equal_approx(Model.jaw_pose(data,"recover",0)),"jaw joins attack to recovery without a snap")
+		Model.animate(mesh,data,0,"recover",float(data.recovery),0)
+		check(jaw.basis.is_equal_approx(Basis.IDENTITY) and jaw.position.distance_to(hinge)<0.001,"recovery returns the mouth to its authored rest shape")
+		# A lower capsule probe distinguishes the articulated jaw from the old frame.
+		Model.animate(mesh,data,0,"active",0.15,0)
+		var rings := Contact.profile(jaw.mesh)
+		var probe := Vector3(0,-float(data.size)*0.04,-float(data.size)*0.58)-hinge
+		var point := jaw.to_global(probe)-Vector3.UP*1.65
+		check(Contact.touches(rings,jaw.global_transform,jaw.global_transform,point),"fitted contact samples follow the visible jaw transform")
+		mesh.queue_free()
+	await process_frame
+	print("CREATURE_JAW_CHECKS: ",checks," FAILURES: ",failures)
+	stage.queue_free()
+	await process_frame
+	quit(1 if failures else 0)

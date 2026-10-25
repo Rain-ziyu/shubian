@@ -8,6 +8,7 @@ func begin(actor: CharacterBody3D) -> void:
 	clock = 0
 	var mesh: Node3D = actor.mesh
 	source = {"body_y":mesh.position.y-float(mesh.get_meta("ground_offset",0.0)),"body_rotation":mesh.rotation,"neck_rotation":mesh.get_node("Neck").rotation,"tail_y":mesh.get_node("Tail").rotation.y,"feet":{}}
+	source.jaw_rotation = mesh.get_node("Neck/Jaw").rotation
 	for name in ["Hind-1","Hind1","Front-1","Front1"]:
 		var leg := mesh.get_node_or_null(name) as Node3D
 		if leg==null: continue
@@ -20,6 +21,7 @@ func begin(actor: CharacterBody3D) -> void:
 func apply(actor: CharacterBody3D, delta: float) -> void:
 	var blend := smoothstep(0,DURATION,clock)
 	var override := {"body_y":float(source.body_y)*(1-blend)-float(actor.data.size)*0.018*sin(blend*PI),"body_rotation":source.body_rotation.lerp(Vector3.ZERO,blend),"neck_rotation":source.neck_rotation.lerp(Vector3.ZERO,blend),"tail_y":float(source.tail_y)*(1-blend),"feet":source.feet,"blend":blend}
+	override.jaw_rotation = source.jaw_rotation.lerp(Vector3.ZERO,blend)
 	Model.animate(actor.mesh,actor.data,actor.gait,"stagger",clock,0,actor.foot_ground_height if actor.is_on_floor() else Callable(),actor.foot_ground_normal if actor.is_on_floor() else Callable(),actor.data.pattern=="leap",override)
 	var tail: Skeleton3D = actor.mesh.get_node("Tail/TailSkeleton")
 	for bone in tail_rotations.size():
@@ -27,4 +29,4 @@ func apply(actor: CharacterBody3D, delta: float) -> void:
 	tail.force_update_all_bone_transforms()
 	clock += delta
 static func neutral() -> Dictionary:
-	return {"body_y":0.0,"body_rotation":Vector3.ZERO,"neck_rotation":Vector3.ZERO,"tail_y":0.0}
+	return {"body_y":0.0,"body_rotation":Vector3.ZERO,"neck_rotation":Vector3.ZERO,"jaw_rotation":Vector3.ZERO,"tail_y":0.0}

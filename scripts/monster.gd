@@ -27,6 +27,7 @@ var tail_rings: Array[Vector4] = []
 var previous_tail_rings: Array[Vector4] = []
 var head_rings: Array = []
 var previous_head := Transform3D.IDENTITY
+var previous_jaw_pose := Transform3D.IDENTITY
 var previous_head_target := Vector3.ZERO
 var previous_head_epoch := -1
 var previous_tail := Transform3D.IDENTITY
@@ -75,6 +76,7 @@ func _ready() -> void:
 	for part in ["HeadSurface","Jaw"]: head_rings.append(TailContact.profile(mesh.get_node("Neck/"+part).mesh))
 	if data.pattern=="sweep": head_warning_hull = HeadWarning.profile(self)
 	previous_head = mesh.get_node("Neck").global_transform
+	previous_jaw_pose = mesh.get_node("Neck/Jaw").transform
 	previous_tail = mesh.get_node("Tail").global_transform
 	previous_tail_rings = tail_rings.duplicate()
 	impact_material = Visuals.mat(Color.WHITE,true)
@@ -363,13 +365,16 @@ func _physics_process(delta: float) -> void:
 	var head: Transform3D = mesh.get_node("Neck").global_transform
 	if data.pattern=="sweep" and phase=="active" and clock>=0.08 and clock<=0.45 and not attack_done:
 		var start: Vector3 = previous_head_target if target.motion_epoch==previous_head_epoch else target.global_position
-		for rings in head_rings:
-			var contact := TailContact.contact(rings,previous_head,head,target.global_position,start)
+		for part in head_rings.size():
+			var previous_part: Transform3D = previous_head if part==0 else previous_head*previous_jaw_pose
+			var current_part: Transform3D = head if part==0 else head*mesh.get_node("Neck/Jaw").transform
+			var contact := TailContact.contact(head_rings[part],previous_part,current_part,target.global_position,start)
 			if not contact.is_empty() and clear_line_to(contact.feet):
 				attack_done = true
 				target.take_damage(float(data.damage),global_position,true)
 				break
 	previous_head = head
+	previous_jaw_pose = mesh.get_node("Neck/Jaw").transform
 	previous_head_target = target.global_position
 	previous_head_epoch = target.motion_epoch
 

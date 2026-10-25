@@ -6,6 +6,19 @@ const TailSkin = preload("res://scripts/creature_tail_skin.gd")
 const LegSkin = preload("res://scripts/creature_leg_skin.gd")
 const GAIT_PER_METER := 4.2
 
+static func jaw_pose(data: Dictionary, phase: String, clock: float) -> Transform3D:
+	var ready: float = {"sweep":0.16,"charge":0.08,"leap":0.10,"mist":0.30,"pulse":0.04}[data.pattern]
+	var wide: float = {"sweep":0.26,"charge":0.20,"leap":0.30,"mist":0.36,"pulse":0.24}[data.pattern]
+	var opening := 0.0
+	if phase=="windup": opening = ready*smoothstep(0,float(data.windup),clock)
+	elif phase=="active":
+		opening = lerpf(ready,wide,smoothstep(0,0.12,clock))
+		if data.pattern!="mist": opening *= 1-smoothstep(0.35,0.65,clock)
+	elif phase=="recover" and data.pattern=="mist": opening = wide*(1-smoothstep(0,0.45,clock))
+	var hinge := Vector3(0,float(data.size)*0.01,-float(data.size)*0.12)
+	var rotation := Basis(Vector3.RIGHT,-opening)
+	return Transform3D(rotation,hinge)
+
 static func sweep_angles(phase: String, clock: float, windup: float, recovery: float) -> Vector2:
 	if phase=="windup": return Vector2(-0.20*clampf(clock/windup,0,1),-0.65*smoothstep(0,windup,clock))
 	if phase=="active": return Vector2(-0.20*(1-smoothstep(0,0.30,clock)),lerpf(-0.65,0.85,smoothstep(0,0.40,clock)))
@@ -24,15 +37,32 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 	elif data.id=="mistfrill": body.scale = Vector3(0.85,0.90,1)
 	var neck := V.pivot(root,"Neck",Vector3(0,y,-s*0.40))
 	var head_width := 0.78 if data.id in ["reedclaw","mistfrill"] else 1.0
-	Surface.profile(neck,"HeadSurface",[Vector4(-0.69,0.035*head_width,0.02,0.06),Vector4(-0.61,0.14*head_width,0.065,0.085),Vector4(-0.42,0.19*head_width,0.14,0.14),Vector4(-0.28,0.16*head_width,0.145,0.12),Vector4(-0.09,0.135,0.17,0.08),Vector4(0.12,0.10,0.15,0)],s,c.lightened(0.03))
-	Surface.profile(neck,"Jaw",[Vector4(-0.66,0.035*head_width,0.015,-0.04),Vector4(-0.58,0.13*head_width,0.035,-0.05),Vector4(-0.30,0.145*head_width,0.055,-0.045),Vector4(-0.12,0.06,0.025,0.01)],s,c.darkened(0.16))
+	Surface.profile(neck,"HeadSurface",[Vector4(-0.715,0.012*head_width,0.008,0.06),Vector4(-0.707,0.025*head_width,0.016,0.06),Vector4(-0.69,0.035*head_width,0.02,0.06),Vector4(-0.61,0.14*head_width,0.065,0.085),Vector4(-0.42,0.19*head_width,0.14,0.14),Vector4(-0.28,0.16*head_width,0.145,0.12),Vector4(-0.09,0.135,0.17,0.08),Vector4(0.12,0.10,0.15,0)],s,c.lightened(0.03))
+	Surface.profile(neck,"Jaw",[Vector4(-0.68,0.006*head_width,0.004,-0.04),Vector4(-0.66,0.035*head_width,0.015,-0.04),Vector4(-0.58,0.13*head_width,0.035,-0.05),Vector4(-0.30,0.145*head_width,0.055,-0.045),Vector4(-0.12,0.06,0.025,0.01)],s,c.darkened(0.16))
+	var jaw := neck.get_node("Jaw") as MeshInstance3D
+	var hinge := Vector3(0,s*0.01,-s*0.12)
+	var jaw_arrays: Array = jaw.mesh.surface_get_arrays(0)
+	var jaw_vertices: PackedVector3Array = jaw_arrays[Mesh.ARRAY_VERTEX]
+	for vertex in jaw_vertices.size(): jaw_vertices[vertex] -= hinge
+	jaw_arrays[Mesh.ARRAY_VERTEX] = jaw_vertices
+	var jaw_mesh := ArrayMesh.new()
+	jaw_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,jaw_arrays)
+	jaw.mesh = jaw_mesh
+	jaw.transform = jaw_pose(data,"idle",0)
+	var mouth_floor := Surface.profile(jaw,"MouthFloor",[Vector4(-0.60,0.075*head_width,0.004,-0.018),Vector4(-0.40,0.12*head_width,0.004,0.012),Vector4(-0.20,0.10*head_width,0.004,0.015),Vector4(-0.12,0.04,0.004,0.012)],s,Color("26352e"))
+	mouth_floor.position = -hinge
 	for side in [-1,1]:
+		var nostril := V.piece(neck,Vector3(side*s*0.075*head_width,s*0.109,-s*0.64),Vector3(s*0.028,s*0.006,s*0.035),Color("26372b"),true)
+		nostril.name = "Nostril"+str(side)
+		nostril.material_override.albedo_color = Color("142118")
+		nostril.material_override.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		V.piece(neck,Vector3(side*s*0.158*head_width,s*0.20,-s*0.43),Vector3(s*0.028,s*0.02,s*0.045),Color("dba75d"),true)
 		V.piece(neck,Vector3(side*s*0.169*head_width,s*0.20,-s*0.436),Vector3(s*0.006,s*0.018,s*0.012),Color("1c2721"),true)
-		var brow := Surface.profile(neck,"EyeRidge"+str(side),[Vector4(-0.51,0.01,0.012,0.235),Vector4(-0.43,0.028,0.025,0.24),Vector4(-0.30,0.015,0.025,0.24)],s,c.darkened(0.14))
+		var brow := Surface.profile(neck,"EyeRidge"+str(side),[Vector4(-0.51,0.001,0.001,0.225),Vector4(-0.46,0.018,0.012,0.245),Vector4(-0.41,0.028,0.014,0.255),Vector4(-0.35,0.020,0.012,0.245),Vector4(-0.30,0.001,0.001,0.22)],s,c.darkened(0.14))
 		brow.position.x = side*s*0.15*head_width
 		for tooth in 5:
 			H.tapered(neck,Vector3(side*s*0.10*head_width,-s*0.005,s*(-0.56+tooth*0.045)),s*0.014,s*0.001,s*0.06,Color("c6c5aa"))
+			H.tapered(jaw,Vector3(side*s*0.095*head_width,-s*0.015,s*(-0.5375+tooth*0.045))-hinge,s*0.001,s*0.010,s*0.035,Color("b6b79d"))
 		for front in ([false,true] if quad else [false]):
 			var leg := V.pivot(root,("Front" if front else "Hind")+str(side),Vector3(side*s*0.29,y*0.9,-s*0.31 if front else s*0.28))
 			var bottom := -y*0.9/s+0.075
@@ -81,6 +111,7 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 	tail.rotation.y = sin(tail_gait*0.5)*0.12
 	TailSkin.animate(tail,tail_gait,phase,clock)
 	var neck := root.get_node("Neck") as Node3D
+	neck.get_node("Jaw").transform = jaw_pose(data,phase,clock)
 	charge_visuals(root,data,phase,clock)
 	neck.rotation.x = 0
 	neck.rotation.y = 0
@@ -134,6 +165,7 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 		root.position.y = float(pose_override.get("body_y",root.position.y))
 		root.rotation = pose_override.get("body_rotation",root.rotation)
 		neck.rotation = pose_override.get("neck_rotation",neck.rotation)
+		neck.get_node("Jaw").rotation = pose_override.get("jaw_rotation",neck.get_node("Jaw").rotation)
 		tail.rotation.y = float(pose_override.get("tail_y",tail.rotation.y))
 	# Bend knees when the torso lowers; solve the planted foot back to actor ground.
 	if phase=="idle": root.position.y -= float(data.size)*0.045*minf(speed/2,1)

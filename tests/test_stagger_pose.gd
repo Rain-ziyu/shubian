@@ -41,6 +41,7 @@ func run() -> void:
 		m.mesh.get_node("Tail").rotation.y = -0.6
 		var body: Transform3D = m.mesh.transform
 		var neck: Transform3D = m.mesh.get_node("Neck").transform
+		var jaw: Transform3D = m.mesh.get_node("Neck/Jaw").transform
 		var foot := ankle(m,"Hind1")
 		var tail: Skeleton3D = m.mesh.get_node("Tail/TailSkeleton")
 		var tail_before := tail.get_bone_pose_rotation(3)
@@ -48,6 +49,7 @@ func run() -> void:
 		var health: float = m.health
 		m._physics_process(1.0/60)
 		check(m.mesh.transform.is_equal_approx(body) and m.mesh.get_node("Neck").transform.is_equal_approx(neck),"stagger begins from captured body and neck: "+str(m.data.id))
+		check(m.mesh.get_node("Neck/Jaw").transform.is_equal_approx(jaw),"interruption starts from the actual loaded jaw pose")
 		check(ankle(m,"Hind1").distance_to(foot)<0.003,"stagger entry preserves actual ankle position")
 		check(absf(tail.get_bone_pose_rotation(3).dot(tail_before))>0.99999,"stagger entry preserves deformed tail bone")
 		check(not m.rear_attack and not m.rear_tell.visible and m.rear_cooldown>0,"interruption cancels pending tail attack but preserves cooldown")
@@ -61,6 +63,7 @@ func run() -> void:
 		check(absf(bones.get_bone_global_pose(0).origin.distance_to(bones.get_bone_global_pose(1).origin)-bones.get_bone_rest(1).origin.length())<0.001,"stagger preserves leg segment length")
 		for frame in 18: m._physics_process(1.0/60)
 		check(m.stagger==0 and m.phase=="recover" and m.mesh.get_node("Neck").rotation.length()<0.001,"recovery does not restart abandoned attack follow-through")
+		check(m.mesh.get_node("Neck/Jaw").rotation.length()<0.001,"stagger closes the jaw smoothly and recovery does not restart the cancelled mouth action")
 		check(m.health==health and p.combat.health==240,"pose blend injects no damage or health change")
 		m.global_position = Vector3(80+monsters.find(m)*12,0,80)
 		await physics_frame

@@ -37,9 +37,10 @@ func run() -> void:
 	for sample in 81:
 		var time := lerpf(0.08,0.45,float(sample)/80)
 		m.CreatureModel.animate(m.mesh,m.data,0,"active",time,0)
-		for rings in m.head_rings:
-			for ring in rings:
-				var center: Vector3 = m.to_local(m.mesh.get_node("Neck").to_global(Vector3(ring.w,ring.y,ring.x)))
+		for part in m.head_rings.size():
+			var surface: Node3D = m.mesh.get_node("Neck/"+("HeadSurface" if part==0 else "Jaw"))
+			for ring in m.head_rings[part]:
+				var center: Vector3 = m.to_local(surface.to_global(Vector3(ring.w,ring.y,ring.x)))
 				for edge in 12:
 					var angle := TAU*edge/12
 					var point: Vector2 = Vector2(center.x,center.z)+Vector2(cos(angle),sin(angle))*(ring.z+0.36)
