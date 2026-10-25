@@ -42,9 +42,11 @@ func run() -> void:
 			var leg: Dictionary = p.rig.legs[side]
 			var expected: Vector3 = p.rig.pelvis.transform*Vector3(side*0.14,0,0)
 			check(leg.hip.position.distance_to(expected)<0.001,"hip socket follows actual rotating pelvis")
-			var sole: Vector3 = p.to_local(leg.ankle.to_global(Vector3(0,-0.1,0)))
+			# Heavy now pivots its heel around the physical forefoot, so an
+			# ankle-space point is no longer the invariant support location.
+			var sole: Vector3 = p.to_local(leg.boot.to_global(Vector3(0,-0.5,-0.3)))
 			var width_ok := absf(sole.x-(-0.26 if side==-1 else 0.24))<0.002
-			check(absf(sole.y)<0.002 and width_ok,"sole preserves ground and authored support width while pelvis turns")
+			check(absf(sole.y)<0.002 and width_ok,"forefoot preserves ground and authored support width while pelvis turns")
 		var belt: Node3D = p.rig.pelvis.get_node("Belt")
 		check(belt.global_basis.is_equal_approx(p.rig.pelvis.global_basis),"belt follows hip rotation")
 	p.combat.elapsed = 0.30
@@ -65,16 +67,19 @@ func run() -> void:
 		p.animate(0,0)
 		var airborne := 0
 		for side in [-1,1]:
-			var sole: Vector3 = p.to_local(p.rig.legs[side].ankle.to_global(Vector3(0,-0.1,0)))
+			var boot: MeshInstance3D = p.rig.legs[side].boot
+			var sole: Vector3 = p.to_local(boot.to_global(Vector3(0,-0.5,-0.3)))
 			if sole.y>0.002: airborne += 1
 			no_penetration = no_penetration and sole.y>= -0.002
+			for vertex: Vector3 in boot.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+				if is_equal_approx(vertex.y,-0.5): no_penetration = no_penetration and p.to_local(boot.to_global(vertex)).y>= -0.002
 			if p.combat.elapsed>=0.20 and p.combat.elapsed<=0.69:
 				if planted.has(side): no_sliding = no_sliding and sole.distance_to(planted[side])<0.002
 				else: planted[side] = sole
 		support_preserved = support_preserved and airborne<2
 	check(support_preserved,"heavy opening and closing steps retain at least one grounded support foot")
 	check(no_penetration,"heavy stepping soles do not pass below flat ground")
-	check(no_sliding,"both soles stay planted through the loaded sweep and follow-through")
+	check(no_sliding,"both forefeet stay planted while heels pivot through the loaded sweep and follow-through")
 	p.combat.elapsed = 0.92
 	p.animate(0,0)
 	check(p.rig.pelvis.rotation.length()<0.001,"heavy recovery returns pelvis to neutral")
