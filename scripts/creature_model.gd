@@ -352,6 +352,8 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 		elif phase=="recover": neck.rotation.x = -0.20*(1-smoothstep(0,0.45,clock))
 	elif data.pattern=="pulse" and phase=="active":
 		neck.rotation.x = -0.20*(1-smoothstep(0,0.30,clock))
+	# Include the walking load in the authored target before blending support.
+	if phase=="idle": root.position.y -= float(data.size)*0.045*minf(speed/2,1)
 	if not pose_override.is_empty():
 		root.position.y = float(pose_override.get("body_y",root.position.y))
 		if pose_override.has("body_y_from"):
@@ -387,7 +389,6 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 			if not plate.transform.is_equal_approx(attached): plate.transform = attached
 	# Bend knees when the torso lowers; solve the planted foot back to actor ground.
 	var stride_weight := float(pose_override.get("stride_weight",1.0)) if phase=="idle" else 1.0
-	if phase=="idle": root.position.y -= float(data.size)*0.045*minf(speed/2,1)*stride_weight
 	var limb_speed := speed
 	if data.pattern in ["charge","leap"] and phase=="active":
 		limb_speed *= smoothstep(0,0.12,clock)*(1-smoothstep(0.53,0.65,clock))
@@ -440,7 +441,13 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 						foot_basis = Basis(Quaternion(Vector3.UP,normal))
 						target += sole_offset-foot_basis*sole_offset
 					if planting and not leg.has_meta("plant_world"):
-						leg.set_meta("plant_world",leg.to_global(target+foot_basis*sole_offset))
+						var anchor := leg.to_global(target+foot_basis*sole_offset)
+						var captured: Dictionary = pose_override.get("feet",{})
+						if pose_override.get("feet_world",false) and captured.has(str(leg.name)):
+							var saved: Dictionary = captured[str(leg.name)]
+							anchor = saved.point+saved.basis*sole_offset
+							anchor.y = root.get_parent().global_position.y+ground.call(anchor)
+						leg.set_meta("plant_world",anchor)
 						leg.set_meta("plant_forward",leg.global_basis.z.normalized())
 				targets.append({"leg":leg,"target":target,"foot_basis":foot_basis})
 	root.position.y += lowest
@@ -454,9 +461,10 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 			var saved: Dictionary = feet[str(entry.leg.name)]
 			var blend: float = pose_override.get("blend",1.0)
 			var actor: Node3D = root.get_parent()
-			var from: Vector3 = entry.leg.to_local(actor.to_global(saved.point))
+			var world_feet: bool = pose_override.get("feet_world",false)
+			var from: Vector3 = entry.leg.to_local(saved.point if world_feet else actor.to_global(saved.point))
 			target = from.lerp(target,blend)
-			var from_basis: Basis = entry.leg.global_basis.inverse()*actor.global_basis*saved.basis
+			var from_basis: Basis = entry.leg.global_basis.inverse()*(saved.basis if world_feet else actor.global_basis*saved.basis)
 			foot_basis = Basis(from_basis.get_rotation_quaternion().slerp(foot_basis.get_rotation_quaternion(),blend))
 			if ground.is_valid():
 				var sole_offset := Vector3(0,-float(data.size)*0.05,-float(data.size)*0.10)

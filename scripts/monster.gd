@@ -7,7 +7,8 @@ const Parts = preload("res://scripts/monster_parts.gd")
 const StaggerPose = preload("res://scripts/creature_stagger_pose.gd")
 const ApproachPose = preload("res://scripts/creature_approach_pose.gd")
 var approach_pose := {}
-var stride_age := 0.0
+var locomotion_pose := {}
+var locomotion_age := 0.0
 var was_walking := false
 const Defeat = preload("res://scripts/creature_defeat.gd")
 var defeat = Defeat.new()
@@ -405,10 +406,16 @@ func advance_physics(delta: float) -> void:
 	if phase!="recover": stagger_recovery = false
 	var preparation: Dictionary = StaggerPose.neutral() if stagger_recovery else {}
 	var walking: bool = phase=="idle" and Vector2(velocity.x,velocity.z).length()>0.1
-	if walking:
-		stride_age = stride_age+delta if was_walking else 0.0
-		preparation["stride_weight"] = smoothstep(0,ApproachPose.DURATION,stride_age)
-	else: stride_age = 0.0
+	if phase=="idle":
+		if walking!=was_walking:
+			locomotion_pose = ApproachPose.capture(self,true)
+			locomotion_age = 0.0
+		if not locomotion_pose.is_empty():
+			preparation.merge(ApproachPose.sample(locomotion_pose,locomotion_age))
+			if walking: preparation["stride_weight"] = smoothstep(0,ApproachPose.DURATION,locomotion_age)
+			locomotion_age += delta
+			if locomotion_age>=ApproachPose.DURATION: locomotion_pose = {}
+	else: locomotion_pose = {}
 	was_walking = walking
 	if phase=="windup": preparation.merge(ApproachPose.sample(approach_pose,clock))
 	CreatureModel.animate(mesh,data,gait,phase,clock,Vector2(velocity.x,velocity.z).length(),foot_ground_height if grounded_pose else Callable(),foot_ground_normal if grounded_pose else Callable(),data.pattern=="leap",preparation)
