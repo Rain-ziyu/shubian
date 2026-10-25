@@ -31,18 +31,21 @@ func run() -> void:
 	p.combat.elapsed = 0.18
 	p.animate(0,0)
 	var braced: Transform3D = p.rig.weapon.transform
+	var braced_body: Transform3D = p.rig.root.transform
+	var braced_chest: Transform3D = p.rig.torso.transform
 	var braced_foot: Vector3 = p.rig.legs[-1].ankle.global_position
 	check(p.rig.weapon.get_node("ButtContact").global_position.z<p.rig.weapon.get_node("TipContact").global_position.z,"guard carries the head behind and presents the butt forward")
 	p.combat.set_action("reply")
 	p.animate(0,0)
 	check(p.rig.weapon.transform.is_equal_approx(braced) and p.rig.legs[-1].ankle.global_position.distance_to(braced_foot)<0.002,"reply joins the braced weapon and support stance")
+	check(p.rig.root.transform.is_equal_approx(braced_body) and p.rig.torso.transform.is_equal_approx(braced_chest),"reply starts from the actual braced body and chest without a pose jump")
 	p.combat.elapsed = 0.12
 	p.animate(0,0)
 	var loaded_root: float = p.rig.root.position.z
 	var loaded_butt: Vector3 = p.rig.weapon.get_node("ButtContact").global_position
 	p.combat.elapsed = 0.26
 	p.animate(0,0)
-	check(loaded_root-p.rig.root.position.z>0.09,"reply transfers whole-body weight from load to extension")
+	check(loaded_root-p.rig.root.position.z>0.18,"reply transfers whole-body weight from load to extension")
 	check(loaded_butt.z-p.rig.weapon.get_node("ButtContact").global_position.z>0.29,"reply sends actual butt contact forward with the body")
 	check(absf(p.rig.legs[1].ankle.global_position.y-p.global_position.y-0.1)<0.002,"rear support foot stays grounded during reply")
 	p.combat.set_action("heavy")

@@ -194,7 +194,7 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 		# The sweep loads into the rear support leg before transferring forward.
 		drop += (0.10 if action=="heavy" else 0.05)*smoothstep(0,ready,elapsed)*(1-smoothstep(release_from,release,elapsed))
 	var body: Node3D = rig.root
-	var shift := Motion.sample(action,elapsed,gait,speed).w*1.6 if action in ["light","heavy","hurt","reply","finisher","throw"] else 0.0
+	var shift := Motion.sample(action,elapsed,gait,speed).w*1.6 if action in ["light","heavy","hurt","guard","reply","finisher","throw"] else 0.0
 	body.position.z = lerpf(body.position.z,shift,1-exp(-delta*18)) if delta>0 else shift
 	var previous_height := body.position.y
 	body.position.y = -drop
