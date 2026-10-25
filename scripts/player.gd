@@ -326,6 +326,10 @@ func animate(delta: float, speed: float) -> void:
 	for side in [-1,1]:
 		rig.joints["arm"+str(side)].rotation.x = -0.85 if combat.drawn else -sin(walk_clock)*side*minf(speed*0.08,0.3)
 	var leg_travel: Vector3 = rig.root.global_basis.inverse()*locomotion_motion
+	if combat.action=="dodge":
+		var dash := Vector3(velocity.x,0,velocity.z)
+		if dash.is_zero_approx(): dash = combat_forward()
+		leg_travel = rig.root.global_basis.inverse()*dash.normalized()
 	HunterModel.pose_legs(rig,combat.action,combat.elapsed,combat.drawn,walk_clock,speed,delta,foot_ground_height if is_on_floor() else Callable(),foot_ground_normal if is_on_floor() else Callable(),leg_travel)
 	var w: Node3D = rig.weapon
 	w.visible = not is_instance_valid(projectile)
@@ -417,7 +421,7 @@ func animate(delta: float, speed: float) -> void:
 		ghosts[i].visible = combat.health>0 and i<combat.shadow_lifetimes.size()
 		if ghosts[i].visible:
 			ghosts[i].get_meta("spectral_material").set_shader_parameter("life_fade",0.2+0.8*smoothstep(0,6,combat.shadow_lifetimes[i]))
-	HunterModel.pose_torso(rig,combat.action,combat.elapsed,walk_clock,speed,delta)
+	HunterModel.pose_torso(rig,combat.action,combat.elapsed,walk_clock,speed,delta,leg_travel)
 	var release := smoothstep(0.28,0.38,combat.elapsed) if combat.action=="throw" else 0.0
 	if is_instance_valid(projectile): release = 1.0
 	var arm_release := smoothstep(0.38,0.60,combat.elapsed) if combat.action=="throw" else (1.0 if is_instance_valid(projectile) else 0.0)

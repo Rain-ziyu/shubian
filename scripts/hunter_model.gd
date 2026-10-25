@@ -117,10 +117,17 @@ static func pose_arms(rig: Dictionary, armed: bool, gait: float, grip_weight := 
 		arm.elbow.position = elbow
 	Skinning.update(rig)
 
-static func pose_torso(rig: Dictionary, action: String, elapsed: float, gait: float, speed: float, delta: float) -> void:
+static func pose_torso(rig: Dictionary, action: String, elapsed: float, gait: float, speed: float, delta: float, travel := Vector3.FORWARD) -> void:
 	var value := Motion.sample(action,elapsed,gait,speed)
 	var rotation := Vector3(value.y,value.z,-value.z*0.08)
 	var position := Vector3(value.z*0.018,1.08,value.w)
+	if action=="dodge":
+		var direction := Vector3(travel.x,0,travel.z).normalized()
+		if direction.is_zero_approx(): direction = Vector3.FORWARD
+		var weight := sin(clampf(elapsed/0.55,0,1)*PI)
+		rotation = Vector3(direction.z*0.23*weight,0,-direction.x*0.23*weight)
+		position += direction*0.03*weight
+		position.z -= value.w
 	var weight := 1-exp(-delta*12) if delta>0 else 1.0
 	rig.torso.rotation = rig.torso.rotation.move_toward(rotation,delta*6.5) if delta>0 else rotation
 	rig.torso.position = rig.torso.position.lerp(position,weight)
@@ -135,7 +142,12 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 	if action=="guard": drop += 0.04*smoothstep(0,0.18,elapsed)
 	if action=="reply": drop = 0.13+0.035*smoothstep(0,0.12,elapsed)*(1-smoothstep(0.12,0.26,elapsed))
 	if action in ["plant","wait","counter_window"]: drop = 0.18
-	if action=="dodge": drop = 0.22
+	if action=="dodge":
+		var load := smoothstep(0,0.06,elapsed)
+		var flight := smoothstep(0.06,0.14,elapsed)*(1-smoothstep(0.30,0.42,elapsed))
+		var landing := smoothstep(0.30,0.40,elapsed)*(1-smoothstep(0.40,0.55,elapsed))
+		drop = lerpf(drop,0.10,load*(1-smoothstep(0.42,0.55,elapsed)))+0.12*load*(1-smoothstep(0.06,0.14,elapsed))-0.05*flight+0.09*landing
+	if action=="flash": drop += 0.06*smoothstep(0,0.08,elapsed)*(1-smoothstep(0.08,0.23,elapsed))
 	if action=="hurt": drop = 0.16
 	if action=="spin": drop += 0.05*sin(Motion.turn_progress(action,elapsed)*PI)
 	if action in ["light","heavy"]:
@@ -159,7 +171,7 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 		if action=="guard": stance *= lerpf(1.0,1.4,smoothstep(0,0.18,elapsed))
 		if action=="reply": stance *= 1.4
 		var lift := 0.0
-		if speed>0.1 and action!="dodge":
+		if speed>0.1 and action not in ["dodge","flash"]:
 			stance = sin(gait)*side*minf(0.28,speed*0.055)
 			lift = maxf(0,cos(gait)*side)*minf(0.14,speed*0.025)
 		if walking:
@@ -180,6 +192,21 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 			stance = lerpf(stance,0.08,support)
 			lift = sin(support*PI)*0.035
 		var target := Vector3(leg.hip.position.x,0.10-body.position.y+lift,stance)
+		if action in ["dodge","flash"]:
+			var direction := Vector3(travel.x,0,travel.z).normalized() if action=="dodge" else Vector3.FORWARD
+			if direction.is_zero_approx(): direction = Vector3.FORWARD
+			var lead := (-1 if direction.x<0 else 1) if absf(direction.x)>absf(direction.z)*0.5 else (-1 if direction.z<=0 else 1)
+			var reach := 0.0
+			if action=="dodge":
+				var step := smoothstep(0.03,0.18,elapsed)*(1-smoothstep(0.38,0.55,elapsed))
+				reach = lerpf(-0.10,0.16,smoothstep(0.08,0.33,elapsed))*step if side==lead else -0.20*step*(1-smoothstep(0.18,0.43,elapsed))
+				lift = sin(smoothstep(0.04 if side==lead else 0.10,0.34 if side==lead else 0.44,elapsed)*PI)*(0.16 if side==lead else 0.12)
+			else:
+				var drive := smoothstep(0.08,0.23,elapsed)*(1-smoothstep(0.30,0.58,elapsed))
+				reach = (0.18 if side==lead else -0.12)*drive
+				lift = sin(smoothstep(0.02,0.23,elapsed)*PI)*0.10 if side==lead else 0.0
+			target += direction*reach
+			target.y += lift
 		if action=="reply" and side==-1:
 			var step := smoothstep(0.02,0.16,elapsed)*(1-smoothstep(0.42,0.67,elapsed))
 			target.z -= step*0.06

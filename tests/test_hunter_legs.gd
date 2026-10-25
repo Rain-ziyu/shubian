@@ -14,8 +14,12 @@ func run() -> void:
 	await physics_frame
 	var p = world.hunter
 	p.set_physics_process(false)
+	p.set_process_unhandled_input(false)
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	p.yaw = 0
+	p.rig.root.rotation = Vector3.ZERO
 	for m in get_nodes_in_group("monsters"): m.set_physics_process(false)
-	for action in ["idle","guard","plant","dodge","heavy"]:
+	for action in ["idle","guard","plant","heavy"]:
 		p.combat.set_action(action)
 		p.combat.drawn = true
 		p.combat.elapsed = 0.2
@@ -26,6 +30,35 @@ func run() -> void:
 			check(absf(sole.y)<0.002,"stationary sole stays on ground: "+action)
 			check(leg.knee.rotation.x< -0.1,"stance bends knee: "+action)
 			check(absf(leg.hip.global_position.distance_to(leg.knee.global_position)-0.43)<0.001 and absf(leg.knee.global_position.distance_to(leg.ankle.global_position)-0.36)<0.001,"limbs keep length: "+action)
+	for action in ["dodge","flash"]:
+		for armed in [false,true]:
+			if action=="flash" and not armed: continue
+			for direction_index in (8 if action=="dodge" else 1):
+				var direction := Vector3.FORWARD.rotated(Vector3.UP,float(direction_index)*TAU/8)
+				var clear := true
+				var knees_bend := false
+				var both_clear := false
+				var duration := 0.55 if action=="dodge" else 0.58
+				for frame in 61:
+					var time := duration*frame/60
+					p.HunterModel.pose_legs(p.rig,action,time,armed,2.0,4.5,0,Callable(),Callable(),direction)
+					var air := 0
+					for side in [-1,1]:
+						var leg: Dictionary = p.rig.legs[side]
+						var sole: Vector3 = p.rig.root.to_local(leg.ankle.to_global(Vector3(0,-0.1,0)))+p.rig.root.position
+						clear = clear and sole.y>= -0.002
+						if frame==60: clear = clear and absf(sole.y)<0.002
+						if sole.y>0.02: air += 1
+						knees_bend = knees_bend or leg.knee.rotation.x< -0.8
+					both_clear = both_clear or air==2
+				check(clear,"evasion feet clear ground and recover: "+action+str(direction_index)+str(armed))
+				check(knees_bend,"evasion has a crouched push-off: "+action)
+				if action=="dodge": check(both_clear,"dodge tucks both feet during the hop")
+				if action=="dodge":
+					p.HunterModel.pose_torso(p.rig,action,0.2,0,0,0,direction)
+					var lean: Vector3 = p.rig.torso.basis*Vector3.UP
+					lean.y = 0
+					check(lean.normalized().dot(direction)>0.99,"torso leans into actual evasion direction")
 	for phase in [0.0,PI/2,PI,PI*1.5]:
 		p.combat.set_action("idle")
 		p.walk_clock = phase
