@@ -232,3 +232,10 @@ Shubian-plant-body-drive.mp4 是 4.10 秒固定帧率冻结 AI 动作研究，�
 - Mark neutral interrupted recovery as a cancelled attack and skip only its forelimb landing-reach pose. Normal completed leaps retain the authored landing brace. AI recovery duration, exposed weakness, damage and resource rules are unchanged.
 - Native focused suite passed 469 checks: ground 225, launch 50, lunge pose 46, lunge surface 5, physical leap 23, stagger 120 (regressions-20261025-182721-f9857e). Normal leap checks explicitly retain low support stance and forward limbs during ordinary recovery.
 - Normal-AI state-aware input replay passed: reply/flash each three contacts, fourfold four, spin two, finisher two, HP 240, 14.97s; actual shadow resource/confirmed feedback checks passed. This is not human handfeel, difficulty, or final art acceptance.
+
+### Combined five-species real-time verification (2026-10-26, dd8d081)
+- Ran the complete native expedition after the face, recoil and interrupted-tail/forelimb fixes. Source dd8d08164f0a3ef8ade49fdff836f72d9720764f, tracked worktree clean; report forest-realtime-20261026-022920-278da3/summary.json.
+- Five active AI, normal spawn, continuous resources, real-time 1280x720 uncapped OpenGL Compatibility on RTX 4060 Laptop / driver 610.88. Victory in 300.63s, HP185, no runtime errors. Defeat times: mossback 50.38s, thornhorn 128.10s, mistfrill 143.52s, stormcrest 175.78s, reedclaw 300.63s.
+- After first two seconds: 56,829 rendered frames, P99 11.069ms, maximum 20.071ms, zero frames over 33.33ms. All 57,364 frames: maximum 47.239ms, one frame over 33.33ms during startup. This does not establish cold-cache or other-hardware performance.
+- Actual contacts by species: mossback40, thornhorn27, mistfrill22, stormcrest36, reedclaw23. Recorded weak contacts: thornhorn5, mistfrill3, stormcrest6; no weak contact for mossback/reedclaw in this controller run. Their weakness accessibility/readability remains an explicit acceptance gap, rather than being inferred from victory.
+- State-aware tactical controller is privileged and does not prove human difficulty, natural animation or final art acceptance. Full objective remains incomplete.
