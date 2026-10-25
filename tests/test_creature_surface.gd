@@ -29,6 +29,15 @@ func run() -> void:
 		if is_equal_approx(vertex.z,-0.5) and vertex.x>0.3: curved_section = true
 	check(bounded,"curved surface preserves authored maximum body volume")
 	check(curved_section,"actual body mesh rounds longitudinal silhouette between authored sections")
+	for label in ["HeadSurface","Jaw","EyeRidge1"]:
+		var rounded := Surface.profile(holder,label,[Vector4(-1,0.1,0.2,0),Vector4(0,0.5,0.6,0.1),Vector4(1,0.2,0.3,0)],1,Color.WHITE)
+		var points: PackedVector3Array = rounded.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+		var rounded_section := false
+		var within_envelope := true
+		for point in points:
+			within_envelope = within_envelope and absf(point.x)<=0.5001 and point.y<=0.7001 and point.y>= -0.5001
+			if is_equal_approx(point.z,-0.5) and point.x>0.3: rounded_section = true
+		check(rounded_section and within_envelope,"rounded head sections preserve authored envelope: "+label)
 	var database: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://resources/monsters.json"))
 	for data in database.species:
 		var model := Model.create(holder,data)

@@ -49,7 +49,7 @@ static func profile_point(ring: Vector4, angle: float) -> Vector3:
 static func cape_drape(point: Vector3) -> Vector3:
 	# Cloth falls farther behind the shoulders. The collar stays fixed and
 	# both halves keep their central equipment slit; hem uses the same shape.
-	var weight := 1-smoothstep(1.33,1.49,point.y)
+	var weight := 1-smoothstep(1.20,1.49,point.y)
 	var angle := atan2(point.x,point.z-0.018)
 	var fold := sin(angle*6)*0.012*weight
 	point += Vector3(sin(angle)*fold,-0.055*maxf(0,cos(angle))*weight,cos(angle)*fold)
@@ -146,12 +146,13 @@ static func create(root: Node3D) -> Dictionary:
 		var begin := 0.22 if side==1 else -PI+0.22
 		var finish := PI-0.22 if side==1 else -0.22
 		var cape := loft(root,"RainCape"+str(side),[
-			Vector4(1.33,0.30,0.18,0.018),Vector4(1.39,0.285,0.165,0.012),
+			Vector4(1.20,0.355,0.215,0.018),Vector4(1.27,0.34,0.205,0.018),
+			Vector4(1.34,0.31,0.185,0.018),Vector4(1.39,0.285,0.165,0.012),
 			Vector4(1.44,0.245,0.147,0.008),Vector4(1.49,0.10,0.08,0)
 		],green,begin,finish,24,false)
 		cape.material_override.cull_mode = BaseMaterial3D.CULL_DISABLED
 		cape.material_override.roughness = 0.92
-		loft(root,"CapeHem"+str(side),[Vector4(1.331,0.301,0.181,0.018),Vector4(1.344,0.298,0.178,0.018)],hem,begin,finish,24,false).material_override.cull_mode = BaseMaterial3D.CULL_DISABLED
+		loft(root,"CapeHem"+str(side),[Vector4(1.201,0.356,0.216,0.018),Vector4(1.214,0.353,0.214,0.018)],hem,begin,finish,24,false).material_override.cull_mode = BaseMaterial3D.CULL_DISABLED
 		var shoulder := loft(root,"ShoulderPlate"+str(side),[
 			Vector4(-0.08,0.065,0.060,0),Vector4(-0.05,0.095,0.085,0),
 			Vector4(0,0.110,0.095,0),Vector4(0.025,0.095,0.085,0),
