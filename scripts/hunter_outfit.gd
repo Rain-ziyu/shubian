@@ -305,21 +305,37 @@ static func create_hair(root: Node3D) -> void:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_smooth_group(0)
-	var rows := 8
-	var segments := 40
+	var rows := 16
+	var segments := 64
 	for row in rows:
 		for column in segments:
 			var vertices := []
 			for pair in [[row,column],[row+1,column],[row,column+1],[row+1,column+1]]:
 				var fraction: float = float(pair[0])/rows
 				var angle: float = float(pair[1])/segments*TAU
-				var hairline := 1.64+0.15*pow((1-cos(angle))*0.5,2)
+				var hairline := 1.64+0.15*pow((1-cos(angle))*0.5,2)+0.003*sin(angle*9)
 				var height := lerpf(hairline,1.915,fraction)
 				var radius := 0.145
-				if height>1.79: radius = lerpf(0.145,0.11,clampf((height-1.79)/0.07,0,1))
-				if height>1.86: radius = maxf(0.001,0.11*sqrt(maxf(0,1-pow((height-1.86)/0.055,2))))
+				if height>1.79: radius = maxf(0.001,0.145*sqrt(maxf(0,1-pow((height-1.79)/0.125,2))))
+				radius += 0.0025*sin(angle*12+fraction*5)*sin(fraction*PI)
 				vertices.append(Vector3(sin(angle)*radius,height,cos(angle)*radius*0.95+0.015))
 			for index in [0,1,2,2,1,3]: st.add_vertex(vertices[index])
+	for side in [-1,1]:
+		var centers := [Vector3(side*0.077,1.81,-0.089),Vector3(side*0.105,1.78,-0.090),Vector3(side*0.128,1.74,-0.075),Vector3(side*0.129,1.695,-0.060),Vector3(side*0.126,1.665,-0.050)]
+		var widths := [0.010,0.008,0.006,0.0035,0.0005]
+		var rings: Array[PackedVector3Array] = []
+		for index in centers.size():
+			var tangent: Vector3 = (centers[mini(index+1,centers.size()-1)]-centers[maxi(0,index-1)]).normalized()
+			var across := tangent.cross(Vector3.FORWARD).normalized()
+			var around := tangent.cross(across).normalized()
+			var ring := PackedVector3Array()
+			for column in 9:
+				var angle := float(column)/8*TAU
+				ring.append(centers[index]+(across*cos(angle)+around*sin(angle))*float(widths[index]))
+			rings.append(ring)
+		for row in rings.size()-1:
+			for column in 8:
+				for cell in [Vector2i(row,column),Vector2i(row+1,column),Vector2i(row,column+1),Vector2i(row,column+1),Vector2i(row+1,column),Vector2i(row+1,column+1)]: st.add_vertex(rings[cell.x][cell.y])
 	st.generate_normals()
 	var hair := MeshInstance3D.new()
 	hair.name = "HairCap"
