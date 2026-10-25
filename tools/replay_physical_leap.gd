@@ -6,6 +6,7 @@ var camera: Camera3D
 var frames := 0
 var peak := 0.0
 var launched := false
+var title: Label
 func _initialize() -> void: call_deferred("setup")
 func setup() -> void:
 	world = load("res://scenes/main/main.tscn").instantiate()
@@ -38,7 +39,7 @@ func setup() -> void:
 	camera.make_current()
 	var layer := CanvasLayer.new()
 	world.add_child(layer)
-	var title := Label.new()
+	title = Label.new()
 	title.text = "戍边 / 苇爪兽扑跃恢复\n正常 AI · 自动横向走位 · 非真人操作"
 	title.position = Vector2(24,24)
 	title.add_theme_font_size_override("font_size",24)

@@ -12,6 +12,8 @@ var was_staggering := false
 var stagger_recovery := false
 const TailContact = preload("res://scripts/tail_contact.gd")
 const LungeWarning = preload("res://scripts/lunge_warning.gd")
+const LungeContact = preload("res://scripts/lunge_contact.gd")
+var lunge_contact = LungeContact.new()
 const HeadWarning = preload("res://scripts/head_sweep_warning.gd")
 var head_warning_hull := PackedVector2Array()
 var head_warning_transform := Transform3D.IDENTITY
@@ -73,6 +75,7 @@ func _ready() -> void:
 	collider.position.y = shape.height/2
 	add_child(collider)
 	mesh = CreatureModel.create(self,data)
+	if data.pattern in ["charge","leap"]: lunge_contact.configure(self)
 	tail_rings = TailContact.profile(mesh.get_node("Tail/TailSurface").mesh)
 	for part in ["HeadSurface","Jaw"]: head_rings.append(TailContact.profile(mesh.get_node("Neck/"+part).mesh))
 	if data.pattern=="sweep": head_warning_hull = HeadWarning.profile(self)
@@ -335,9 +338,9 @@ func advance_physics(delta: float) -> void:
 			spawn_hazard(global_position,float(data.reach),0.7,float(data.damage),"pulse")
 		if data.pattern in ["charge","leap"]:
 			velocity += lunge_direction*(13 if data.pattern == "charge" else 10)
-		if not attack_done and data.pattern!="sweep":
+		if not attack_done and data.pattern not in ["sweep","charge","leap"]:
 			var forward := offset.normalized().dot(-global_basis.z)>-0.15
-			var in_range: bool = lunge_contains(target.global_position) if data.pattern in ["charge","leap"] else distance<float(data.reach) and forward
+			var in_range: bool = distance<float(data.reach) and forward
 			if in_range and clear_line_to(target.global_position):
 				attack_done = true
 				target.take_damage(float(data.damage),global_position,data.pattern not in ["mist","pulse"])
@@ -374,6 +377,11 @@ func advance_physics(delta: float) -> void:
 	var grounded_pose: bool = is_on_floor() and not (phase=="active" and data.pattern=="leap")
 	if phase!="recover": stagger_recovery = false
 	CreatureModel.animate(mesh,data,gait,phase,clock,Vector2(velocity.x,velocity.z).length(),foot_ground_height if grounded_pose else Callable(),foot_ground_normal if grounded_pose else Callable(),data.pattern=="leap",StaggerPose.neutral() if stagger_recovery else {})
+	if data.pattern in ["charge","leap"]:
+		var contact := lunge_contact.update(self,phase=="active" and not rear_attack and not attack_done)
+		if not contact.is_empty() and clear_line_to(contact.feet):
+			attack_done = true
+			target.take_damage(float(data.damage),global_position,true)
 	var head: Transform3D = mesh.get_node("Neck").global_transform
 	if data.pattern=="sweep" and phase=="active" and clock>=0.08 and clock<=0.45 and not attack_done:
 		var start: Vector3 = previous_head_target if target.motion_epoch==previous_head_epoch else target.global_position
