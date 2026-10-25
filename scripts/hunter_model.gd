@@ -132,7 +132,8 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 	var drop := 0.09 if armed else 0.015
 	var walking := action=="idle" and speed>0.1
 	if walking: drop = 0.12
-	if action in ["guard","reply"]: drop = 0.13
+	if action=="guard": drop += 0.04*smoothstep(0,0.18,elapsed)
+	if action=="reply": drop = 0.13+0.035*smoothstep(0,0.12,elapsed)*(1-smoothstep(0.12,0.26,elapsed))
 	if action in ["plant","wait","counter_window"]: drop = 0.18
 	if action=="dodge": drop = 0.22
 	if action=="hurt": drop = 0.16
@@ -142,7 +143,7 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 		var release_from := 0.15 if action=="light" else 0.30
 		drop += 0.05*smoothstep(0,ready,elapsed)*(1-smoothstep(release_from,release,elapsed))
 	var body: Node3D = rig.root
-	var shift := Motion.sample(action,elapsed,gait,speed).w*1.6 if action in ["light","heavy","hurt"] else 0.0
+	var shift := Motion.sample(action,elapsed,gait,speed).w*1.6 if action in ["light","heavy","hurt","reply"] else 0.0
 	body.position.z = lerpf(body.position.z,shift,1-exp(-delta*18)) if delta>0 else shift
 	var previous_height := body.position.y
 	body.position.y = -drop
@@ -154,7 +155,8 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 		var leg: Dictionary = rig.legs[side]
 		var stance := -0.16 if side==-1 else 0.14
 		if not armed: stance = 0
-		if action in ["guard","reply"]: stance *= 1.4
+		if action=="guard": stance *= lerpf(1.0,1.4,smoothstep(0,0.18,elapsed))
+		if action=="reply": stance *= 1.4
 		var lift := 0.0
 		if speed>0.1 and action!="dodge":
 			stance = sin(gait)*side*minf(0.28,speed*0.055)
@@ -177,6 +179,10 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 			stance = lerpf(stance,0.08,support)
 			lift = sin(support*PI)*0.035
 		var target := Vector3(leg.hip.position.x,0.10-body.position.y+lift,stance)
+		if action=="reply" and side==-1:
+			var step := smoothstep(0.02,0.16,elapsed)*(1-smoothstep(0.42,0.67,elapsed))
+			target.z -= step*0.06
+			target.y += sin(smoothstep(0.02,0.16,elapsed)*PI)*0.045
 		if action in ["light","heavy"] and side==-1:
 			var step := smoothstep(0.03,0.18,elapsed)*(1-smoothstep(0.42,0.66 if action=="light" else 0.92,elapsed))
 			target.z -= step*(0.10 if action=="light" else 0.06)

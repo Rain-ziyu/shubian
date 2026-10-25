@@ -14,7 +14,37 @@ func run() -> void:
 	await physics_frame
 	var p = world.hunter
 	p.set_physics_process(false)
+	p.set_process_unhandled_input(false)
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	p.yaw = 0
+	p.rig.root.rotation = Vector3.ZERO
 	for m in get_nodes_in_group("monsters"): m.set_physics_process(false)
+	p.combat.drawn = true
+	p.combat.set_action("idle")
+	p.animate(0,0)
+	var ready_weapon: Transform3D = p.rig.weapon.transform
+	var ready_foot: Vector3 = p.rig.legs[-1].ankle.global_position
+	p.combat.set_action("guard")
+	p.animate(0,0)
+	check(p.rig.weapon.transform.is_equal_approx(ready_weapon),"guard starts at the forward ready grip without position jump")
+	check(p.rig.legs[-1].ankle.global_position.distance_to(ready_foot)<0.002,"guard stance starts without a foot jump")
+	p.combat.elapsed = 0.18
+	p.animate(0,0)
+	var braced: Transform3D = p.rig.weapon.transform
+	var braced_foot: Vector3 = p.rig.legs[-1].ankle.global_position
+	check(p.rig.weapon.get_node("ButtContact").global_position.z<p.rig.weapon.get_node("TipContact").global_position.z,"guard carries the head behind and presents the butt forward")
+	p.combat.set_action("reply")
+	p.animate(0,0)
+	check(p.rig.weapon.transform.is_equal_approx(braced) and p.rig.legs[-1].ankle.global_position.distance_to(braced_foot)<0.002,"reply joins the braced weapon and support stance")
+	p.combat.elapsed = 0.12
+	p.animate(0,0)
+	var loaded_root: float = p.rig.root.position.z
+	var loaded_butt: Vector3 = p.rig.weapon.get_node("ButtContact").global_position
+	p.combat.elapsed = 0.26
+	p.animate(0,0)
+	check(loaded_root-p.rig.root.position.z>0.09,"reply transfers whole-body weight from load to extension")
+	check(loaded_butt.z-p.rig.weapon.get_node("ButtContact").global_position.z>0.29,"reply sends actual butt contact forward with the body")
+	check(absf(p.rig.legs[1].ankle.global_position.y-p.global_position.y-0.1)<0.002,"rear support foot stays grounded during reply")
 	p.combat.set_action("heavy")
 	p.combat.elapsed = 0.18
 	p.animate(0,0)
