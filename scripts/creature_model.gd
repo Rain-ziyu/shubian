@@ -31,7 +31,12 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 	var c := Color(data.color)
 	var quad: bool = "quadruped" in data.body
 	var y := s*0.50 if quad else s*0.64
-	var body := Surface.profile(root,"BodySurface",[Vector4(-0.56,0.08,0.12,0.03),Vector4(-0.42,0.28,0.23,0.025),Vector4(-0.15,0.37,0.285,0),Vector4(0.20,0.34,0.26,0),Vector4(0.43,0.22,0.20,-0.025),Vector4(0.56,0.08,0.12,-0.025)],s,c)
+	var body_profile := [Vector4(-0.56,0.08,0.12,0.03),Vector4(-0.42,0.28,0.23,0.025),Vector4(-0.15,0.37,0.285,0),Vector4(0.20,0.34,0.26,0),Vector4(0.43,0.22,0.20,-0.025),Vector4(0.56,0.08,0.12,-0.025)]
+	if data.id=="thornhorn":
+		body_profile = [Vector4(-0.56,0.10,0.14,0.03),Vector4(-0.42,0.32,0.27,0.035),Vector4(-0.15,0.37,0.29,0.015),Vector4(0.20,0.28,0.22,0),Vector4(0.43,0.19,0.17,-0.025),Vector4(0.56,0.08,0.11,-0.025)]
+	elif data.id=="stormcrest":
+		body_profile = [Vector4(-0.56,0.10,0.15,0.04),Vector4(-0.42,0.30,0.30,0.035),Vector4(-0.15,0.37,0.32,0.025),Vector4(0.20,0.32,0.25,0),Vector4(0.43,0.23,0.18,-0.025),Vector4(0.56,0.08,0.11,-0.025)]
+	var body := Surface.profile(root,"BodySurface",body_profile,s,c)
 	body.position.y = y
 	if data.id=="reedclaw": body.scale = Vector3(0.80,0.85,1)
 	elif data.id=="mistfrill": body.scale = Vector3(0.85,0.90,1)
@@ -96,8 +101,18 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 		for side in [-1,1]: V.piece(neck,Vector3(side*s*0.13,s*0.01,-s*0.24),Vector3(s*0.16,s*0.16,s*0.20),Color("8d9e65"),true)
 	elif data.id=="stormcrest":
 		for i in 5:
-			var crest := Surface.profile(root,"Crest"+str(i),[Vector4(-0.12,0.008,0.01,0),Vector4(-0.05,0.035,0.24,0.22),Vector4(0.025,0.03,0.27,0.24),Vector4(0.13,0.008,0.01,0)],s,Color("78b9b5"))
+			var height: float = [0.42,0.80,1.0,0.76,0.38][i]
+			var crest := Surface.profile(root,"Crest"+str(i),[Vector4(-0.125,0.012,0.015,0),Vector4(-0.075,0.026,0.09*height,0.08*height),Vector4(-0.025,0.030,0.22*height,0.21*height),Vector4(0.015,0.020,0.24*height,0.23*height),Vector4(0.055,0.010,0.20*height,0.20*height),Vector4(0.115,0.008,0.015,0)],s,c)
 			crest.position = Vector3(0,y+s*0.22,(i-2)*s*0.19)
+			var arrays: Array = crest.mesh.surface_get_arrays(0)
+			var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+			var colors := PackedColorArray()
+			for vertex in vertices:
+				colors.append(c.darkened(0.12).lerp(Color("78b9b5"),smoothstep(0.02,0.40*height,vertex.y/s)))
+			arrays[Mesh.ARRAY_COLOR] = colors
+			var crest_mesh := ArrayMesh.new()
+			crest_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+			crest.mesh = crest_mesh
 	preload("res://scripts/creature_skin_material.gd").apply(root,data)
 	TailSkin.bind(tail)
 	for side in [-1,1]:
