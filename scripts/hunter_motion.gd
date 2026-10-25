@@ -34,9 +34,9 @@ static func sample(action: String, elapsed: float, gait: float, speed: float) ->
 		var twist := 0.0
 		for index in 4:
 			var pulse := exp(-pow((elapsed-(0.18+index*0.25))/0.09,2))*smoothstep(0,0.07,elapsed)
-			lean -= pulse*0.075
-			twist += pulse*(0.10 if index%2==0 else -0.10)
-		return Vector4(elapsed,lean,twist,lean*0.25)
+			lean -= pulse*0.12
+			twist += pulse*(0.16 if index%2==0 else -0.16)
+		return Vector4(elapsed,lean,twist,lean*0.35)
 	if action in ["turn","spin"]:
 		var duration := 0.95 if action=="turn" else 1.35
 		var weight := sin(clampf(elapsed/duration,0,1)*PI)

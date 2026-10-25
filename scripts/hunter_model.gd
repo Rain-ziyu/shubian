@@ -187,6 +187,7 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 	if action=="flash": drop += 0.06*smoothstep(0,0.08,elapsed)*(1-smoothstep(0.08,0.23,elapsed))
 	if action=="throw": drop += 0.06*smoothstep(0,0.20,elapsed)*(1-smoothstep(0.20,0.38,elapsed))
 	if action=="pull": drop += 0.04*smoothstep(0.22,0.56,elapsed)*(1-smoothstep(0.56,0.86,elapsed))
+	if action=="fourfold": drop += -Motion.sample(action,elapsed,gait,speed).y*0.25
 	drop += 0.08*arrival_weight
 	if action=="hurt": drop = 0.16
 	if action=="spin": drop += 0.05*sin(Motion.turn_progress(action,elapsed)*PI)
@@ -197,11 +198,11 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 		# The sweep loads into the rear support leg before transferring forward.
 		drop += (0.10 if action=="heavy" else 0.075)*smoothstep(0,ready,elapsed)*(1-smoothstep(release_from,release,elapsed))
 	var body: Node3D = rig.root
-	var shift := Motion.sample(action,elapsed,gait,speed).w*1.6 if action in ["light","heavy","pull","hurt","guard","reply","finisher","throw"] else 0.0
+	var shift := Motion.sample(action,elapsed,gait,speed).w*1.6 if action in ["light","heavy","pull","fourfold","hurt","guard","reply","finisher","throw"] else 0.0
 	body.position.z = lerpf(body.position.z,shift,1-exp(-delta*18)) if delta>0 else shift
 	var previous_height := body.position.y
 	body.position.y = -drop
-	var hip_turn := Motion.sample(action,elapsed,gait,speed).z*0.45 if action in ["light","heavy","pull"] else 0.0
+	var hip_turn := Motion.sample(action,elapsed,gait,speed).z*0.45 if action in ["light","heavy","pull","fourfold"] else 0.0
 	rig.pelvis.rotation.y = lerp_angle(rig.pelvis.rotation.y,hip_turn,1-exp(-delta*18)) if delta>0 else hip_turn
 	for side in [-1,1]: rig.legs[side].hip.position = rig.pelvis.transform*Vector3(side*0.14,0,0)
 	var targets := {}
