@@ -29,7 +29,20 @@ func run() -> void:
 			check(marker.visible and marker.global_position.distance_to(volume.center)<=float(volume.radius),str(m.data.id)+" marker remains inside its actual moving weak volume")
 			active += 1
 		check(active==m.weak_markers.size(),str(m.data.id)+" all open weak parts marked, including both flanks")
+		if m.data.weak_side=="flank":
+			var flank_body: MeshInstance3D = m.mesh.get_node("BodySurface")
+			var flank_detector = preload("res://scripts/monster_projectile_contact.gd").new()
+			for time in [0.0,0.25,0.5]:
+				m.CreatureModel.animate(m.mesh,m.data,0,"recover",time,0)
+				m.update_weak_markers()
+				for marker in m.weak_markers:
+					check(flank_body.get_aabb().grow(0.06).has_point(flank_body.to_local(marker.global_position)),"both flank species mark the visible body instead of empty space")
+					var direction: Vector3 = ((marker.global_position-flank_body.global_position)*Vector3(1,0,1)).normalized()
+					var hit: Dictionary = flank_detector.cast(m,marker.global_position+direction*0.4,marker.global_position-direction*0.5)
+					check(not hit.is_empty() and hit.part=="flank" and hit.point.distance_to(marker.global_position)<0.07,"flank marker sits within seven centimeters of an actual weak surface")
 		if m.data.id=="reedclaw":
+			m.CreatureModel.animate(m.mesh,m.data,0,"idle",0,0)
+			m.update_weak_markers()
 			var body: MeshInstance3D = m.mesh.get_node("BodySurface")
 			for marker in m.weak_markers:
 				check(body.get_aabb().grow(0.06).has_point(body.to_local(marker.global_position)),"reedclaw marker stays close to visible body rather than floating beyond thigh")

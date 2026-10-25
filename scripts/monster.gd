@@ -150,7 +150,7 @@ func update_weak_markers() -> void:
 			var skeleton: Skeleton3D = tail.get_node("TailSkeleton")
 			var surface := CreatureModel.TailSkin.deform(skeleton,tail_marker_anchor,tail_rings)
 			marker.global_position = tail.to_global(surface)+tail.global_basis.y.normalized()*0.04
-		if data.id=="reedclaw" and part.id=="flank":
+		if part.id=="flank":
 			var body: MeshInstance3D = mesh.get_node("BodySurface")
 			if flank_marker_surface==null: flank_marker_surface = body.mesh.generate_triangle_mesh()
 			var first := body.to_local(part.center+outward.normalized()*float(data.size))
