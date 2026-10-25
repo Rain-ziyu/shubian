@@ -31,6 +31,11 @@ func sample_frame() -> void:
 	if fighter.combat.action=="throw" or is_instance_valid(fighter.projectile) or fighter.arrival_pose_left>0:
 		action_frames.append(milliseconds)
 		if milliseconds>33.33: slow_frames.append({"ms":milliseconds,"elapsed":elapsed,"action":fighter.combat.action,"flight":is_instance_valid(fighter.projectile),"arrival_left":fighter.arrival_pose_left,"script_ms":costs})
+func capture() -> void:
+	# The parent replay saves a PNG on contact. GPU readback and PNG encoding
+	# are recording work, not gameplay; never include them in frame sampling.
+	pass
+
 func finish_probe() -> void:
 	var values := action_frames.duplicate()
 	values.sort()
