@@ -18,7 +18,7 @@ var previous_health := 240.0
 var damage_events: Array[Dictionary] = []
 var recent_control: Array[Dictionary] = []
 var recent_dodges: Array[Dictionary] = []
-var sample_frame := 0
+var control_sample_frame := 0
 func _initialize() -> void: call_deferred("setup")
 func setup() -> void:
 	if "--capture-victory" in OS.get_cmdline_user_args():
@@ -60,8 +60,8 @@ func control() -> void:
 	previous = fighter.position
 	for action in ["move_left","move_right","move_forward","move_back","sprint"]: Input.action_release(action)
 	var c = fighter.combat
-	sample_frame += 1
-	if sample_frame%6==0:
+	control_sample_frame += 1
+	if control_sample_frame%6==0:
 		var sample := {"time":snappedf(elapsed,0.01),"action":c.action,"action_time":snappedf(c.elapsed,0.01),"stamina":snappedf(c.stamina,0.1)}
 		if is_instance_valid(monster):
 			sample.merge({"species":monster.data.id,"phase":monster.phase,"phase_time":snappedf(monster.clock,0.01),"range":snappedf(fighter.position.distance_to(monster.position),0.01)})
