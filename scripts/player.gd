@@ -1,5 +1,6 @@
 extends CharacterBody3D
 signal hit_confirmed(action: String, beat: int, target: Node3D, result: Dictionary)
+signal action_requested(action: String, accepted: bool, reason: String)
 const CombatAudio = preload("res://scripts/combat_audio.gd")
 const Defeat = preload("res://scripts/hunter_defeat.gd")
 var defeat = Defeat.new()
@@ -95,6 +96,7 @@ func _ready() -> void:
 	arm.add_child(camera)
 	combat.strike.connect(on_strike)
 	combat.action_changed.connect(on_action_changed)
+	combat.buffer_rejected.connect(on_buffer_rejected)
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	for i in 5:
 		var ghost := Visuals.trident(rig.root,true)
@@ -159,9 +161,15 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func request_action(next: String) -> bool:
 	var accepted: bool = combat.request(next)
+	var reason := ""
 	if accepted and next=="sheathe": feedback.show_event("收枪")
-	elif not accepted and combat.health>0: feedback.rejected(combat,next)
+	elif not accepted: reason = feedback.rejected(combat,next) if combat.health>0 else "角色已倒下"
+	action_requested.emit(next,accepted,reason)
 	return accepted
+
+func on_buffer_rejected(next: String) -> void:
+	var reason: String = feedback.rejected(combat,next) if combat.health>0 else "角色已倒下"
+	action_requested.emit(next,false,reason)
 
 func apply_look(relative: Vector2) -> void:
 	if absf(relative.x)>0.01: camera_manual_time = 0.75

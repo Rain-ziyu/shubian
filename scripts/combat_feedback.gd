@@ -46,7 +46,7 @@ func strike_outcome(action: String, landed: bool, shadows := 0) -> void:
 		elif action=="flash": value += " · 未获得枪影"
 		show_event(value,Color("e7c88b"),0.8,2 if action in ["reply","flash"] else 1)
 
-func rejected(c, next: String) -> void:
+func rejected(c, next: String) -> String:
 	var reason := "当前动作尚未收势"
 	if c.buffered==next: reason = "已预输入"+str(NAMES.get(next,next))+" · 等待衔接"
 	elif next in ["fourfold","spin"] and c.shadow_lifetimes.is_empty(): reason = "枪影不足 · 格挡反击后闪刺获取"
@@ -55,6 +55,7 @@ func rejected(c, next: String) -> void:
 	elif next=="flash" and c.flash_window<=0: reason = "反击尚未命中 · 命中后才能闪刺"
 	elif next==c.action: reason = "同一动作不能连发 · 衔接其他动作"
 	show_event(reason,Color("e7c88b"),0.8,1)
+	return reason
 static func phase(c) -> Dictionary:
 	var label := ""
 	var tint := Color("8bbbad")

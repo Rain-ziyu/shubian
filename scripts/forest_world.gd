@@ -129,6 +129,11 @@ func _ready() -> void:
 	add_child(combat_hud)
 	hud = combat_hud.status
 	print("SHUBIAN_FOREST_READY: hunter + five monster species")
+	if "--input-trace" in OS.get_cmdline_user_args():
+		var trace_directory := ""
+		for argument in OS.get_cmdline_user_args():
+			if argument.begins_with("--input-trace-dir="): trace_directory = argument.trim_prefix("--input-trace-dir=")
+		preload("res://scripts/input_diagnostics.gd").attach(self,hunter,trace_directory)
 	if "--capture" in OS.get_cmdline_user_args(): capture.call_deferred()
 
 func _process(_delta: float) -> void:

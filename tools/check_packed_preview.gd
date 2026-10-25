@@ -20,6 +20,8 @@ func run() -> void:
 	var monsters := get_nodes_in_group("monsters")
 	check(monsters.size()==5,"packed world instantiates five species")
 	var fighter = world.hunter
+	check(world.has_node("InputDiagnostics")==("--input-trace" in OS.get_cmdline_user_args()),"packed input recorder is opt-in")
+	check(ResourceLoader.exists("res://scripts/input_diagnostics.gd"),"packed input diagnostic script is available")
 	var start: Vector3 = fighter.global_position
 	Input.action_press("move_forward")
 	for frame in 15: await physics_frame
@@ -33,7 +35,7 @@ func run() -> void:
 	fighter.global_position = monster.global_position+Vector3(0,0,2.5)
 	fighter.lock_target = monster
 	var health: float = monster.health
-	fighter.combat.request("light")
+	fighter.request_action("light")
 	for frame in 40: await physics_frame
 	check(fighter.combat.drawn and monster.health<health,"packed weapon action causes actual contact damage")
 	var cue = fighter.get_node("OcclusionVisibility")

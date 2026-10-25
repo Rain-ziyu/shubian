@@ -55,6 +55,11 @@ func run() -> void:
 	f.advance(2)
 	c.set_action("idle")
 	check(not p.request_action("fourfold") and "枪影不足" in f.text,"resource failure is actionable")
+	p.request_action("light")
+	c.advance(0.20)
+	check(not p.request_action("fourfold") and "预输入" in f.text,"resource combo can be buffered before its legal link")
+	c.advance(0.18)
+	check(c.action=="light" and c.shadow_lifetimes.is_empty() and "枪影不足" in f.text,"failed buffered combo replaces the stale queued notice with its actual reason")
 	c.stamina = 0
 	check(not p.request_action("dodge") and "耐力不足" in f.text,"dodge failure explains missing stamina")
 	c.set_action("fourfold")

@@ -2,6 +2,7 @@ extends RefCounted
 ## Authoritative combat clock, independent of presentation and input devices.
 signal action_changed(action: String)
 signal strike(beat: int)
+signal buffer_rejected(action: String)
 const THROW_HOLD_TIME := 0.45
 
 const MOVES := {
@@ -111,6 +112,7 @@ func advance(delta: float) -> void:
 		if elapsed >= float(data.chain):
 			buffered = ""
 			if request(next): return
+			buffer_rejected.emit(next)
 		elif buffer_life <= 0: buffered = ""
 	if elapsed >= float(data.duration):
 		set_action("wait" if current == "plant" else "idle")
