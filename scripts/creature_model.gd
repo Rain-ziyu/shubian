@@ -311,6 +311,12 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 		neck.get_node("Jaw").rotation = pose_override.get("jaw_rotation",neck.get_node("Jaw").rotation)
 		tail.rotation.y = float(pose_override.get("tail_y",tail.rotation.y))
 		tail.rotation = pose_override.get("tail_rotation",tail.rotation)
+		# Start an interrupted grasp from the actual shoulder, wrist and claw pose.
+		var forelimbs: Dictionary = pose_override.get("forelimbs",{})
+		for path in forelimbs:
+			var part: Node3D = root.get_node(path)
+			var captured: Vector3 = forelimbs[path]
+			part.rotation = captured.lerp(part.rotation,float(pose_override.get("blend",1.0)))
 	# Additive recoil never pauses AI. Stagger owns its captured-pose transition.
 	var impact_age: float = root.get_meta("impact_age",0.26)
 	if impact_age<0.26 and phase!="stagger":

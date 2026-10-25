@@ -40,6 +40,13 @@ func run() -> void:
 		m.rear_cooldown = 2
 		m.mesh.get_node("Tail").rotation.y = -0.6
 		var tail_root_before: Transform3D = m.mesh.get_node("Tail").transform
+		var forelimb_before := {}
+		for side in [-1,1]:
+			var arm: Node3D = m.mesh.get_node_or_null("Forelimb"+str(side))
+			if arm==null: continue
+			forelimb_before[m.mesh.get_path_to(arm)] = arm.transform
+			for part in arm.find_children("*","Node3D",true,false):
+				forelimb_before[m.mesh.get_path_to(part)] = part.transform
 		var body: Transform3D = m.mesh.transform
 		var surface_pose: Transform3D = m.mesh.get_node("BodySurface").transform
 		var neck: Transform3D = m.mesh.get_node("Neck").transform
@@ -51,6 +58,8 @@ func run() -> void:
 		var health: float = m.health
 		m._physics_process(1.0/60)
 		check(m.mesh.get_node("Tail").transform.is_equal_approx(tail_root_before),"stagger preserves full tail root pose: "+str(m.data.id))
+		for path in forelimb_before:
+			check(m.mesh.get_node(path).transform.is_equal_approx(forelimb_before[path]),"stagger preserves loaded forelimb part: "+str(m.data.id)+"/"+str(path))
 		if m.data.pattern=="mist":
 			var sac: MeshInstance3D = m.mesh.get_node("Neck/MistSac1")
 			check(sac.scale.is_equal_approx(sac.get_meta("rest_scale")),"interrupting mist abandons the inflated pressure cue")
@@ -64,6 +73,12 @@ func run() -> void:
 		check(absf(tail.get_bone_pose_rotation(3).dot(tail_before))>0.99999,"stagger entry preserves deformed tail bone")
 		check(not m.rear_attack and not m.rear_tell.visible and m.rear_cooldown>0,"interruption cancels pending tail attack but preserves cooldown")
 		for frame in 20: m._physics_process(1.0/60)
+		if m.data.id=="reedclaw":
+			for side in [-1,1]:
+				var arm: Node3D = m.mesh.get_node("Forelimb"+str(side))
+				check(arm.rotation.length()<0.001 and arm.get_node("Wrist").rotation.length()<0.001,"stagger finishes releasing loaded shoulder and wrist")
+				for digit in [-1,0,1]:
+					check(arm.get_node("Wrist/Digit"+str(digit)).rotation.is_equal_approx(Vector3(0,-digit*0.20,0)),"stagger returns claw to its authored resting spread")
 		check(m.mesh.get_node("Neck").rotation.x>0.02 and absf(m.mesh.get_node("Tail").rotation.y)<0.001,"stagger releases loaded neck into brace and releases the tail instead of freezing")
 		var leg: Node3D = m.mesh.get_node("Hind1")
 		var bones: Skeleton3D = leg.get_node("LegSkeleton")
