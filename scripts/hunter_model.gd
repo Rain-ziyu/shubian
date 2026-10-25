@@ -355,6 +355,9 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 			leg.hip.set_meta(anchor_key,leg.ankle.global_position)
 		if rig.has("skirts"):
 			rig.skirts[side].rotation.x = clampf(leg.hip.rotation.x,0,1.3)*0.7
+			var flex := clampf(maxf(0,leg.hip.rotation.x)*0.7,0,1)
+			for part: MeshInstance3D in rig.skirts[side].get_children():
+				if part.get_blend_shape_count()>0: part.set_blend_shape_value(0,flex)
 
 static func pose_sole(leg: Dictionary, normal: Vector3) -> void:
 	# Tilt the Foot bone around the sole anchor, preserving the solved leg lengths.

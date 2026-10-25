@@ -43,7 +43,7 @@ func run() -> void:
 		for binding in p.rig.skinning.bindings:
 			if binding.rendered.get_blend_shape_count()>0:
 				var track := clip.add_track(Animation.TYPE_BLEND_SHAPE)
-				clip.track_set_path(track,NodePath("Skeleton3D/"+str(binding.rendered.name)+":OpenHand"))
+				clip.track_set_path(track,NodePath("Skeleton3D/"+str(binding.rendered.name)+":"+str(binding.rendered.mesh.get_blend_shape_name(0))))
 				finger_tracks.append({"track":track,"rendered":binding.rendered})
 		p.combat.set_action(action)
 		p.combat.drawn = true

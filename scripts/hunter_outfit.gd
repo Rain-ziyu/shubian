@@ -74,6 +74,7 @@ static func cape_drape(point: Vector3) -> Vector3:
 	return point
 
 static func patch(parent: Node3D, label: String, points: Array, color: Color) -> MeshInstance3D:
+	if label in ["CoatPanel","PanelTrim"]: return cloth_panel(parent,label,points,color)
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var lower := Vector2(INF,INF)
@@ -90,6 +91,45 @@ static func patch(parent: Node3D, label: String, points: Array, color: Color) ->
 	var result := MeshInstance3D.new()
 	result.name = label
 	result.mesh = st.commit()
+	result.material_override = V.mat(color)
+	result.material_override.cull_mode = BaseMaterial3D.CULL_DISABLED
+	parent.add_child(result)
+	return result
+
+static func cloth_panel(parent: Node3D, label: String, points: Array, color: Color) -> MeshInstance3D:
+	var meshes: Array[Array] = []
+	for flex in [0.0,1.0]:
+		var st := SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		st.set_smooth_group(0)
+		var corners := [Vector2i(0,0),Vector2i(1,0),Vector2i(0,1),Vector2i(1,0),Vector2i(1,1),Vector2i(0,1)]
+		if (points[1]-points[0]).cross(points[3]-points[0]).z<0:
+			corners = [Vector2i(0,0),Vector2i(0,1),Vector2i(1,0),Vector2i(1,0),Vector2i(0,1),Vector2i(1,1)]
+		for row in 10:
+			for column in 8:
+				for corner: Vector2i in corners:
+					var u := float(column+corner.x)/8
+					var v := float(row+corner.y)/10
+					var top: Vector3 = points[0].lerp(points[1],u)
+					var bottom: Vector3 = points[3].lerp(points[2],u)
+					var point := top.lerp(bottom,v)
+					var hang := clampf(-point.y/0.29,0,1)
+					point.z -= sin(hang*PI)*(0.010+0.006*sin(point.x*35+hang*2))
+					point += Vector3(0,0.012,-0.035)*hang*hang*flex
+					st.set_uv(Vector2((point.x+0.105)/0.225,1-hang))
+					st.add_vertex(point)
+		st.generate_normals()
+		meshes.append(st.commit().surface_get_arrays(0))
+	var shape := []
+	shape.resize(Mesh.ARRAY_MAX)
+	shape[Mesh.ARRAY_VERTEX] = meshes[1][Mesh.ARRAY_VERTEX]
+	shape[Mesh.ARRAY_NORMAL] = meshes[1][Mesh.ARRAY_NORMAL]
+	var mesh := ArrayMesh.new()
+	mesh.add_blend_shape("HemFlex")
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,meshes[0],[shape])
+	var result := MeshInstance3D.new()
+	result.name = label
+	result.mesh = mesh
 	result.material_override = V.mat(color)
 	result.material_override.cull_mode = BaseMaterial3D.CULL_DISABLED
 	parent.add_child(result)

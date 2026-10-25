@@ -68,6 +68,7 @@ func run() -> void:
 	var finger_parts := 0
 	for part in skeleton.get_children():
 		if not part is MeshInstance3D or part.get_blend_shape_count()==0: continue
+		if part.mesh.get_blend_shape_name(0)!="OpenHand": continue
 		finger_parts += 1
 		check(absf(part.get_blend_shape_value(0)-0.5)<0.06,"saved throw clip progressively opens rendered fingers")
 	check(finger_parts==2,"saved model retains both hand blend shapes")

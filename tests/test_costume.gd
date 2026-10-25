@@ -64,6 +64,37 @@ func run() -> void:
 	check(is_equal_approx(rig.weapon.get_node("TipContact").position.y,1.2) and is_equal_approx(rig.weapon.get_node("ButtContact").position.y,-0.98),"combat endpoints preserved in model markers")
 	Model.pose_legs(rig,"finisher",0.95,true,0,0,0)
 	check(rig.skirts[1].rotation.x>0.4,"coat panel opens with kicking thigh")
+	for label in ["CoatPanel","PanelTrim"]:
+		var panel: MeshInstance3D = rig.skirts[1].get_node(label)
+		check(panel.get_blend_shape_count()==1 and panel.get_blend_shape_value(0)>0.4,"cloth and trim flex with the lifted thigh: "+label)
+		var rest: PackedVector3Array = panel.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+		var bent: PackedVector3Array = panel.mesh.surface_get_blend_shape_arrays(0)[0][Mesh.ARRAY_VERTEX]
+		var collar_fixed := true
+		var hem_moves := false
+		for index in rest.size():
+			if absf(rest[index].y)<0.001: collar_fixed = collar_fixed and rest[index].distance_to(bent[index])<0.0001
+			if rest[index].y< -0.22: hem_moves = hem_moves or rest[index].distance_to(bent[index])>0.02
+		check(collar_fixed and hem_moves,"cloth flex preserves waist while bending its free hem: "+label)
+	Model.pose_arms(rig,true,0)
+	var rendered_flex := 0
+	for binding in rig.skinning.bindings:
+		if binding.source.name in ["CoatPanel","PanelTrim"] and binding.rendered.get_blend_shape_value(0)>0.4: rendered_flex += 1
+	check(rendered_flex>=2,"visible skinned panels receive authored cloth flex")
+	var saved = load("res://assets/models/hunter-forest-v1.tscn").instantiate()
+	holder.add_child(saved)
+	check(saved.get_node("Pelvis/Skirt1/CoatPanel").get_blend_shape_count()==1 and saved.get_node("Pelvis/Skirt1/PanelTrim").get_blend_shape_count()==1,"exported cloth and trim retain their flex targets")
+	var saved_flex := 0
+	for part in saved.get_node("Skeleton3D").get_children():
+		if part is MeshInstance3D and part.get_meta("source_part","") in ["CoatPanel","PanelTrim"] and part.get_blend_shape_count()==1: saved_flex += 1
+	check(saved_flex==4,"exported visible skin preserves both panels and matching trims")
+	var preview: AnimationPlayer = saved.get_node("AnimationPreview")
+	preview.play("finisher")
+	preview.advance(0)
+	preview.advance(0.95)
+	var played_flex := false
+	for part in saved.get_node("Skeleton3D").get_children():
+		if part is MeshInstance3D and part.get_meta("source_part","")=="CoatPanel": played_flex = played_flex or part.get_blend_shape_value(0)>0.4
+	check(played_flex,"saved finisher clip animates cloth flex using its own shape name")
 	Model.pose_arms(rig,false,0)
 	for side in [-1,1]:
 		check(rig.arms[side].elbow.position.distance_to(rig.arms[side].hand.position)>0.38,"relaxed arm remains full length")
