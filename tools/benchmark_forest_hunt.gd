@@ -11,6 +11,10 @@ var profile_nodes := {}
 var profile_previous := {}
 var profile_peaks := {}
 var controller_us := 0
+var sample_limit := 0.0
+var draw_started_us := 0
+var last_draw_ms := 0.0
+var recent_events: Array[Dictionary] = []
 func setup() -> void:
 	if DisplayServer.get_name()=="headless":
 		printerr("Forest benchmark requires native rendering")
@@ -21,6 +25,14 @@ func setup() -> void:
 			printerr("Forest benchmark requires real-time simulation without movie recording")
 			quit(2)
 			return
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--sample-seconds="):
+			var value := argument.trim_prefix("--sample-seconds=")
+			if not value.is_valid_float() or float(value)<=0:
+				printerr("Sample seconds must be positive")
+				quit(2)
+				return
+			sample_limit = float(value)
 	root.size = Vector2i(1280,720)
 	root.content_scale_size = root.size
 	Engine.max_fps = 0
@@ -34,6 +46,15 @@ func setup() -> void:
 	started_us = Time.get_ticks_usec()
 	previous_us = started_us
 	process_frame.connect(sample_frame)
+	RenderingServer.frame_pre_draw.connect(begin_draw)
+	RenderingServer.frame_post_draw.connect(end_draw)
+	fighter.hit_confirmed.connect(record_contact)
+func begin_draw() -> void: draw_started_us = Time.get_ticks_usec()
+func end_draw() -> void: last_draw_ms = (Time.get_ticks_usec()-draw_started_us)/1000.0
+func record_contact(action: String, beat: int, victim: Node3D, result: Dictionary) -> void:
+	recent_events.append({"wall_seconds":(Time.get_ticks_usec()-started_us)/1000000.0,"simulation_seconds":elapsed,"action":action,"beat":beat,"species":victim.data.id,"part":result.part,"weak":result.weak})
+	if recent_events.size()>256: recent_events.pop_front()
+
 func control() -> void:
 	var start := Time.get_ticks_usec()
 	super.control()
@@ -57,7 +78,8 @@ func sample_frame() -> void:
 		maximum_physics_ms = maxf(maximum_physics_ms,Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS)*1000)
 		maximum_process_ms = maxf(maximum_process_ms,Performance.get_monitor(Performance.TIME_PROCESS)*1000)
 	if frame_ms>33.33:
-		stalls.append({"ms":snappedf(frame_ms,0.01),"species":monster.data.id if is_instance_valid(monster) else "travel","phase":monster.phase if is_instance_valid(monster) else "travel","wall_seconds":(now-started_us)/1000000.0,"script_cost_ms":costs})
+		stalls.append({"ms":snappedf(frame_ms,0.01),"species":monster.data.id if is_instance_valid(monster) else "travel","phase":monster.phase if is_instance_valid(monster) else "travel","wall_seconds":(now-started_us)/1000000.0,"script_cost_ms":costs,"render_submission_ms":last_draw_ms,"process_ms":Performance.get_monitor(Performance.TIME_PROCESS)*1000,"physics_ms":Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS)*1000,"recent_contacts":recent_events.slice(maxi(0,recent_events.size()-6)).duplicate(true)})
+	if sample_limit>0 and elapsed>=sample_limit: finish.call_deferred()
 func stats(values: Array[float]) -> Dictionary:
 	if values.is_empty(): return {}
 	var sorted := values.duplicate()
@@ -72,8 +94,22 @@ func finish() -> void:
 	if finished: return
 	var report := {"all_frames":stats(timings),"after_two_seconds":stats(steady),"stalls":stalls,"maximum_physics_ms":maximum_physics_ms,"maximum_process_ms":maximum_process_ms,"viewport":str(root.get_visible_rect().size),"adapter":RenderingServer.get_video_adapter_name(),"wall_seconds":(Time.get_ticks_usec()-started_us)/1000000.0,"simulation_seconds":elapsed,"scope":"native uncapped real-time full forest hunt from normal spawn, five AI active, no resource resets; local hardware only; excludes initial scene loading; privileged controller, not human difficulty acceptance"}
 	report["peak_script_cost_ms"] = profile_peaks
+	report["sample_limit_seconds"] = sample_limit
+	report["contact_events"] = recent_events
+	if sample_limit>0: report["scope"] = "partial native real-time forest sample, all five AI active, no resource resets; not a full expedition or human difficulty acceptance"
+	report["render_timing_scope"] = "frame_pre_draw to frame_post_draw wall time; rendering submission, not GPU execution time"
 	var path := "res://../verification/forest-performance-"+str(int(Time.get_unix_time_from_system()))+"-"+str(OS.get_process_id())+".json"
 	FileAccess.open(path,FileAccess.WRITE).store_string(JSON.stringify(report,"  "))
 	print("FOREST_PERFORMANCE: ",JSON.stringify(report))
 	print("FOREST_PERFORMANCE_FILE: ",ProjectSettings.globalize_path(path))
+	if sample_limit>0:
+		finished = true
+		for action in ["move_left","move_right","move_forward","move_back","sprint"]: Input.action_release(action)
+		print("FOREST_PARTIAL_SAMPLE: completed diagnostic sample; no expedition acceptance")
+		world.queue_free()
+		await process_frame
+		await process_frame
+		await RenderingServer.frame_post_draw
+		quit(0)
+		return
 	super.finish()
