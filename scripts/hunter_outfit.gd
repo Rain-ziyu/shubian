@@ -193,6 +193,7 @@ static func create_head(root: Node3D, skin: Color) -> void:
 	for index in range(first_part,root.get_child_count()):
 		var part := root.get_child(index) as Node3D
 		part.transform = proportion*part.transform
+		part.set_meta("head_assembly",true)
 
 static func create_hair(root: Node3D) -> void:
 	var st := SurfaceTool.new()

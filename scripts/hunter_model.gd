@@ -56,6 +56,10 @@ static func create(parent: Node3D) -> Dictionary:
 		legs[side] = {"hip":leg,"knee":knee,"ankle":ankle,"thigh":thigh,"shin":shin,"boot":boot}
 		joints["leg"+str(side)] = leg
 	var rig := {"root":root,"torso":torso,"joints":joints,"arms":arms,"legs":legs,"skirts":costume.skirts,"shoulders":costume.shoulders,"weapon":V.trident(root)}
+	rig.head_parts = []
+	for part in torso.get_children():
+		if part is Node3D and part.get_meta("head_assembly",false):
+			rig.head_parts.append({"source":part,"rest":part.transform})
 	rig.weapon.name = "Trident"
 	pose_arms(rig,false,0)
 	rig.soft_joints = []
@@ -133,6 +137,15 @@ static func pose_torso(rig: Dictionary, action: String, elapsed: float, gait: fl
 	var weight := 1-exp(-delta*12) if delta>0 else 1.0
 	rig.torso.rotation = rig.torso.rotation.move_toward(rotation,delta*6.5) if delta>0 else rotation
 	rig.torso.position = rig.torso.position.lerp(position,weight)
+	# Keep the gaze near the committed attack heading while the chest winds up.
+	# All facial/hair meshes rotate around the same anatomical neck anchor.
+	var head_pivot := Vector3(0,1.535-1.08,0)
+	var compensation := Vector3.ZERO
+	if action in ["light","heavy","pull","guard","reply","flash","fourfold","throw"]:
+		compensation = Vector3(-rig.torso.rotation.x*0.45,-rig.torso.rotation.y*0.75,0)
+	var adjustment := Transform3D(Basis.from_euler(compensation),head_pivot)
+	adjustment.origin -= adjustment.basis*head_pivot
+	for part in rig.head_parts: part.source.transform = adjustment*part.rest
 	for side in [-1,1]:
 		var arm: Dictionary = rig.arms[side]
 		arm.shoulder.position = rig.torso.transform*(arm.rest_shoulder-Vector3(0,1.08,0))

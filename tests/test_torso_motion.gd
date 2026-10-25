@@ -52,6 +52,16 @@ func run() -> void:
 	p.combat.elapsed = 0.61
 	p.animate(0,0)
 	check(p.rig.torso.rotation.y>0.20,"heavy follows through across the body")
+	var face: Node3D = p.rig.torso.get_node("Head")
+	var relative_face: Basis = p.rig.root.global_basis.inverse()*face.global_basis
+	check(absf(relative_face.get_euler().y)<0.22,"heavy gaze stays near target while chest follows through")
+	check(absf(face.rotation.y)>0.4,"neck actively counterturns instead of freezing chest")
+	var aligned := true
+	for part in p.rig.head_parts:
+		var motion: Transform3D = part.source.transform*part.rest.affine_inverse()
+		var face_motion: Transform3D = face.transform*p.rig.head_parts[0].rest.affine_inverse()
+		aligned = aligned and motion.is_equal_approx(face_motion)
+	check(aligned,"eyes and hair share the face neck transform")
 	p.combat.elapsed = 0.92
 	p.animate(0,0)
 	check(p.rig.torso.rotation.length()<0.001,"heavy recovers to neutral torso")
