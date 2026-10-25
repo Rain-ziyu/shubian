@@ -519,6 +519,7 @@ func _process(delta: float) -> void:
 
 func show_hit_feedback(point: Vector3, result: Dictionary, action: String = "") -> void:
 	if not result.get("hit",false): return
+	message = feedback.hit_message(result)
 	var effect := HitFeedback.new()
 	effect.damage = result.damage
 	effect.weak = result.weak
@@ -600,7 +601,6 @@ func update_weapon_contacts() -> void:
 				feedback.strike_outcome(window.action,true,combat.shadow_lifetimes.size())
 				show_hit_feedback(contact.point,result,window.action)
 				hit_confirmed.emit(window.action,window.beat,m,result)
-				message = ("弱点！ " if result.weak else "命中 ")+str(roundi(result.damage))+" · "+str(result.part)
 		window.previous = points
 
 func finish_throw(point: Vector3, allow_arrival := true) -> void:

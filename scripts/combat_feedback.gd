@@ -1,12 +1,17 @@
 extends RefCounted
 ## Presentation follows the authoritative clock; it never changes combat timing.
 const NAMES := {"light":"斜刺","heavy":"横扫","pull":"钩齿回拉","turn":"转身甩枪","guard":"枪尾架势","reply":"枪尾反击","flash":"闪刺","throw":"投枪","fourfold":"枪意 · 四连刺","spin":"枪意 · 旋枪","plant":"插地蓄势","wait":"插地等待","counter_window":"迎击架势","finisher":"旋枪踢击","dodge":"闪避","hurt":"受击"}
+const PART_NAMES := {"head":"头部","body":"躯干","limb":"四肢","flank":"侧腹","tail":"尾部","spine":"背棘"}
 var current := "idle"
 var text := ""
 var color := Color("bde4d4")
 var remaining := 0.0
 var priority := 0
 var hurt_flash := 0.0
+func hit_message(result: Dictionary) -> String:
+	var part: String = PART_NAMES.get(str(result.get("part","")),"")
+	var text: String = ("弱点命中 " if result.get("weak",false) else "命中 ")+str(roundi(float(result.get("damage",0))))
+	return text+(" · "+part if not part.is_empty() else "")
 func advance(delta: float) -> void:
 	remaining = maxf(0,remaining-delta)
 	hurt_flash = maxf(0,hurt_flash-delta)
