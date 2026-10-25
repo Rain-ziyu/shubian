@@ -4,6 +4,7 @@ const V = preload("res://scripts/visuals.gd")
 const Profiles = preload("res://scripts/creature_surface.gd")
 const MetalMesh = preload("res://scripts/trident_mesh.gd")
 const SKIN_TONE := Color("bd9b80")
+const Face = preload("res://scripts/hunter_face.gd")
 
 static func loft(parent: Node3D, label: String, rings: Array, color: Color, start := 0.0, end := TAU, segments := 28, caps := true) -> MeshInstance3D:
 	var garment := label in ["Undercoat","TrouserThigh","TrouserShin"]
@@ -332,6 +333,7 @@ static func create_head(root: Node3D, skin: Color) -> void:
 	blob(root,"UpperLip",Vector3(0,1.634,-0.1085),Vector3(0.055,0.006,0.008),Color("9a7262"))
 	blob(root,"LowerLip",Vector3(0,1.6285,-0.1085),Vector3(0.050,0.006,0.008),Color("b28a74"))
 	detail_face(root,skin)
+	Face.seat_features(root)
 	create_hair(root)
 	# Adult ranger proportions: reduce the head assembly around the neck joint,
 	# preserving the face/hair registration and leaving the collar anchor intact.
@@ -359,6 +361,8 @@ static func detail_face(root: Node3D, skin: Color) -> void:
 				vertices[index] = point
 				color = skin.darkened(0.04).lerp(Color("a87765"),bowl*0.55)
 			elif label=="Head":
+				point = Face.sculpt(point)
+				vertices[index] = point
 				var front := 1-smoothstep(-0.07,0.01,point.z)
 				var cheek := exp(-pow((absf(point.x)-0.078)/0.042,2)-pow((point.y-1.673)/0.030,2))*front
 				var socket := exp(-pow((absf(point.x)-0.057)/0.030,2)-pow((point.y-1.714)/0.015,2))*front
@@ -371,7 +375,7 @@ static func detail_face(root: Node3D, skin: Color) -> void:
 		arrays[Mesh.ARRAY_COLOR] = colors
 		var mesh := ArrayMesh.new()
 		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
-		if ear:
+		if ear or label=="Head":
 			var surface := SurfaceTool.new()
 			surface.create_from(mesh,0)
 			surface.generate_normals()
