@@ -194,7 +194,7 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 		var release := 0.25 if action=="light" else 0.43
 		var release_from := 0.15 if action=="light" else 0.30
 		# The sweep loads into the rear support leg before transferring forward.
-		drop += (0.10 if action=="heavy" else 0.05)*smoothstep(0,ready,elapsed)*(1-smoothstep(release_from,release,elapsed))
+		drop += (0.10 if action=="heavy" else 0.075)*smoothstep(0,ready,elapsed)*(1-smoothstep(release_from,release,elapsed))
 	var body: Node3D = rig.root
 	var shift := Motion.sample(action,elapsed,gait,speed).w*1.6 if action in ["light","heavy","hurt","guard","reply","finisher","throw"] else 0.0
 	body.position.z = lerpf(body.position.z,shift,1-exp(-delta*18)) if delta>0 else shift
@@ -266,7 +266,8 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 			var step := smoothstep(0.03,0.18,elapsed)*(1-smoothstep(0.42,0.66,elapsed))
 			target.z -= step*0.10
 			var swing := smoothstep(0.03,0.18,elapsed)
-			target.y += sin(swing*PI)*0.065
+			var closing := smoothstep(0.42,0.66,elapsed)
+			target.y += sin(swing*PI)*0.065+sin(closing*PI)*0.045
 		if action=="heavy":
 			# Stagger opening and closing steps: one foot supports each transfer.
 			var opening := smoothstep(0.06 if side==-1 else 0.0,0.18 if side==-1 else 0.06,elapsed)

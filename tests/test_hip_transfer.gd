@@ -86,6 +86,33 @@ func run() -> void:
 	check(p.rig.pelvis.rotation.y>0.1,"action handoff does not snap hips to neutral")
 	for frame in 60: p.animate(1.0/60,0)
 	check(absf(p.rig.pelvis.rotation.y)<0.001,"handoff settles to the new neutral stance")
+	p.combat.set_action("light")
+	p.combat.elapsed = 0.15
+	p.animate(0,0)
+	var light_load: Vector3 = p.rig.root.position
+	p.combat.elapsed = 0.25
+	p.animate(0,0)
+	var light_contact: Vector3 = p.rig.root.position
+	check(light_load.z-light_contact.z>0.20,"light drives the body forward from the rear support")
+	check(light_contact.y-light_load.y>0.07,"light extends from a loaded rear leg at contact")
+	p.combat.elapsed = 0.30
+	p.animate(0,0)
+	check(p.rig.root.position.distance_to(light_contact)<0.001,"light holds its delivered body weight briefly through follow-through")
+	var light_support := true
+	var light_floor := true
+	var closing_lift := 0.0
+	for frame in 80:
+		p.combat.elapsed = float(frame)/120
+		p.animate(0,0)
+		var grounded := 0
+		for side in [-1,1]:
+			var sole: Vector3 = p.to_local(p.rig.legs[side].ankle.to_global(Vector3(0,-0.1,0)))
+			if sole.y<0.003: grounded += 1
+			light_floor = light_floor and sole.y>= -0.003
+			if side==-1 and p.combat.elapsed>0.42: closing_lift = maxf(closing_lift,sole.y)
+		light_support = light_support and grounded>=1
+	check(light_support and light_floor,"light opening and return retain support without floor penetration")
+	check(closing_lift>0.04,"light lifts the front foot when returning instead of dragging it")
 	var saved = load("res://assets/models/hunter-forest-v1.tscn").instantiate()
 	world.add_child(saved)
 	var saved_belt: MeshInstance3D = saved.get_node("Pelvis/Belt")
