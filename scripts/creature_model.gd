@@ -152,7 +152,7 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 			var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 			var colors := PackedColorArray()
 			for vertex in vertices:
-				colors.append(c.darkened(0.12).lerp(Color("78b9b5"),smoothstep(0.02,0.40*height,vertex.y/s)))
+				colors.append(c.darkened(0.12).lerp(Color("6b8e8c"),smoothstep(0.02,0.40*height,vertex.y/s)))
 			arrays[Mesh.ARRAY_COLOR] = colors
 			var crest_mesh := ArrayMesh.new()
 			crest_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
@@ -208,7 +208,7 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 	TailSkin.animate(tail,tail_gait,phase,clock)
 	var neck := root.get_node("Neck") as Node3D
 	neck.get_node("Jaw").transform = jaw_pose(data,phase,clock)
-	charge_visuals(root,data,phase,clock)
+	charge_visuals(root,data,phase,clock,phase=="stagger")
 	neck.rotation.x = 0
 	neck.rotation.y = 0
 	root.position.y = 0
@@ -356,7 +356,7 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 					target += entry.leg.global_basis.inverse()*Vector3.UP*(floor_y-point.y)
 		LegSkin.pose(entry.leg,target,foot_basis)
 
-static func charge_visuals(root: Node3D, data: Dictionary, phase: String, clock: float) -> void:
+static func charge_visuals(root: Node3D, data: Dictionary, phase: String, clock: float, weak_brace := false) -> void:
 	var load := smoothstep(0,float(data.windup),clock) if phase=="windup" else 0.0
 	if phase=="active": load = 1-smoothstep(0.08,0.45,clock)
 	var frill := root.get_node("Neck").get_node_or_null("Frill") as MeshInstance3D
@@ -376,6 +376,12 @@ static func charge_visuals(root: Node3D, data: Dictionary, phase: String, clock:
 			if crest==null: continue
 			var material := crest.material_override as StandardMaterial3D
 			if material==null: continue
-			material.emission_enabled = true
-			material.emission = Color("78b9b5")
-			material.emission_energy_multiplier = load*0.75
+			# Charge travels from the tail end toward the head. Amber means the
+			# attack was interrupted but the spine is still open for punishment.
+			var delay := float(4-index)*0.10
+			var charge := smoothstep(delay,delay+0.55,load)
+			var emission := Color("e2b968") if weak_brace else Color("78b9b5")
+			var energy := 0.65 if weak_brace else charge*1.10
+			if not material.emission_enabled: material.emission_enabled = true
+			if not material.emission.is_equal_approx(emission): material.emission = emission
+			if not is_equal_approx(material.emission_energy_multiplier,energy): material.emission_energy_multiplier = energy

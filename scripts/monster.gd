@@ -161,7 +161,7 @@ func update_weak_markers() -> void:
 func combat_hint() -> String:
 	if health<=0: return "已击退"
 	if wall_stun>0: return "撞击失衡 · 侧腹暴露"
-	if stagger>0: return "失衡 · 可追击"
+	if stagger>0: return "失衡 · 追击发亮背棘" if data.id=="stormcrest" else "失衡 · 可追击"
 	if rear_attack and phase=="windup": return "摆尾蓄势 · 离开后方扇区"
 	if rear_attack and phase=="active": return "摆尾中 · 避开尾部"
 	if phase=="windup":
@@ -239,7 +239,7 @@ func advance_physics(delta: float) -> void:
 		was_staggering = true
 		stagger_recovery = true
 		rear_attack = false
-		CreatureModel.charge_visuals(mesh,data,"recover",0)
+		CreatureModel.charge_visuals(mesh,data,"recover",0,true)
 		phase = "recover"
 		clock = 0
 		tell.visible = false

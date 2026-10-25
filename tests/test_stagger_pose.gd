@@ -51,6 +51,9 @@ func run() -> void:
 		if m.data.pattern=="mist":
 			var sac: MeshInstance3D = m.mesh.get_node("Neck/MistSac1")
 			check(sac.scale.is_equal_approx(sac.get_meta("rest_scale")),"interrupting mist abandons the inflated pressure cue")
+		if m.data.pattern=="pulse":
+			var crest: StandardMaterial3D = m.mesh.get_node("Crest2").material_override
+			check(m.weak_part_active("spine") and crest.emission.r>crest.emission.b and crest.emission_energy_multiplier>0,"actual stagger shows warm open spine instead of the charging cue")
 		check(m.mesh.transform.is_equal_approx(body) and m.mesh.get_node("Neck").transform.is_equal_approx(neck),"stagger begins from captured body and neck: "+str(m.data.id))
 		check(m.mesh.get_node("Neck/Jaw").transform.is_equal_approx(jaw),"interruption starts from the actual loaded jaw pose")
 		check(ankle(m,"Hind1").distance_to(foot)<0.003,"stagger entry preserves actual ankle position")

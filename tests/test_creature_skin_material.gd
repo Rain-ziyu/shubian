@@ -48,8 +48,15 @@ func run() -> void:
 			check(left>20 and right>20,"both continuous body flanks carry readable soft-scale coloration")
 			check(saved.get_node("BodySurface").mesh.surface_get_arrays(0)[Mesh.ARRAY_COLOR]==colors,"saved reedclaw retains the authored flank colors")
 		if data.id=="stormcrest":
+			Model.animate(model,data,0,"windup",data.windup*0.3,0)
+			check(model.get_node("Crest4").material_override.emission_energy_multiplier>model.get_node("Crest0").material_override.emission_energy_multiplier+0.1,"charge reaches tail-end crest before the front crest")
 			Model.animate(model,data,0,"windup",data.windup,0)
 			check(model.get_node("Crest0").material_override is StandardMaterial3D and model.get_node("Crest0").material_override.emission_energy_multiplier>0,"energy crest keeps independent charge cue")
+			Model.charge_visuals(model,data,"recover",0,true)
+			var exposed_material: StandardMaterial3D = model.get_node("Crest2").material_override
+			check(exposed_material.emission.r>exposed_material.emission.b and exposed_material.emission_energy_multiplier>0,"interrupted exposed spine has a distinct warm cue")
+			Model.animate(model,data,0,"recover",0.2,0)
+			check(exposed_material.emission_energy_multiplier==0,"ordinary recovery clears the exposed-spine cue")
 	check(configurations.size()==5,"five species have distinct skin configurations")
 	print("CREATURE_SKIN_MATERIAL_CHECKS: ",checks," FAILURES: ",failures)
 	holder.queue_free()
