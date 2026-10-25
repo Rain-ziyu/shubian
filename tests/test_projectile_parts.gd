@@ -116,6 +116,13 @@ func run() -> void:
 	shot = fire(spine+Vector3.RIGHT*2,Vector3.LEFT)
 	check(storm.health==health and shot.finished and shot.global_position.x>0.8,"world wall wins before a farther visible weakpoint")
 	check(confirmed==["throw:head","throw:tail_tip","throw:spine","throw:spine"],"only actual projectile contacts emit one correctly classified confirmation")
+	var claw: MeshInstance3D = reed.mesh.get_node("Forelimb1/Wrist/Digit0/Talon")
+	var detector = preload("res://scripts/monster_projectile_contact.gd").new()
+	for sample in [0.0,0.30]:
+		reed.CreatureModel.animate(reed.mesh,reed.data,0,"active",sample,10,Callable(),Callable(),true)
+		var center: Vector3 = claw.to_global(Vector3(0,-reed.data.size*0.014,-reed.data.size*0.12))
+		var hit: Dictionary = detector.cast(reed,center+Vector3.RIGHT*0.20,center-Vector3.RIGHT*0.20)
+		check(not hit.is_empty() and hit.part=="limb" and hit.surface=="Talon","visible articulated talon contact remains a limb")
 	print("PROJECTILE_PART_CHECKS: ",checks," FAILURES: ",failures)
 	stage.queue_free()
 	await process_frame

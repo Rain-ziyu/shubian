@@ -37,7 +37,12 @@ func cast(monster: Node3D, start: Vector3, end: Vector3) -> Dictionary:
 		if distance>=nearest: continue
 		nearest = distance
 		var part := "head" if neck.is_ancestor_of(mesh) else ("spine" if str(mesh.name).begins_with("Crest") else ("flank" if Parts.at_point(monster,point)=="flank" else "body"))
-		if str(mesh.name).begins_with("Forelimb"): part = "limb"
+		var ancestor: Node = mesh
+		while ancestor!=monster.mesh and ancestor!=null:
+			if str(ancestor.name).begins_with("Forelimb"):
+				part = "limb"
+				break
+			ancestor = ancestor.get_parent()
 		result = {"point":point,"part":part,"distance":distance,"surface":str(mesh.name)}
 	var fitted: Array[Dictionary] = []
 	var tail: Node3D = monster.mesh.get_node("Tail")

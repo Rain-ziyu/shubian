@@ -83,6 +83,14 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 		if not quad:
 			var arm := Surface.profile(root,"Forelimb"+str(side),[Vector4(-0.24,0.02,0.03,-0.13),Vector4(-0.12,0.045,0.055,-0.10),Vector4(0.02,0.055,0.07,0)],s,c)
 			arm.position = Vector3(side*s*0.28,y,-s*0.35)
+			if data.id=="reedclaw":
+				var wrist := V.pivot(arm,"Wrist",Vector3(0,-s*0.13,-s*0.22))
+				Surface.profile(wrist,"Palm",[Vector4(-0.075,0.036,0.025,-0.01),Vector4(-0.035,0.054,0.035,0),Vector4(0.025,0.024,0.030,0.015)],s,c)
+				for digit in [-1,0,1]:
+					var finger := V.pivot(wrist,"Digit"+str(digit),Vector3(digit*s*0.034,0,-s*0.04))
+					finger.rotation.y = -digit*0.20
+					Surface.profile(finger,"Finger",[Vector4(-0.075,0.012,0.016,-0.012),Vector4(-0.035,0.018,0.021,0),Vector4(0.01,0.016,0.020,0)],s,c)
+					Surface.profile(finger,"Talon",[Vector4(-0.17,0.0015,0.002,-0.082),Vector4(-0.15,0.005,0.009,-0.040),Vector4(-0.12,0.010,0.016,-0.014),Vector4(-0.07,0.013,0.018,-0.012)],s,Color("c1b99a"))
 	var tail := V.pivot(root,"Tail",Vector3(0,y*0.85,s*0.45))
 	var length := 1.55 if data.id=="reedclaw" else (0.85 if data.id=="thornhorn" else 1.10)
 	Surface.profile(tail,"TailSurface",[Vector4(-0.06,0.14,0.15,0),Vector4(0.14*length,0.125,0.125,-0.015),Vector4(0.40*length,0.085,0.085,-0.035),Vector4(0.70*length,0.045,0.04,-0.055),Vector4(0.96*length,0.008,0.008,-0.065)],s,c)

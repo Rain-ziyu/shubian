@@ -44,6 +44,13 @@ func run() -> void:
 		var foot := leg.get_node("Foot") as MeshInstance3D
 		check(absf(leg.position.y+foot.position.y-foot.scale.y*0.5)<0.001,"standing foot sole matches actor floor")
 		check(leg.has_node("LegSurface") and leg.has_node("Claw0"),"curved limbs and toe claws exist")
+		if data.id=="reedclaw":
+			for instance in [model,saved]:
+				for side in [-1,1]:
+					var wrist: Node3D = instance.get_node("Forelimb"+str(side)+"/Wrist")
+					check(wrist.get_child_count()==4,"reedclaw has palm and three separated fingers")
+					var talon: MeshInstance3D = wrist.get_node("Digit0/Talon")
+					check(talon.mesh.get_aabb().size.z>data.size*0.09,"hooked talon has readable length")
 		if data.id=="mistfrill":
 			Model.animate(model,data,0,"windup",data.windup,0)
 			check(model.get_node("Neck/Frill").scale.x>1.1,"mist frill expands during warning")
