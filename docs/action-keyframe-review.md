@@ -203,3 +203,8 @@ Shubian-plant-body-drive.mp4 是 4.10 秒固定帧率冻结 AI 动作研究，�
 肩甲原来为开放单层曲面。新增闭合边检查在两侧旧模型均失败。现沿既有外表面法线向内收 4 毫米，补内面及所有边界封口，保留外轮廓与肩部枢轴；采用正常背面剔除，避免依赖双面薄片显示内侧。源模型与保存蒙皮同步，未新增骨骼或改变攻击判定。
 
 原生肩部 12、服装 26、握持 55、软连接 39、保存蒙皮 247、布料 69、躯干 36、装备衔接 18、可见性 26 项通过。肩部检查覆盖每条焊接边两面共享、负向有符号实体体积，以及抬臂/转动中的锚点、范围和旋转连续性。正常 AI 输入回放通过四连刺四次、旋枪两次、终结两次接触，生命 240。已查看横扫近景三帧，微小封边不等于解决全部装备穿插；整体角色精度、动作自然度和真人手感仍未验收完成。
+
+### Face profile refinement (2026-10-26)
+- Smoothed the existing head and nose longitudinal profiles, narrowed the lower jaw slightly, and reduced the projecting nose tip while burying its attachment into the face. No new parts, materials, rig nodes, or combat changes.
+- Inspected the actual front, three-quarter, and side render: eyes, lids, brows and lips remain visible. This is still prototype character art; likeness, final style and human playfeel are not accepted.
+- Exported and normalized the saved hunter scene. Native costume 26, skin 247, torso/head motion 36, equipment transition 18 and visibility 26 checks passed (353 checks total). Report: regressions-20261025-181311-4cd341.

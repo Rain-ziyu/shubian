@@ -7,7 +7,7 @@ const SKIN_TONE := Color("bd9b80")
 
 static func loft(parent: Node3D, label: String, rings: Array, color: Color, start := 0.0, end := TAU, segments := 28, caps := true) -> MeshInstance3D:
 	var garment := label in ["Undercoat","TrouserThigh","TrouserShin"]
-	if garment: rings = Profiles.smooth_profiles(rings)
+	if garment or label in ["Head","NoseBridge"]: rings = Profiles.smooth_profiles(rings)
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_smooth_group(0)
@@ -314,7 +314,7 @@ static func create(root: Node3D) -> Dictionary:
 static func create_head(root: Node3D, skin: Color) -> void:
 	var first_part := root.get_child_count()
 	loft(root,"Head",[
-		Vector4(1.535,0.055,0.055,-0.008),Vector4(1.55,0.069,0.064,-0.012),Vector4(1.57,0.085,0.073,-0.012),Vector4(1.60,0.099,0.088,-0.01),Vector4(1.62,0.108,0.097,-0.009),
+		Vector4(1.535,0.046,0.055,-0.008),Vector4(1.55,0.063,0.064,-0.012),Vector4(1.57,0.079,0.073,-0.012),Vector4(1.60,0.094,0.088,-0.01),Vector4(1.62,0.106,0.097,-0.009),
 		Vector4(1.65,0.127,0.110,-0.003),Vector4(1.68,0.137,0.118,0),Vector4(1.705,0.139,0.119,0.002),Vector4(1.73,0.137,0.118,0.004),Vector4(1.76,0.135,0.119,0.008),Vector4(1.79,0.13,0.117,0.012),
 		Vector4(1.85,0.105,0.093,0.015),Vector4(1.88,0.04,0.04,0.015)
 	],skin,0,TAU,32)
@@ -326,7 +326,7 @@ static func create_head(root: Node3D, skin: Color) -> void:
 		ribbon(root,"UpperLid"+str(side),[Vector3(side*0.033,1.713,-0.109),Vector3(side*0.056,1.720,-0.112),Vector3(side*0.079,1.714,-0.099)],0.0035,skin.darkened(0.18))
 		ribbon(root,"LowerLid"+str(side),[Vector3(side*0.034,1.709,-0.109),Vector3(side*0.056,1.705,-0.112),Vector3(side*0.076,1.709,-0.102)],0.0025,skin.darkened(0.06))
 		ribbon(root,"Brow"+str(side),[Vector3(side*0.025,1.744,-0.115),Vector3(side*0.056,1.75,-0.114),Vector3(side*0.086,1.74,-0.101)],0.006,Color("3c342b"))
-	loft(root,"NoseBridge",[Vector4(1.655,0.012,0.009,-0.126),Vector4(1.669,0.019,0.016,-0.135),Vector4(1.686,0.014,0.015,-0.129),Vector4(1.720,0.009,0.010,-0.119),Vector4(1.732,0.004,0.004,-0.118)],skin,0,TAU,20)
+	loft(root,"NoseBridge",[Vector4(1.655,0.013,0.011,-0.117),Vector4(1.669,0.017,0.012,-0.128),Vector4(1.686,0.013,0.011,-0.123),Vector4(1.720,0.008,0.008,-0.117),Vector4(1.732,0.004,0.006,-0.113)],skin,0,TAU,24)
 	blob(root,"UpperLip",Vector3(0,1.634,-0.1085),Vector3(0.055,0.006,0.008),Color("9a7262"))
 	blob(root,"LowerLip",Vector3(0,1.6285,-0.1085),Vector3(0.050,0.006,0.008),Color("b28a74"))
 	create_hair(root)
