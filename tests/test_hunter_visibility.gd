@@ -72,6 +72,13 @@ func run() -> void:
 		var highlighted := await capture()
 		var blocked_pixels := difference(hidden,highlighted)
 		check(blocked_pixels>300,"hidden body is visible through rendered non-collidable geometry")
+		var flags := []
+		for index in cue.parts.size():
+			flags.append(cue.parts[index].get_instance_shader_parameter("blocked_part"))
+			if index<cue.weapon_start_index: cue.parts[index].set_instance_shader_parameter("blocked_part",false)
+		var weapon_only := await capture()
+		check(difference(hidden,weapon_only)>20,"occluded physical trident remains readable without the body cue")
+		for index in cue.parts.size(): cue.parts[index].set_instance_shader_parameter("blocked_part",flags[index])
 		highlighted.save_png(ProjectSettings.globalize_path("res://../Shubian-occlusion-test.png"))
 		box.size = Vector3(3,0.8,0.5)
 		wall.position.y = 1.35

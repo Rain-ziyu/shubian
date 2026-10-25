@@ -4,6 +4,7 @@ uniform sampler2D scene_depth : hint_depth_texture, repeat_disable, filter_neare
 uniform bool enabled = false;
 uniform float hurt_flash = 0.0;
 instance uniform bool blocked_part = false;
+instance uniform bool weapon_part = false;
 uniform vec4 cue_color : source_color = vec4(0.66,0.95,0.86,0.42);
 void fragment() {
 	if ((!enabled || !blocked_part) && hurt_flash <= 0.0) { discard; }
@@ -23,8 +24,9 @@ void fragment() {
 		ALPHA = hurt_flash * 0.5;
 	} else {
 		if (!enabled || !blocked_part) { discard; }
-		ALBEDO = mix(cue_color.rgb, vec3(1.0, 0.34, 0.22), hurt_flash);
-		ALPHA = cue_color.a;
+		vec3 blocked_color = weapon_part ? vec3(0.98,0.85,0.52) : cue_color.rgb;
+		ALBEDO = mix(blocked_color, vec3(1.0, 0.34, 0.22), hurt_flash);
+		ALPHA = weapon_part ? 0.68 : cue_color.a;
 	}
 }
 

@@ -11,6 +11,7 @@ var blocked_states: Array[bool] = []
 var enabled_state: Variant = null
 var hurt_state := -1.0
 var parameter_updates := 0
+var weapon_start_index := 0
 func _ready() -> void:
 	hunter = get_parent()
 	material = ShaderMaterial.new()
@@ -20,6 +21,12 @@ func _ready() -> void:
 		parts.append(binding.rendered)
 		sources.append(binding.source)
 		binding.rendered.material_overlay = material
+	weapon_start_index = parts.size()
+	for part in hunter.rig.weapon.find_children("*","MeshInstance3D",true,false):
+		parts.append(part)
+		sources.append(part)
+		part.material_overlay = material
+		part.set_instance_shader_parameter("weapon_part",true)
 func _physics_process(_delta: float) -> void:
 	var started := Time.get_ticks_usec() if get_meta("measure_frame_cost",false) else 0
 	update_visibility()
@@ -31,7 +38,7 @@ func update_visibility() -> void:
 	var surfaces: Array = collect_surfaces() if is_instance_valid(camera) and hunter.combat.health>0 else []
 	for index in parts.size():
 		var blocked := false
-		if is_instance_valid(camera) and hunter.combat.health>0:
+		if is_instance_valid(camera) and hunter.combat.health>0 and (index<weapon_start_index or sources[index].is_visible_in_tree()):
 			var source := sources[index]
 			var center := source.to_global(source.get_aabb().get_center())
 			blocked = foreign_blocks(camera.global_position,center,surfaces)
