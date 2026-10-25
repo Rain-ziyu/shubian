@@ -77,7 +77,7 @@ static func surface(parent: Node3D, label: String, rings: Array, color: Color, s
 
 static func profile(parent: Node3D, label: String, profiles: Array, scale: float, color: Color, start := 0.0, end := TAU, caps := true) -> MeshInstance3D:
 	var rings := []
-	if label in ["BodySurface","TailSurface","HeadSurface","Jaw"] or label.begins_with("EyeRidge") or label.begins_with("BrowHorn"): profiles = smooth_profiles(profiles)
+	if label in ["BodySurface","TailSurface","HeadSurface","Jaw","Palm","Finger","Talon"] or label.begins_with("Forelimb") or label.begins_with("EyeRidge") or label.begins_with("BrowHorn"): profiles = smooth_profiles(profiles)
 	for ring: Vector4 in profiles: rings.append(ring*scale)
 	return surface(parent,label,rings,color,start,end,28,caps)
 
