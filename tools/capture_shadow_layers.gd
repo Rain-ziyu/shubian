@@ -35,9 +35,12 @@ func run() -> void:
 	await RenderingServer.frame_post_draw
 	var first := root.get_texture().get_image()
 	first.save_png(ProjectSettings.globalize_path("res://../Shubian-spectral-layers.png"))
-	await create_timer(0.6).timeout
+	for frame in 36:
+		p.animate(1.0/60,0)
+		await process_frame
 	await RenderingServer.frame_post_draw
 	var second := root.get_texture().get_image()
+	second.save_png(ProjectSettings.globalize_path("res://../Shubian-spectral-settled.png"))
 	var changed := 0
 	for y in first.get_height():
 		for x in first.get_width():
