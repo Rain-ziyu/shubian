@@ -185,7 +185,7 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 		var landing := smoothstep(0.30,0.40,elapsed)*(1-smoothstep(0.40,0.55,elapsed))
 		drop = lerpf(drop,0.10,load*(1-smoothstep(0.42,0.55,elapsed)))+0.12*load*(1-smoothstep(0.06,0.14,elapsed))-0.05*flight+0.09*landing
 	if action=="flash": drop += 0.06*smoothstep(0,0.08,elapsed)*(1-smoothstep(0.08,0.23,elapsed))
-	if action=="throw": drop += 0.06*smoothstep(0,0.20,elapsed)*(1-smoothstep(0.20,0.38,elapsed))
+	if action=="throw": drop += 0.09*smoothstep(0,0.20,elapsed)*(1-smoothstep(0.20,0.38,elapsed))
 	if action=="pull": drop += 0.04*smoothstep(0.22,0.56,elapsed)*(1-smoothstep(0.56,0.86,elapsed))
 	if action=="fourfold": drop += -Motion.sample(action,elapsed,gait,speed).y*0.25
 	drop += 0.08*arrival_weight
@@ -206,7 +206,7 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 	body.position.z = lerpf(body.position.z,shift,1-exp(-delta*18)) if delta>0 else shift
 	var previous_height := body.position.y
 	body.position.y = -drop
-	var hip_turn := Motion.sample(action,elapsed,gait,speed).z*0.45 if action in ["light","heavy","pull","fourfold"] else 0.0
+	var hip_turn := Motion.sample(action,elapsed,gait,speed).z*0.45 if action in ["light","heavy","pull","fourfold","throw"] else 0.0
 	rig.pelvis.rotation.y = lerp_angle(rig.pelvis.rotation.y,hip_turn,1-exp(-delta*18)) if delta>0 else hip_turn
 	for side in [-1,1]: rig.legs[side].hip.position = rig.pelvis.transform*Vector3(side*0.14,0,0)
 	var targets := {}
@@ -248,7 +248,7 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 		if action=="throw" and side==-1:
 			var step := smoothstep(0.02,0.25,elapsed)*(1-smoothstep(0.50,0.80,elapsed))
 			target.z -= 0.08*step
-			target.y += 0.05*sin(smoothstep(0.02,0.25,elapsed)*PI)
+			target.y += 0.05*sin(smoothstep(0.02,0.25,elapsed)*PI)+0.045*sin(smoothstep(0.50,0.80,elapsed)*PI)
 		if action in ["dodge","flash"]:
 			var direction := Vector3(travel.x,0,travel.z).normalized() if action=="dodge" else Vector3.FORWARD
 			if direction.is_zero_approx(): direction = Vector3.FORWARD

@@ -23,7 +23,7 @@ const KEYS := {
 	"flash":[Vector4(0,0,-0.10,0),Vector4(0.23,-0.14,0.10,-0.06),Vector4(0.39,-0.06,0.03,-0.02),Vector4(0.58,0,0,0)],
 	"plant":[Vector4(0,0,0,0),Vector4(0.30,-0.20,0,-0.025),Vector4(0.55,-0.12,0,-0.015),Vector4(0.65,-0.08,0,0)],
 	"finisher":[Vector4(0,0,0,0),Vector4(0.22,-0.08,-0.25,-0.02),Vector4(0.43,-0.08,0.22,-0.02),Vector4(0.67,0.04,-0.10,0.01),Vector4(0.95,0.20,-0.12,0.035),Vector4(1.14,0.10,-0.04,0.02),Vector4(1.45,0,0,0)],
-	"throw":[Vector4(0,0,0,0),Vector4(0.20,0.09,-0.23,0.02),Vector4(0.38,-0.15,0.20,-0.045),Vector4(0.80,0,0,0)],
+	"throw":[Vector4(0,0,0,0),Vector4(0.20,0.09,-0.23,0.06),Vector4(0.38,-0.15,0.20,-0.07),Vector4(0.80,0,0,0)],
 	"hurt":[Vector4(0,0,0,0),Vector4(0.08,0.30,-0.12,0.045),Vector4(0.22,0.20,-0.08,0.03),Vector4(0.55,0,0,0)]
 }
 static func sample(action: String, elapsed: float, gait: float, speed: float) -> Vector4:

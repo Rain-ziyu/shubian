@@ -26,11 +26,13 @@ func run() -> void:
 	p.animate(0,0)
 	var windup: Vector3 = p.rig.weapon.position
 	var loaded_body: Vector3 = p.rig.root.position
+	check(absf(p.rig.pelvis.rotation.y)>0.08,"throw windup carries the pelvis with the winding chest")
 	check(windup.y>start.y+0.2,"throw lifts weapon during preparation")
 	p.combat.elapsed = 0.38
 	p.animate(0,0)
 	check(p.rig.weapon.position.z<windup.z-0.25,"throw sends weapon forward into release")
 	check(loaded_body.z-p.rig.root.position.z>0.09,"throw drives the whole body forward from the loaded stance")
+	check(loaded_body.z-p.rig.root.position.z>0.19 and p.rig.root.position.y-loaded_body.y>0.08,"throw releases a distinct rear-leg load into forward body drive")
 	check(absf(p.to_local(p.rig.legs[1].ankle.to_global(Vector3(0,-0.1,0))).y)<0.002,"throw keeps the rear support foot grounded at release")
 	var handoff: Vector3 = p.rig.weapon.global_position
 	var axis: Vector3 = p.rig.weapon.global_basis.y.normalized()
@@ -40,6 +42,18 @@ func run() -> void:
 	check(axis.dot(p.projectile.direction)>0.999,"release shaft aligns with actual projectile flight")
 	p.projectile.cancel_arrival()
 	p.projectile.finish()
+	var rear_supported := true
+	var return_lift := 0.0
+	for frame in 97:
+		p.combat.elapsed = float(frame)/120
+		p.animate(0,0)
+		var rear: Vector3 = p.to_local(p.rig.legs[1].ankle.to_global(Vector3(0,-0.1,0)))
+		rear_supported = rear_supported and absf(rear.y)<0.003
+		if p.combat.elapsed>0.50:
+			var front: Vector3 = p.to_local(p.rig.legs[-1].ankle.to_global(Vector3(0,-0.1,0)))
+			return_lift = maxf(return_lift,front.y)
+	check(rear_supported,"throw retains rear support throughout preparation and recovery")
+	check(return_lift>0.04,"throw lifts the front foot when returning from its step")
 	for aim in [-0.65,0.30,0.65]:
 		p.pitch = aim
 		p.combat.set_action("throw")
