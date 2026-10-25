@@ -38,17 +38,17 @@ func _ready() -> void:
 	sky.sky_material = sky_material
 	atmosphere.sky = sky
 	atmosphere.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	atmosphere.ambient_light_color = Color("c5cec4")
-	atmosphere.ambient_light_energy = 0.55
+	atmosphere.ambient_light_color = Color("ccd5dc")
+	atmosphere.ambient_light_energy = 0.45
 	atmosphere.fog_enabled = true
-	atmosphere.fog_light_color = Color("7f9c92")
+	atmosphere.fog_light_color = Color("879b9e")
 	atmosphere.fog_density = 0.014
 	env.environment = atmosphere
 	add_child(env)
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-48,-25,0)
-	sun.light_energy = 0.85
-	sun.light_color = Color("e5e6d5")
+	sun.light_energy = 1.0
+	sun.light_color = Color("f1e2c8")
 	sun.shadow_enabled = true
 	add_child(sun)
 	add_child(Terrain.new())
