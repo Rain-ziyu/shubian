@@ -185,6 +185,11 @@ func _process(delta: float) -> void:
 		for part in impact_meshes: part.material_overlay = null
 
 func _physics_process(delta: float) -> void:
+	var started := Time.get_ticks_usec() if get_meta("measure_frame_cost",false) else 0
+	advance_physics(delta)
+	if started: set_meta("frame_cost_total_us",int(get_meta("frame_cost_total_us",0))+Time.get_ticks_usec()-started)
+
+func advance_physics(delta: float) -> void:
 	wall_stun = maxf(0,wall_stun-delta)
 	rear_cooldown = maxf(0,rear_cooldown-delta)
 	rear_tell.visible = false

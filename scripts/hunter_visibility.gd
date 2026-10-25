@@ -17,6 +17,11 @@ func _ready() -> void:
 		sources.append(binding.source)
 		binding.rendered.material_overlay = material
 func _physics_process(_delta: float) -> void:
+	var started := Time.get_ticks_usec() if get_meta("measure_frame_cost",false) else 0
+	update_visibility()
+	if started: set_meta("frame_cost_total_us",int(get_meta("frame_cost_total_us",0))+Time.get_ticks_usec()-started)
+
+func update_visibility() -> void:
 	var camera := get_viewport().get_camera_3d()
 	occluded = false
 	for index in parts.size():
