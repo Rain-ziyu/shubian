@@ -3,8 +3,8 @@ extends RefCounted
 static func material(color: Color, metal := false, glow := false) -> StandardMaterial3D:
 	var result := StandardMaterial3D.new()
 	result.albedo_color = color
-	result.metallic = 0.75 if metal else 0
-	result.roughness = 0.38 if metal else 0.8
+	result.metallic = 0.35 if metal else 0
+	result.roughness = 0.32 if metal else 0.8
 	result.vertex_color_use_as_albedo = metal
 	result.emission_enabled = glow
 	result.emission = color
@@ -39,7 +39,7 @@ static func blade(parent: Node3D, label: String, outline: PackedVector2Array, ap
 		inset.append(outline[index]+bisector*minf(0.010,0.003/maxf(0.15,bisector.dot(normal))))
 	var indices := Geometry2D.triangulate_polygon(inset)
 	for side in [-1,1]:
-		st.set_color(Color(0.68,0.74,0.78))
+		st.set_color(Color(0.80,0.85,0.88))
 		for index in range(0,indices.size(),3):
 			var triangle := [indices[index],indices[index+1],indices[index+2]]
 			if side==1: triangle.reverse()
@@ -71,7 +71,7 @@ static func bevel_triangle(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, 
 static func create(parent: Node3D, spectral: bool) -> Node3D:
 	var root := Node3D.new()
 	parent.add_child(root)
-	var metal := material(Color("b9c5bb"),true)
+	var metal := material(Color("d6ded9"),true)
 	var shaft := material(Color("303c36"),true)
 	var wrap := material(Color("68463c"))
 	var jade := material(Color("9bd4b8"),false,true)

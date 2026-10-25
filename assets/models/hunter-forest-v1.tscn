@@ -933,8 +933,8 @@ _surfaces = [{
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ugrkl"]
 vertex_color_use_as_albedo = true
 albedo_color = Color(0.1882353, 0.23529412, 0.21176471, 1)
-metallic = 0.75
-roughness = 0.38
+metallic = 0.35
+roughness = 0.32
 emission = Color(0.1882353, 0.23529412, 0.21176471, 1)
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_28g2f"]
@@ -956,10 +956,10 @@ radial_segments = 16
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cr1q0"]
 vertex_color_use_as_albedo = true
-albedo_color = Color(0.7254902, 0.77254903, 0.73333335, 1)
-metallic = 0.75
-roughness = 0.38
-emission = Color(0.7254902, 0.77254903, 0.73333335, 1)
+albedo_color = Color(0.8392157, 0.87058824, 0.8509804, 1)
+metallic = 0.35
+roughness = 0.32
+emission = Color(0.8392157, 0.87058824, 0.8509804, 1)
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_xxci5"]
 top_radius = 0.034
@@ -1072,7 +1072,7 @@ rings = 8
 [sub_resource type="ArrayMesh" id="ArrayMesh_4l2iw"]
 _surfaces = [{
 "aabb": AABB(-0.052, 0.78, -0.012, 0.104, 0.43000007, 0.024),
-"attribute_data": PackedByteArray("rbzG/628xv+tvMb/rbzG/628xv+tvMb/rbzG/628xv+tvMb/8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//rbzG/628xv+tvMb/rbzG/628xv+tvMb/rbzG/628xv+tvMb/8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//"),
+"attribute_data": PackedByteArray("zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//"),
 "format": 34359738383,
 "primitive": 3,
 "uv_scale": Vector4(0, 0, 0, 0),
@@ -1083,7 +1083,7 @@ _surfaces = [{
 [sub_resource type="ArrayMesh" id="ArrayMesh_xw4jv"]
 _surfaces = [{
 "aabb": AABB(-0.2, 0.7, -0.012, 0.175, 0.43, 0.024),
-"attribute_data": PackedByteArray("rbzG/628xv+tvMb/rbzG/628xv+tvMb/rbzG/628xv+tvMb/rbzG/628xv+tvMb/rbzG/628xv+tvMb/rbzG/628xv+tvMb/rbzG/628xv+tvMb/rbzG/628xv+tvMb/8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//rbzG/628xv+tvMb/rbzG/628xv+tvMb/rbzG/628xv+tvMb/rbzG/628xv+tvMb/rbzG/628xv+tvMb/rbzG/628xv+tvMb/rbzG/628xv+tvMb/rbzG/628xv+tvMb/8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//"),
+"attribute_data": PackedByteArray("zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//"),
 "format": 34359738383,
 "primitive": 3,
 "uv_scale": Vector4(0, 0, 0, 0),
@@ -1094,7 +1094,7 @@ _surfaces = [{
 [sub_resource type="ArrayMesh" id="ArrayMesh_uum5r"]
 _surfaces = [{
 "aabb": AABB(0.025, 0.7, -0.012, 0.175, 0.43, 0.024),
-"attribute_data": PackedByteArray("rbzG/628xv+tvMb/rbzG/628xv+tvMb/rbzG/628xv+tvMb/rbzG/628xv+tvMb/rbzG/628xv+tvMb/rbzG/628xv+tvMb/rbzG/628xv+tvMb/rbzG/628xv+tvMb/8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//rbzG/628xv+tvMb/rbzG/628xv+tvMb/rbzG/628xv+tvMb/rbzG/628xv+tvMb/rbzG/628xv+tvMb/rbzG/628xv+tvMb/rbzG/628xv+tvMb/rbzG/628xv+tvMb/8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//"),
+"attribute_data": PackedByteArray("zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/zNjg/8zY4P/M2OD/8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//8vn///L5///y+f//"),
 "format": 34359738383,
 "primitive": 3,
 "uv_scale": Vector4(0, 0, 0, 0),

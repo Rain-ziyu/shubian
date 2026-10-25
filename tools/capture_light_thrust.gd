@@ -32,6 +32,11 @@ func run() -> void:
 	camera.fov = 35
 	camera.current = true
 	var shoulder_detail := "--shoulder" in OS.get_cmdline_user_args()
+	var game_view := "--game-view" in OS.get_cmdline_user_args()
+	if game_view:
+		camera.position = Vector3(0.98,2.75,4.55)
+		camera.look_at(Vector3(0,1.1,-0.35))
+		camera.fov = 68
 	if shoulder_detail:
 		camera.position = Vector3(1.45,1.65,-1.35)
 		camera.look_at(Vector3(0,1.38,-0.05))
@@ -77,7 +82,7 @@ func run() -> void:
 	paths["guard"] = "Shubian-guard-motion"
 	paths["finisher"] = "Shubian-kick-motion"
 	paths["flash"] = "Shubian-flash-motion"
-	sheet.save_png(ProjectSettings.globalize_path("res://../"+str(paths[action])+("-shoulder" if shoulder_detail else "")+".png"))
+	sheet.save_png(ProjectSettings.globalize_path("res://../"+str(paths[action])+("-shoulder" if shoulder_detail else ("-game-view" if game_view else ""))+".png"))
 	stage.queue_free()
 	await process_frame
 	quit()
