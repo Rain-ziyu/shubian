@@ -22,15 +22,19 @@ func run() -> void:
 		hunter.global_position = monster.global_position+Vector3(0,0,-2)
 		hunter.rig.root.rotation = Vector3.ZERO
 		hunter.animate(0,0)
-		camera.global_position = monster.global_position+Vector3(0,2,7)
-		camera.look_at(monster.global_position+Vector3(0,1,0))
-		cue.triangle_meshes.clear()
-		var measurements := []
-		for iteration in 8:
-			var start := Time.get_ticks_usec()
-			cue._physics_process(1.0/60)
-			measurements.append((Time.get_ticks_usec()-start)/1000.0)
-		print("VISIBILITY_TIMING: ",JSON.stringify({"species":monster.data.id,"update_ms":measurements,"cached_geometries":cue.triangle_meshes.size(),"occluded":cue.occluded}))
+		for mode in ["blocked","front_camera"]:
+			camera.global_position = monster.global_position+Vector3(0,2,7) if mode=="blocked" else hunter.global_position+Vector3(0,2,-7)
+			camera.look_at(hunter.global_position+Vector3.UP)
+			cue.triangle_meshes.clear()
+			var measurements := []
+			var updates_before: int = cue.parameter_updates
+			for iteration in 32:
+				var start := Time.get_ticks_usec()
+				cue._physics_process(1.0/60)
+				measurements.append((Time.get_ticks_usec()-start)/1000.0)
+			var flags := ""
+			for part in cue.parts: flags += "1" if part.get_instance_shader_parameter("blocked_part") else "0"
+			print("VISIBILITY_TIMING: ",JSON.stringify({"species":monster.data.id,"mode":mode,"update_ms":measurements,"cached_geometries":cue.triangle_meshes.size(),"occluded":cue.occluded,"part_flags":flags,"parameter_updates":cue.parameter_updates-updates_before}))
 	world.queue_free()
 	await process_frame
 	quit()

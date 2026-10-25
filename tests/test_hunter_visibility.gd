@@ -14,6 +14,13 @@ func capture() -> Image:
 		await process_frame
 		await RenderingServer.frame_post_draw
 	return root.get_texture().get_image()
+func without_cue(cue: Node) -> Image:
+	# Baseline capture temporarily disables the effect, then restores its owner state.
+	var previous: Variant = cue.material.get_shader_parameter("enabled")
+	cue.material.set_shader_parameter("enabled",false)
+	var result := await capture()
+	cue.material.set_shader_parameter("enabled",previous)
+	return result
 func difference(a: Image, b: Image) -> int:
 	var count := 0
 	for y in a.get_height():
@@ -60,8 +67,7 @@ func run() -> void:
 	await process_frame
 	camera.make_current()
 	if DisplayServer.get_name()!="headless":
-		cue.material.set_shader_parameter("enabled",false)
-		var hidden := await capture()
+		var hidden := await without_cue(cue)
 		cue._physics_process(0)
 		var highlighted := await capture()
 		var blocked_pixels := difference(hidden,highlighted)
@@ -69,10 +75,10 @@ func run() -> void:
 		highlighted.save_png(ProjectSettings.globalize_path("res://../Shubian-occlusion-test.png"))
 		box.size = Vector3(3,0.8,0.5)
 		wall.position.y = 1.35
-		cue.material.set_shader_parameter("enabled",false)
-		var partial_base := await capture()
+		var partial_base := await without_cue(cue)
 		cue._physics_process(0)
 		var partial_cue := await capture()
+		check(difference(partial_base,partial_cue)>100,"partial obstruction still highlights the covered upper body")
 		var shin: MeshInstance3D = p.rig.legs[-1].shin
 		var leg_screen := Vector2i(camera.unproject_position(shin.to_global(shin.get_aabb().get_center())))
 		var leg_region := Rect2i(leg_screen-Vector2i(6,8),Vector2i(12,16))
@@ -81,13 +87,16 @@ func run() -> void:
 		print("OCCLUSION_PARTIAL_LEG_PIXELS: ",leg_pixels)
 		partial_cue.save_png(ProjectSettings.globalize_path("res://../Shubian-partial-occlusion.png"))
 		# Same scene with the former whole-character gate, for a like-for-like diagnostic.
-		for piece in cue.parts: piece.set_instance_shader_parameter("blocked_part",true)
+		var saved_flags := []
+		for piece in cue.parts:
+			saved_flags.append(piece.get_instance_shader_parameter("blocked_part"))
+			piece.set_instance_shader_parameter("blocked_part",true)
 		var whole_body_cue := await capture()
 		print("OCCLUSION_WHOLE_GATE_LEG_PIXELS: ",difference(partial_base.get_region(leg_region),whole_body_cue.get_region(leg_region)))
+		for index in cue.parts.size(): cue.parts[index].set_instance_shader_parameter("blocked_part",saved_flags[index])
 		cue._physics_process(0)
 		wall.visible = false
-		cue.material.set_shader_parameter("enabled",false)
-		var clear := await capture()
+		var clear := await without_cue(cue)
 		cue._physics_process(0)
 		var clear_highlight := await capture()
 		var clear_pixels := difference(clear,clear_highlight)
@@ -97,8 +106,7 @@ func run() -> void:
 			p.combat.set_action(sample[0])
 			p.combat.elapsed = sample[1]
 			p.animate(0,0)
-			cue.material.set_shader_parameter("enabled",false)
-			var pose_clear := await capture()
+			var pose_clear := await without_cue(cue)
 			cue._physics_process(0)
 			var pose_highlight := await capture()
 			var pose_pixels := difference(pose_clear,pose_highlight)
@@ -119,6 +127,26 @@ func run() -> void:
 	wall.position.x = 5
 	check(not cue.foreign_blocks(Vector3(0.9,3,0),Vector3(0.9,0,0),cue.collect_surfaces()),"next frame refresh follows a moving blocker instead of leaving a ghost obstruction")
 	check(part.material_override==original and p.combat.health==hp,"presentation preserves material and health")
+	p.combat.set_action("idle")
+	p.animate(0,0)
+	wall.mesh = box
+	box.size = Vector3(3,3,0.5)
+	wall.position = Vector3(0,1,2)
+	wall.show()
+	cue._physics_process(0)
+	check(cue.occluded,"changed blocking geometry is reflected immediately")
+	var updates: int = cue.parameter_updates
+	cue._physics_process(0)
+	check(cue.parameter_updates==updates,"stable geometry does not resubmit identical shader state")
+	wall.hide()
+	cue._physics_process(0)
+	check(not cue.occluded and cue.parameter_updates>updates,"removing blocker immediately clears cached shader state")
+	updates = cue.parameter_updates
+	for strength in [0.22,0.11,0.0]:
+		p.feedback.hurt_flash = strength
+		cue._physics_process(0)
+		check(is_equal_approx(float(cue.material.get_shader_parameter("hurt_flash")),strength/0.22),"hurt flash retains each changing fade value")
+	check(cue.parameter_updates==updates+3,"hurt fade only submits the changing material parameter")
 	p.combat.health = 0
 	cue._physics_process(0)
 	check(cue.material.get_shader_parameter("enabled")==false,"death disables cue")

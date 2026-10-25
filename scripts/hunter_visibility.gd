@@ -7,6 +7,10 @@ var material: ShaderMaterial
 var occluded := false
 var visual_bounds := {}
 var triangle_meshes := {}
+var blocked_states: Array[bool] = []
+var enabled_state: Variant = null
+var hurt_state := -1.0
+var parameter_updates := 0
 func _ready() -> void:
 	hunter = get_parent()
 	material = ShaderMaterial.new()
@@ -31,10 +35,25 @@ func update_visibility() -> void:
 			var source := sources[index]
 			var center := source.to_global(source.get_aabb().get_center())
 			blocked = foreign_blocks(camera.global_position,center,surfaces)
-		parts[index].set_instance_shader_parameter("blocked_part",blocked)
+		# Keep ray tests current; submit shader state only when its value changes.
+		if index>=blocked_states.size():
+			blocked_states.append(blocked)
+			parts[index].set_instance_shader_parameter("blocked_part",blocked)
+			parameter_updates += 1
+		elif blocked_states[index]!=blocked:
+			blocked_states[index] = blocked
+			parts[index].set_instance_shader_parameter("blocked_part",blocked)
+			parameter_updates += 1
 		occluded = occluded or blocked
-	material.set_shader_parameter("enabled",occluded)
-	material.set_shader_parameter("hurt_flash",hunter.feedback.hurt_flash/0.22 if hunter.combat.health>0 else 0.0)
+	if enabled_state==null or enabled_state!=occluded:
+		enabled_state = occluded
+		material.set_shader_parameter("enabled",occluded)
+		parameter_updates += 1
+	var hurt: float = hunter.feedback.hurt_flash/0.22 if hunter.combat.health>0 else 0.0
+	if hurt_state!=hurt:
+		hurt_state = hurt
+		material.set_shader_parameter("hurt_flash",hurt)
+		parameter_updates += 1
 
 func collect_surfaces() -> Array:
 	# Geometry is static, but articulated transforms change each tick. Share this
