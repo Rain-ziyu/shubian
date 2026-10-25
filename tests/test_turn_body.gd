@@ -16,11 +16,17 @@ func run() -> void:
 	p.set_physics_process(false)
 	for m in get_nodes_in_group("monsters"): m.set_physics_process(false)
 	p.yaw = 0
-	p.combat.set_action("turn")
+	var turn_input := InputEventMouseButton.new()
+	turn_input.button_index = MOUSE_BUTTON_LEFT
+	turn_input.pressed = true
+	turn_input.alt_pressed = true
+	p._unhandled_input(turn_input)
+	check(p.combat.action=="turn","Alt left input starts the ordinary turn")
 	p.combat.elapsed = 0.30
 	p.animate(0,0)
 	check(absf(wrapf(p.rig.root.rotation.y,-PI,PI))>1.0,"turn rotates full body rather than only weapon")
 	check(absf(p.rig.legs[-1].ankle.global_position.y-p.rig.legs[1].ankle.global_position.y)>0.04,"turn lifts alternating feet")
+	check(p.rig.weapon.position.z< -0.20,"ordinary turn keeps the grip in front of its rotating chest")
 	var weapon_before: Transform3D = p.rig.weapon.global_transform
 	var facing_before: Vector3 = p.combat_forward()
 	p.clear_body_turn()

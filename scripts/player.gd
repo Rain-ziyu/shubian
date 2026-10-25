@@ -396,10 +396,9 @@ func animate(delta: float, speed: float) -> void:
 				if combat.action=="finisher": w.rotation.y = HunterModel.Motion.interpolate(HunterModel.Motion.FINISHER_WEAPON,t).y
 				if combat.action=="spin":
 					w.position.z += 0.06*sin(HunterModel.Motion.turn_progress("spin",t)*PI)
-				if combat.action in ["spin","finisher"]:
-					# Carry the grip center around with the chest instead of leaving
-					# the shaft behind the back halfway through the body turn.
-					w.position = w.position.rotated(Vector3.UP,body_turn_applied)
+				# Carry the grip center around with the chest instead of leaving
+				# the shaft behind the back halfway through any body turn.
+				w.position = w.position.rotated(Vector3.UP,body_turn_applied)
 				if combat.action=="turn":
 					w.rotation.x += clampf(pitch+0.25,-0.4,0.85)*1.22
 					w.position.z += 0.07*sin(smoothstep(0.10,0.58,t)*PI)
