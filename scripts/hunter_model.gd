@@ -256,12 +256,19 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 			var step := smoothstep(0.02,0.16,elapsed)*(1-smoothstep(0.42,0.67,elapsed))
 			target.z -= step*0.06
 			target.y += sin(smoothstep(0.02,0.16,elapsed)*PI)*0.045
-		if action in ["light","heavy"] and side==-1:
-			var step := smoothstep(0.03,0.18,elapsed)*(1-smoothstep(0.42,0.66 if action=="light" else 0.92,elapsed))
-			target.z -= step*(0.10 if action=="light" else 0.06)
-			if action=="heavy": target.x -= step*0.07
+		if action=="light" and side==-1:
+			var step := smoothstep(0.03,0.18,elapsed)*(1-smoothstep(0.42,0.66,elapsed))
+			target.z -= step*0.10
 			var swing := smoothstep(0.03,0.18,elapsed)
 			target.y += sin(swing*PI)*0.065
+		if action=="heavy":
+			# Stagger opening and closing steps: one foot supports each transfer.
+			var opening := smoothstep(0.06 if side==-1 else 0.0,0.18 if side==-1 else 0.06,elapsed)
+			var closing := smoothstep(0.70 if side==-1 else 0.81,0.81 if side==-1 else 0.92,elapsed)
+			var support := opening*(1-closing)
+			target.x += side*(0.12 if side==-1 else 0.10)*support
+			if side==-1: target.z -= 0.06*support
+			target.y += sin(opening*PI)*0.055+sin(closing*PI)*0.045
 		if walking:
 			var direction := Vector3(travel.x,0,travel.z).normalized()
 			if direction.length_squared()<0.001: direction = Vector3.FORWARD

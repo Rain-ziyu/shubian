@@ -43,7 +43,7 @@ func run() -> void:
 			var expected: Vector3 = p.rig.pelvis.transform*Vector3(side*0.14,0,0)
 			check(leg.hip.position.distance_to(expected)<0.001,"hip socket follows actual rotating pelvis")
 			var sole: Vector3 = p.to_local(leg.ankle.to_global(Vector3(0,-0.1,0)))
-			var width_ok := sole.x>= -0.212 and sole.x<= -0.138 if side==-1 else absf(sole.x-0.14)<0.002
+			var width_ok := absf(sole.x-(-0.26 if side==-1 else 0.24))<0.002
 			check(absf(sole.y)<0.002 and width_ok,"sole preserves ground and authored support width while pelvis turns")
 		var belt: Node3D = p.rig.pelvis.get_node("Belt")
 		check(belt.global_basis.is_equal_approx(p.rig.pelvis.global_basis),"belt follows hip rotation")
@@ -56,6 +56,25 @@ func run() -> void:
 	check(loaded.z-p.rig.root.position.z>0.20,"heavy visibly transfers body mass from rear support toward forward support")
 	check(loaded.y<p.rig.root.position.y-0.08,"heavy extends out of the loaded crouch during release")
 	check(rear_knee>absf(p.rig.legs[1].knee.rotation.x)+0.08,"rear leg extends to drive the sweep")
+	var support_preserved := true
+	var no_penetration := true
+	var no_sliding := true
+	var planted := {}
+	for frame in 111:
+		p.combat.elapsed = minf(float(frame)/120,0.92)
+		p.animate(0,0)
+		var airborne := 0
+		for side in [-1,1]:
+			var sole: Vector3 = p.to_local(p.rig.legs[side].ankle.to_global(Vector3(0,-0.1,0)))
+			if sole.y>0.002: airborne += 1
+			no_penetration = no_penetration and sole.y>= -0.002
+			if p.combat.elapsed>=0.20 and p.combat.elapsed<=0.69:
+				if planted.has(side): no_sliding = no_sliding and sole.distance_to(planted[side])<0.002
+				else: planted[side] = sole
+		support_preserved = support_preserved and airborne<2
+	check(support_preserved,"heavy opening and closing steps retain at least one grounded support foot")
+	check(no_penetration,"heavy stepping soles do not pass below flat ground")
+	check(no_sliding,"both soles stay planted through the loaded sweep and follow-through")
 	p.combat.elapsed = 0.92
 	p.animate(0,0)
 	check(p.rig.pelvis.rotation.length()<0.001,"heavy recovery returns pelvis to neutral")
