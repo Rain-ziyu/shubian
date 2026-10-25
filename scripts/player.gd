@@ -79,13 +79,17 @@ func _ready() -> void:
 	mount = Node3D.new()
 	get_parent().add_child.call_deferred(mount)
 	var arm := SpringArm3D.new()
-	arm.spring_length = 5.8
+	arm.spring_length = 5.0
+	# Cast from the original central pivot, then counter-rotate the view so
+	# a small shoulder offset separates the shaft from the back silhouette.
+	arm.rotation.y = 0.20
 	arm.margin = 0.2
 	arm.collision_mask = 3
 	arm.add_excluded_object(get_rid())
 	mount.add_child(arm)
 	camera = Camera3D.new()
 	camera.fov = 68
+	camera.rotation.y = -0.20
 	camera.current = true
 	arm.add_child(camera)
 	combat.strike.connect(on_strike)
