@@ -46,6 +46,13 @@ func run() -> void:
 		check(leg.has_node("LegSurface") and leg.has_node("Claw0"),"curved limbs and toe claws exist")
 		if data.id=="reedclaw":
 			for instance in [model,saved]:
+				var points: PackedVector3Array = instance.get_node("BodySurface").mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+				var chest_width := 0.0
+				var waist_width := 0.0
+				for point in points:
+					if absf(point.z+float(data.size)*0.15)<0.001: chest_width = maxf(chest_width,absf(point.x))
+					if absf(point.z-float(data.size)*0.20)<0.001: waist_width = maxf(waist_width,absf(point.x))
+				check(chest_width>0.1 and waist_width/chest_width<0.8,"live and saved leaper has a tucked waist between chest and hips")
 				for side in [-1,1]:
 					var wrist: Node3D = instance.get_node("Forelimb"+str(side)+"/Wrist")
 					check(wrist.get_child_count()==4,"reedclaw has palm and three separated fingers")

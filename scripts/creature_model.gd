@@ -37,6 +37,10 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 		body_profile = [Vector4(-0.56,0.10,0.14,0.03),Vector4(-0.42,0.32,0.27,0.035),Vector4(-0.15,0.37,0.29,0.015),Vector4(0.20,0.28,0.22,0),Vector4(0.43,0.19,0.17,-0.025),Vector4(0.56,0.08,0.11,-0.025)]
 	elif data.id=="stormcrest":
 		body_profile = [Vector4(-0.56,0.10,0.15,0.04),Vector4(-0.42,0.30,0.30,0.035),Vector4(-0.15,0.37,0.32,0.025),Vector4(0.20,0.32,0.25,0),Vector4(0.43,0.23,0.18,-0.025),Vector4(0.56,0.08,0.11,-0.025)]
+	elif data.id=="reedclaw":
+		# Keep the shoulder and hip attachments, but tuck the abdomen between
+		# them: this fast leaper carries its mass in the hindquarters.
+		body_profile = [Vector4(-0.56,0.08,0.12,0.03),Vector4(-0.42,0.28,0.23,0.025),Vector4(-0.15,0.35,0.27,0),Vector4(0.20,0.24,0.19,0.055),Vector4(0.43,0.22,0.20,-0.025),Vector4(0.56,0.08,0.12,-0.025)]
 	var body := Surface.profile(root,"BodySurface",body_profile,s,c)
 	body.position.y = y
 	if data.id=="reedclaw":
@@ -56,6 +60,7 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 		body.mesh = colored
 	elif data.id=="mistfrill": body.scale = Vector3(0.85,0.90,1)
 	var neck := V.pivot(root,"Neck",Vector3(0,y,-s*0.40))
+	if data.id=="reedclaw": neck.scale = Vector3.ONE*0.88
 	var head_width := 0.78 if data.id in ["reedclaw","mistfrill"] else 1.0
 	Surface.profile(neck,"HeadSurface",[Vector4(-0.715,0.012*head_width,0.008,0.06),Vector4(-0.707,0.025*head_width,0.016,0.06),Vector4(-0.69,0.035*head_width,0.02,0.06),Vector4(-0.61,0.14*head_width,0.065,0.085),Vector4(-0.42,0.19*head_width,0.14,0.14),Vector4(-0.28,0.16*head_width,0.145,0.12),Vector4(-0.09,0.135,0.17,0.08),Vector4(0.12,0.10,0.15,0)],s,c.lightened(0.03))
 	Surface.profile(neck,"Jaw",[Vector4(-0.68,0.006*head_width,0.004,-0.04),Vector4(-0.66,0.035*head_width,0.015,-0.04),Vector4(-0.58,0.13*head_width,0.035,-0.05),Vector4(-0.30,0.145*head_width,0.055,-0.045),Vector4(-0.12,0.06,0.025,0.01)],s,c.darkened(0.16))

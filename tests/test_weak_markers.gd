@@ -38,6 +38,12 @@ func run() -> void:
 			m.CreatureModel.animate(m.mesh,m.data,0,"recover",0.5,0)
 			m.update_weak_markers()
 			check(m.weak_marker.global_position.y<before-0.05 and absf((m.weak_marker.global_position.y-before)-(body.global_position.y-body_before))<0.002,"surface marker follows the lowered recovery body")
+			var detector = preload("res://scripts/monster_projectile_contact.gd").new()
+			for marker in m.weak_markers:
+				var outward: Vector3 = (marker.global_position-body.global_position)*Vector3(1,0,1)
+				outward = outward.normalized()
+				var hit: Dictionary = detector.cast(m,marker.global_position+outward*0.4,marker.global_position-outward*0.5)
+				check(not hit.is_empty() and hit.part=="flank" and m.weak_part_active(hit.part),"visible recovery flank marker leads to a real open weak surface contact")
 		if m.data.id=="mossback":
 			var before: Vector3 = m.weak_marker.global_position
 			m.mesh.get_node("Tail").rotation.y += 0.8
