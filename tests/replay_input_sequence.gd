@@ -4,10 +4,16 @@ var held_movement := {}
 var input_commands := {}
 var key_events := 0
 var mouse_events := 0
+var reply_feedback_seen := false
+var flash_feedback_seen := false
 func setup() -> void:
 	await super.setup()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	fighter.camera_manual_time = 0
+	fighter.hit_confirmed.connect(func(action: String, _beat: int, _monster: Node, _result: Dictionary):
+		if action=="reply": reply_feedback_seen = reply_feedback_seen or "反击命中" in fighter.feedback.text
+		if action=="flash": flash_feedback_seen = flash_feedback_seen or ("闪刺命中" in fighter.feedback.text and ("%d/5" % fighter.combat.shadow_lifetimes.size()) in fighter.feedback.text)
+	)
 func key(code: Key, pressed: bool, combo := false) -> void:
 	var event := InputEventKey.new()
 	event.keycode = code
@@ -43,6 +49,7 @@ func finish_sequence() -> void:
 	for action in ["guard","reply","flash","fourfold","spin","plant","counter_window"]: covered = covered and input_commands.has(action)
 	var checks := sequence_checks()
 	checks["input_coverage"] = covered
+	checks["confirmed_followup_feedback"] = reply_feedback_seen and flash_feedback_seen
 	var passed := true
 	for value in checks.values(): passed = passed and value
 	var report := {"passed":passed,"checks":checks,"key_events":key_events,"mouse_events":mouse_events,"commands":input_commands,"contacts":hit_counts,"scope":"live single monster with state-aware controller; movement and attacks through Input.parse_input_event; no injected health shadows or confirmations; not OS or human difficulty acceptance"}

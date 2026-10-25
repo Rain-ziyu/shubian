@@ -61,6 +61,11 @@ func run() -> void:
 	c.elapsed = 0.43
 	ui.update_state(p,0)
 	check("第 2 段" in ui.action_phase.text,"multi-hit moves expose the actual current beat")
+	f.strike_outcome("flash",true,3)
+	check("闪刺命中" in f.text and "3/5" in f.text,"confirmed flash shows the actual shadow count")
+	f.action_changed("hurt")
+	f.strike_outcome("reply",false)
+	check("被打断" in f.text,"late outcome cannot overwrite an interruption")
 	ui.update_state(p,5)
 	check(not ui.action_event.visible and not ui.action_progress.visible,"victory clears active combat presentation")
 	check(ui.action_event.mouse_filter==Control.MOUSE_FILTER_IGNORE and ui.action_progress.mouse_filter==Control.MOUSE_FILTER_IGNORE,"new cues preserve combat input routing")

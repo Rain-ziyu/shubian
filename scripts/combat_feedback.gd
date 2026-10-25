@@ -31,6 +31,16 @@ func action_changed(next: String) -> void:
 			remaining = 0
 			priority = 0
 		show_event(NAMES.get(next,next)+"已发动")
+func strike_outcome(action: String, landed: bool, shadows := 0) -> void:
+	if landed:
+		if action=="reply": show_event("枪尾反击命中 · Ctrl+左键闪刺",Color("f3d58b"),0.8,2)
+		elif action=="flash": show_event("闪刺命中 · 枪影 %d/5" % shadows,Color("f3d58b"),0.9,2)
+	elif action in ["light","heavy","pull","turn","reply","flash"]:
+		var value: String = str(NAMES.get(action,action))+"落空"
+		if action=="reply": value += " · 未开启闪刺"
+		elif action=="flash": value += " · 未获得枪影"
+		show_event(value,Color("e7c88b"),0.8,2 if action in ["reply","flash"] else 1)
+
 func rejected(c, next: String) -> void:
 	var reason := "当前动作尚未收势"
 	if c.buffered==next: reason = "已预输入"+str(NAMES.get(next,next))+" · 等待衔接"

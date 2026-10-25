@@ -565,6 +565,8 @@ func update_weapon_contacts() -> void:
 		trail_epoch = motion_epoch
 	for window in strike_windows.duplicate():
 		if window.action!=combat.action or combat.elapsed>float(window.ends) or combat.health<=0:
+			if window.action==combat.action and combat.health>0 and combat.elapsed>float(window.ends) and window.victims.is_empty():
+				feedback.strike_outcome(window.action,false)
 			strike_windows.erase(window)
 			continue
 		var points := weapon_contact_points(window.action,window.beat)
@@ -591,6 +593,7 @@ func update_weapon_contacts() -> void:
 			var result: Dictionary = m.receive_strike(combat.damage(),global_position,window.action,contact.part,window.beat)
 			if result.hit:
 				combat.confirm_hit()
+				feedback.strike_outcome(window.action,true,combat.shadow_lifetimes.size())
 				show_hit_feedback(contact.point,result,window.action)
 				hit_confirmed.emit(window.action,window.beat,m,result)
 				message = ("弱点！ " if result.weak else "命中 ")+str(roundi(result.damage))+" · "+str(result.part)
