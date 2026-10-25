@@ -214,3 +214,9 @@ Shubian-plant-body-drive.mp4 是 4.10 秒固定帧率冻结 AI 动作研究，�
 - Added a smaller delayed tail counter-swing (25ms start, 90ms peak, 260ms fully settled), on top of the authored pose. Feet, AI clocks, damage and stagger rules are unchanged; stagger still owns its separate animation.
 - Native regression report regressions-20261025-181536-41637e: readability 39, committed lunge 54, creature surface 108, tail skin 97, lunge surface 5, parts 28, all passed (331 checks).
 - Normal-AI input replay passed with actual reply 3, flash 3, fourfold 4, spin 2 and finisher 2 contacts, HP 240, 14.97s. This state-aware controller is not human playfeel or difficulty acceptance. Render is a fixed pose fixture, not a full combat demonstration. Overall art and animation remain prototype quality.
+
+### Preserve loaded tail pitch through stagger (2026-10-26)
+- Baseline native full suite passed 81/81 on dd7adea (regressions-20261025-181720-0174a7). A separate reproduction then exposed an uncovered defect: reedclaw loses its loaded downward tail pitch on the first stagger frame because only tail yaw was captured.
+- Capture and blend the complete tail-root rotation, including pitch, into the existing 220ms stagger transition. Neutral recovery now clears all tail-root axes, so the cancelled leap does not resume. Existing tail-bone blending remains intact.
+- Added a full tail-root transform check across all five species: reproduction failed only reedclaw before the fix, then passed all species after it. Native focused suite passed 570 checks: stagger 82, ground 225, tail skin 97, launch 50, lunge pose 46, lunge surface 5, rear attack 65 (regressions-20261025-182138-d6a891).
+- Native scripted five-species stagger presentation completed without engine errors. This is scripted strike/physical-launch evidence, not human combat difficulty or final animation acceptance. The full 81-suite result precedes this patch; focused checks cover this patch.

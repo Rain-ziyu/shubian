@@ -39,6 +39,7 @@ func run() -> void:
 		m.rear_attack = m.data.has("rear_attack")
 		m.rear_cooldown = 2
 		m.mesh.get_node("Tail").rotation.y = -0.6
+		var tail_root_before: Transform3D = m.mesh.get_node("Tail").transform
 		var body: Transform3D = m.mesh.transform
 		var surface_pose: Transform3D = m.mesh.get_node("BodySurface").transform
 		var neck: Transform3D = m.mesh.get_node("Neck").transform
@@ -49,6 +50,7 @@ func run() -> void:
 		m.receive_strike(1,p.global_position,"reply","body")
 		var health: float = m.health
 		m._physics_process(1.0/60)
+		check(m.mesh.get_node("Tail").transform.is_equal_approx(tail_root_before),"stagger preserves full tail root pose: "+str(m.data.id))
 		if m.data.pattern=="mist":
 			var sac: MeshInstance3D = m.mesh.get_node("Neck/MistSac1")
 			check(sac.scale.is_equal_approx(sac.get_meta("rest_scale")),"interrupting mist abandons the inflated pressure cue")

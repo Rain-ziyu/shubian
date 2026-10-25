@@ -310,6 +310,7 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 		neck.rotation = pose_override.get("neck_rotation",neck.rotation)
 		neck.get_node("Jaw").rotation = pose_override.get("jaw_rotation",neck.get_node("Jaw").rotation)
 		tail.rotation.y = float(pose_override.get("tail_y",tail.rotation.y))
+		tail.rotation = pose_override.get("tail_rotation",tail.rotation)
 	# Additive recoil never pauses AI. Stagger owns its captured-pose transition.
 	var impact_age: float = root.get_meta("impact_age",0.26)
 	if impact_age<0.26 and phase!="stagger":
