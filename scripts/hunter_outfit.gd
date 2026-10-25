@@ -167,22 +167,32 @@ static func create(root: Node3D) -> Dictionary:
 	return {"skirts":skirts,"upper_parts":upper_parts,"shoulders":shoulders}
 
 static func create_head(root: Node3D, skin: Color) -> void:
+	var first_part := root.get_child_count()
 	loft(root,"Head",[
-		Vector4(1.535,0.055,0.055,-0.008),Vector4(1.57,0.085,0.073,-0.012),Vector4(1.62,0.108,0.097,-0.009),
-		Vector4(1.68,0.137,0.118,0),Vector4(1.73,0.137,0.118,0.004),Vector4(1.79,0.13,0.117,0.012),
+		Vector4(1.535,0.055,0.055,-0.008),Vector4(1.55,0.069,0.064,-0.012),Vector4(1.57,0.085,0.073,-0.012),Vector4(1.60,0.099,0.088,-0.01),Vector4(1.62,0.108,0.097,-0.009),
+		Vector4(1.65,0.127,0.110,-0.003),Vector4(1.68,0.137,0.118,0),Vector4(1.705,0.139,0.119,0.002),Vector4(1.73,0.137,0.118,0.004),Vector4(1.76,0.135,0.119,0.008),Vector4(1.79,0.13,0.117,0.012),
 		Vector4(1.85,0.105,0.093,0.015),Vector4(1.88,0.04,0.04,0.015)
 	],skin,0,TAU,32)
 	for side in [-1,1]:
 		blob(root,"Ear"+str(side),Vector3(side*0.138,1.685,0.005),Vector3(0.045,0.078,0.035),skin.darkened(0.04))
-		blob(root,"EyeWhite"+str(side),Vector3(side*0.056,1.712,-0.109),Vector3(0.044,0.018,0.012),Color("c4c1ac"))
-		blob(root,"Iris"+str(side),Vector3(side*0.056,1.713,-0.117),Vector3(0.015,0.016,0.008),Color("332d24"))
-		blob(root,"EyeGlint"+str(side),Vector3(side*0.053,1.716,-0.122),Vector3(0.004,0.004,0.003),Color("ddd7bd"))
-		ribbon(root,"Brow"+str(side),[Vector3(side*0.025,1.744,-0.115),Vector3(side*0.056,1.75,-0.114),Vector3(side*0.086,1.74,-0.101)],0.009,Color("312d27"))
-	patch(root,"NoseLeft",[Vector3(-0.017,1.722,-0.12),Vector3(0,1.672,-0.143),Vector3(-0.019,1.658,-0.125)],skin.darkened(0.04))
-	patch(root,"NoseRight",[Vector3(0.017,1.722,-0.12),Vector3(0.019,1.658,-0.125),Vector3(0,1.672,-0.143)],skin.lightened(0.02))
-	ribbon(root,"UpperLip",[Vector3(-0.029,1.633,-0.111),Vector3(0,1.637,-0.12),Vector3(0.029,1.633,-0.111)],0.009,Color("845e50"))
-	ribbon(root,"LowerLip",[Vector3(-0.025,1.629,-0.112),Vector3(0,1.625,-0.12),Vector3(0.025,1.629,-0.112)],0.009,Color("a77c66"))
+		blob(root,"EyeWhite"+str(side),Vector3(side*0.056,1.712,-0.106),Vector3(0.042,0.014,0.008),Color("c4c1ac"))
+		blob(root,"Iris"+str(side),Vector3(side*0.056,1.713,-0.111),Vector3(0.013,0.013,0.004),Color("332d24"))
+		blob(root,"EyeGlint"+str(side),Vector3(side*0.053,1.716,-0.114),Vector3(0.003,0.003,0.002),Color("ddd7bd"))
+		ribbon(root,"UpperLid"+str(side),[Vector3(side*0.033,1.713,-0.109),Vector3(side*0.056,1.720,-0.112),Vector3(side*0.079,1.714,-0.099)],0.0035,skin.darkened(0.18))
+		ribbon(root,"LowerLid"+str(side),[Vector3(side*0.034,1.709,-0.109),Vector3(side*0.056,1.705,-0.112),Vector3(side*0.076,1.709,-0.102)],0.0025,skin.darkened(0.06))
+		ribbon(root,"Brow"+str(side),[Vector3(side*0.025,1.744,-0.115),Vector3(side*0.056,1.75,-0.114),Vector3(side*0.086,1.74,-0.101)],0.006,Color("3c342b"))
+	loft(root,"NoseBridge",[Vector4(1.655,0.012,0.009,-0.126),Vector4(1.669,0.019,0.016,-0.135),Vector4(1.686,0.014,0.015,-0.129),Vector4(1.720,0.009,0.010,-0.119),Vector4(1.732,0.004,0.004,-0.118)],skin,0,TAU,20)
+	blob(root,"UpperLip",Vector3(0,1.634,-0.1085),Vector3(0.055,0.006,0.008),Color("9a7262"))
+	blob(root,"LowerLip",Vector3(0,1.6285,-0.1085),Vector3(0.050,0.006,0.008),Color("b28a74"))
 	create_hair(root)
+	# Adult ranger proportions: reduce the head assembly around the neck joint,
+	# preserving the face/hair registration and leaving the collar anchor intact.
+	var scale := 0.86
+	var pivot := Vector3(0,1.535,0)
+	var proportion := Transform3D(Basis.from_scale(Vector3.ONE*scale),pivot*(1-scale))
+	for index in range(first_part,root.get_child_count()):
+		var part := root.get_child(index) as Node3D
+		part.transform = proportion*part.transform
 
 static func create_hair(root: Node3D) -> void:
 	var st := SurfaceTool.new()

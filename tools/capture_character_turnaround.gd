@@ -65,6 +65,26 @@ func run() -> void:
 	await RenderingServer.frame_post_draw
 	var error := root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-character-turnaround.png"))
 	print("CHARACTER_TURNAROUND: ",error)
+	if "--head" in OS.get_cmdline_user_args():
+		layer.hide()
+		for index in [1,2]: holders[index].hide()
+		holders[0].get_node("HunterRig/Trident").hide()
+		root.size = Vector2i(768,768)
+		root.content_scale_size = Vector2i(768,768)
+		camera.position = Vector3(1.35,1.67,-1)
+		camera.look_at(Vector3(1.35,1.67,0))
+		camera.fov = 35
+		var sheet := Image.create(2304,768,false,Image.FORMAT_RGB8)
+		for index in 3:
+			holders[0].get_node("HunterRig").rotation.y = [0.0,0.65,PI/2][index]
+			for frame in 3: await process_frame
+			await RenderingServer.frame_post_draw
+			var frame := root.get_texture().get_image()
+			frame.convert(Image.FORMAT_RGB8)
+			sheet.blit_rect(frame,Rect2i(0,0,768,768),Vector2i(index*768,0))
+		var result := sheet.save_png(ProjectSettings.globalize_path("res://../Shubian-ranger-head-study.png"))
+		print("CHARACTER_HEAD_CAPTURE: ",result)
+		if result!=OK: error = result
 	if "--details" in OS.get_cmdline_user_args():
 		layer.visible = false
 		for index in [1,2]: holders[index].hide()
