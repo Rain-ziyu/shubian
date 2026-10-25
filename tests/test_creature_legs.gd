@@ -8,6 +8,13 @@ func check(ok: bool, label: String) -> void:
 		failures += 1
 		printerr("FAIL: ",label)
 func _initialize() -> void: call_deferred("run")
+func skinned_point(skeleton: Skeleton3D, arrays: Array, index: int) -> Vector3:
+	var result := Vector3.ZERO
+	for slot in 4:
+		var bone: int = arrays[Mesh.ARRAY_BONES][index*4+slot]
+		var weight: float = arrays[Mesh.ARRAY_WEIGHTS][index*4+slot]
+		result += skeleton.get_bone_global_pose(bone)*skeleton.get_bone_global_rest(bone).affine_inverse()*arrays[Mesh.ARRAY_VERTEX][index]*weight
+	return skeleton.to_global(result)
 func run() -> void:
 	var holder := Node3D.new()
 	root.add_child(holder)
@@ -19,10 +26,10 @@ func run() -> void:
 		for side in [-1,1]:
 			var saved_leg: Node3D = saved.get_node("Hind"+str(side))
 			var skeleton := saved_leg.get_node_or_null("LegSkeleton") as Skeleton3D
-			check(skeleton!=null and skeleton.get_bone_count()==3,"saved model retains leg bones")
+			check(skeleton!=null and skeleton.get_bone_count()==4,"saved model retains leg bones")
 			if skeleton:
 				var foot: MeshInstance3D = skeleton.get_node("Skin_Foot")
-				check(foot.skin!=null and foot.skin.get_bind_count()==3 and foot.skeleton==NodePath(".."),"saved model retains ankle skin")
+				check(foot.skin!=null and foot.skin.get_bind_count()==4 and foot.skeleton==NodePath(".."),"saved model retains ankle skin")
 		for gait in [0.0,PI/2,PI,PI*1.5]:
 			for frame in 30: Model.animate(model,species,gait,"idle",0,4)
 			check(model.position.y> -0.25,"body height does not accumulate over frames")
@@ -51,14 +58,29 @@ func run() -> void:
 			var leg := model.get_node_or_null(leg_name) as Node3D
 			if not leg: continue
 			var skeleton: Skeleton3D = leg.get_node("LegSkeleton")
-			check(skeleton.get_bone_count()==3 and skeleton.get_bone_parent(2)==1,"hip knee ankle chain exists")
+			check(skeleton.get_bone_count()==4 and skeleton.get_bone_parent(2)==1,"hip knee ankle chain exists")
 			var rendered: MeshInstance3D = skeleton.get_node("Skin_LegSurface")
 			var arrays := rendered.mesh.surface_get_arrays(0)
 			var weights: PackedFloat32Array = arrays[Mesh.ARRAY_WEIGHTS]
 			var normalized := true
-			for i in range(0,weights.size(),4): normalized = normalized and absf(weights[i]+weights[i+1]-1)<0.0001
+			for i in range(0,weights.size(),4): normalized = normalized and absf(weights[i]+weights[i+1]+weights[i+2]+weights[i+3]-1)<0.0001
 			check(normalized and not leg.get_node("LegSurface").visible and rendered.visible,"leg uses normalized blended skin")
 			check(skeleton.has_node("Skin_Foot") and skeleton.has_node("Skin_Claw0"),"foot and claws are attached to ankle skin")
+			var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+			var top := 0
+			for index in vertices.size():
+				if vertices[index].y>vertices[top].y: top = index
+			check(weights[top*4+2]>0.999 and arrays[Mesh.ARRAY_BONES][top*4+2]==3,"upper thigh is anchored to pelvis")
+			Model.animate(model,species,0,"idle",0,0)
+			var body: MeshInstance3D = model.get_node("BodySurface")
+			var attachment := body.to_local(skinned_point(skeleton,arrays,top))
+			check(body.mesh.get_aabb().has_point(attachment),"attachment tip is buried inside torso bounds")
+			var stable := true
+			for phase in ["idle","windup","active","recover"]:
+				for frame in 20:
+					Model.animate(model,species,float(frame)*0.4,phase,float(frame)*0.03,5)
+					stable = stable and body.to_local(skinned_point(skeleton,arrays,top)).distance_to(attachment)<0.002
+			check(stable,"actual weighted attachment follows torso throughout gait and attack poses")
 	print("CREATURE_LEG_CHECKS: ",checks," FAILURES: ",failures)
 	holder.queue_free()
 	await process_frame

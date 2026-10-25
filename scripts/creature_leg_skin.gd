@@ -1,4 +1,23 @@
 extends RefCounted
+static func shape_attachment(surface: MeshInstance3D, size: float, side: int) -> void:
+	var arrays: Array = surface.mesh.surface_get_arrays(0)
+	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var vertex_normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+	# Sweep the upper thigh into the flank rather than ending in a separate dome.
+	for i in vertices.size():
+		var point := surface.transform*vertices[i]
+		var t := clampf((point.y+size*0.10)/(size*0.29),0,1)
+		var normal := surface.basis*vertex_normals[i]
+		normal.y += side*size*0.20*6*t*(1-t)/(size*0.29)*normal.x
+		vertex_normals[i] = (surface.basis.inverse()*normal).normalized()
+		point.x -= side*size*0.20*smoothstep(-size*0.10,size*0.19,point.y)
+		vertices[i] = surface.transform.affine_inverse()*point
+	arrays[Mesh.ARRAY_VERTEX] = vertices
+	arrays[Mesh.ARRAY_NORMAL] = vertex_normals
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+	surface.mesh = mesh
+
 static func bind(leg: Node3D, size: float) -> void:
 	var foot: MeshInstance3D = leg.get_node("Foot")
 	var ankle := Vector3(0,foot.position.y,0)
@@ -15,6 +34,10 @@ static func bind(leg: Node3D, size: float) -> void:
 		skeleton.set_bone_rest(i,Transform3D(Basis.IDENTITY,local))
 		skeleton.set_bone_pose_position(i,local)
 		skin.add_bind(i,Transform3D(Basis.IDENTITY,rests[i]).affine_inverse())
+	# Independent torso anchor keeps the buried attachment from rotating out
+	# of the body when the thigh swings. Hip/Knee/Ankle remain the IK chain.
+	skeleton.add_bone("Pelvis")
+	skin.add_bind(3,Transform3D.IDENTITY)
 	for source in leg.get_children():
 		if not source is MeshInstance3D: continue
 		var arrays: Array = source.mesh.surface_get_arrays(0)
@@ -34,8 +57,9 @@ static func bind(leg: Node3D, size: float) -> void:
 				first = 2
 				second = 2
 				fraction = 0
-			bones.append_array(PackedInt32Array([first,second,0,0]))
-			weights.append_array(PackedFloat32Array([1-fraction,fraction,0,0]))
+			var anchor := smoothstep(-size*0.16,size*0.08,vertices[i].y) if source.name=="LegSurface" else 0.0
+			bones.append_array(PackedInt32Array([first,second,3,0]))
+			weights.append_array(PackedFloat32Array([(1-fraction)*(1-anchor),fraction*(1-anchor),anchor,0]))
 		arrays[Mesh.ARRAY_VERTEX] = vertices
 		arrays[Mesh.ARRAY_NORMAL] = normals
 		arrays[Mesh.ARRAY_BONES] = bones
@@ -66,4 +90,10 @@ static func pose(leg: Node3D, target: Vector3, foot_basis: Basis = Basis.IDENTIT
 	skeleton.set_bone_pose_rotation(0,hip_rotation)
 	skeleton.set_bone_pose_rotation(1,hip_rotation.inverse()*shin_rotation)
 	skeleton.set_bone_pose_rotation(2,shin_rotation.inverse()*foot_basis.get_rotation_quaternion())
+	var body: Node3D = leg.get_parent().get_node("BodySurface")
+	var rest := Transform3D(Basis.from_scale(body.scale),body.position)
+	var torso_delta := body.transform*rest.affine_inverse()
+	var anchor := leg.transform.affine_inverse()*torso_delta*leg.transform
+	skeleton.set_bone_pose_position(3,anchor.origin)
+	skeleton.set_bone_pose_rotation(3,anchor.basis.get_rotation_quaternion())
 	skeleton.force_update_all_bone_transforms()
