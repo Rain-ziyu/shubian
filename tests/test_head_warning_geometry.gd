@@ -18,7 +18,7 @@ func run() -> void:
 	for foe in get_nodes_in_group("monsters"): foe.set_physics_process(false)
 	await process_frame
 	await process_frame
-	await RenderingServer.frame_post_draw
+	if DisplayServer.get_name()!="headless": await RenderingServer.frame_post_draw
 	var actor = get_nodes_in_group("monsters")[0]
 	var hull: PackedVector2Array = actor.head_warning_hull
 	for pose in [Vector3(0,0,0),Vector3(-18,0,0.7),Vector3(41,0,-0.6)]:
@@ -51,7 +51,7 @@ func run() -> void:
 	world.queue_free()
 	await process_frame
 	await process_frame
-	await RenderingServer.frame_post_draw
+	if DisplayServer.get_name()!="headless": await RenderingServer.frame_post_draw
 	quit(1 if failures else 0)
 
 static func reference_build(actor: Node3D, hull: PackedVector2Array) -> ArrayMesh:

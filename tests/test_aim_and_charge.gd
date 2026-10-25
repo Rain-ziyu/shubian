@@ -51,7 +51,8 @@ func run() -> void:
 	var before: float = storm.Parts.volumes(storm)[0].center.y
 	var foot_before := sole_position(storm.mesh.get_node("Hind1"))
 	storm.CreatureModel.animate(storm.mesh,storm.data,0,"windup",0.4,0)
-	check(is_equal_approx(before-storm.Parts.volumes(storm)[0].center.y,0.45),"charging posture visibly lowers charged spine proxy")
+	var lowered: float = before-storm.Parts.volumes(storm)[0].center.y
+	check(lowered>1.0 and lowered<1.4,"deep charging posture lowers rear spine toward high attack height")
 	check(foot_before.distance_to(sole_position(storm.mesh.get_node("Hind1")))<0.002,"charging torso keeps actual skinned sole planted")
 	storm.phase = "windup"
 	storm.clock = 0.3

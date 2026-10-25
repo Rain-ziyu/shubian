@@ -36,6 +36,7 @@ var lock_target: Node3D
 var message := "观察金色预警后躲避或格挡。"
 var ghosts: Array[Node3D] = []
 var projectile: Projectile
+var throw_recalled := false
 var pose_action := ""
 var pose_from := Transform3D.IDENTITY
 var pose_blend := 1.0
@@ -186,6 +187,7 @@ func combat_forward() -> Vector3:
 	return global_basis*Vector3.FORWARD.rotated(Vector3.UP,rig.root.rotation.y-body_turn_applied)
 
 func on_action_changed(next: String) -> void:
+	if next=="throw": throw_recalled = false
 	feedback.action_changed(next)
 	clear_body_turn()
 	if next!="idle": heavy_held = -1
@@ -418,7 +420,7 @@ func animate(delta: float, speed: float) -> void:
 				w.rotation.y = path.w
 				w.rotation.x += clampf(pitch+0.25,-0.4,0.85)*smoothstep(0.20,0.38,t)
 				w.rotation.z *= 1-smoothstep(0.20,0.38,t)
-				w.visible = t<0.38
+				w.visible = t<0.38 or throw_recalled
 	if delta>0:
 		pose_blend = minf(1,pose_blend+delta/pose_duration)
 		var goal := w.transform
@@ -440,6 +442,9 @@ func animate(delta: float, speed: float) -> void:
 	var release := smoothstep(0.28,0.38,combat.elapsed) if combat.action=="throw" else 0.0
 	if is_instance_valid(projectile): release = 1.0
 	var arm_release := smoothstep(0.38,0.60,combat.elapsed) if combat.action=="throw" else (1.0 if is_instance_valid(projectile) else 0.0)
+	if combat.action=="throw" and throw_recalled:
+		release = 0.0
+		arm_release = 0.0
 	HunterModel.pose_arms(rig,combat.drawn or equipment_grip>0 or equipment_main>0,walk_clock,equipment_grip*(1-arm_release),equipment_main*(1-arm_release),release)
 
 func arrival_pose_weight() -> float:
@@ -588,12 +593,22 @@ func update_weapon_contacts() -> void:
 
 func finish_throw(point: Vector3, allow_arrival := true) -> void:
 	projectile = null
+	throw_recalled = true
 	if not allow_arrival or combat.health<=0 or combat.action=="hurt":
 		message = "投掷被打断，武器收回"
 		return
 	var motion := Vector3(point.x-global_position.x,0,point.z-global_position.z)
+	# The projectile reserves space before its impact. At point-blank range that
+	# offset can fall behind the caster; return the weapon instead of a tiny blink.
+	if motion.length()<0.5:
+		message = "落点过近，武器收回"
+		return
 	var collision := move_and_collide(motion,true)
-	if collision: motion = collision.get_travel()*0.90
+	if collision:
+		motion = collision.get_travel()*0.90
+		if motion.length()<0.5:
+			message = "落点受阻，武器收回"
+			return
 	var candidate := global_position+motion
 	# Search below the projectile, so overhead terrain cannot become an arrival floor.
 	var probe_start := Vector3(candidate.x,point.y+0.1,candidate.z)
