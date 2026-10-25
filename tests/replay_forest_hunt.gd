@@ -16,6 +16,9 @@ var distance_walked := 0.0
 var previous := Vector3.ZERO
 var previous_health := 240.0
 var damage_events: Array[Dictionary] = []
+var recent_control: Array[Dictionary] = []
+var recent_dodges: Array[Dictionary] = []
+var sample_frame := 0
 func _initialize() -> void: call_deferred("setup")
 func setup() -> void:
 	if "--capture-victory" in OS.get_cmdline_user_args():
@@ -57,12 +60,19 @@ func control() -> void:
 	previous = fighter.position
 	for action in ["move_left","move_right","move_forward","move_back","sprint"]: Input.action_release(action)
 	var c = fighter.combat
+	sample_frame += 1
+	if sample_frame%6==0:
+		var sample := {"time":snappedf(elapsed,0.01),"action":c.action,"action_time":snappedf(c.elapsed,0.01),"stamina":snappedf(c.stamina,0.1)}
+		if is_instance_valid(monster):
+			sample.merge({"species":monster.data.id,"phase":monster.phase,"phase_time":snappedf(monster.clock,0.01),"range":snappedf(fighter.position.distance_to(monster.position),0.01)})
+		recent_control.append(sample)
+		if recent_control.size()>12: recent_control.pop_front()
 	if c.health<previous_health:
 		var enemies: Array[Dictionary] = []
 		for candidate in get_nodes_in_group("monsters"):
 			if candidate.health>0 and fighter.position.distance_to(candidate.position)<22:
 				enemies.append({"species":candidate.data.id,"phase":candidate.phase,"clock":candidate.clock,"range":fighter.position.distance_to(candidate.position)})
-		var event := {"time":snappedf(elapsed,0.01),"health":c.health,"action":c.action,"position":fighter.position,"enemies":enemies}
+		var event := {"time":snappedf(elapsed,0.01),"health":c.health,"action":c.action,"position":fighter.position,"enemies":enemies,"recent_control":recent_control.duplicate(true),"recent_dodges":recent_dodges.duplicate(true)}
 		damage_events.append(event)
 		print("FOREST_HUNT_DAMAGE: ",JSON.stringify(event))
 	previous_health = c.health
@@ -112,6 +122,9 @@ func control() -> void:
 		if c.guard_reward>0: next = "reply"
 		elif c.flash_window>0: next = "flash"
 		elif not c.shadow_lifetimes.is_empty() and monster.phase=="recover" and away.length()<3.5: next = "spin"
+		# Repeated leaps outspend active regeneration. Leave a real idle recovery
+		# interval instead of committing every opening and requesting unaffordable dodges.
+		if monster.phase in ["recover","idle"] and c.stamina<56: next = ""
 	elif pattern in ["mist","pulse"]:
 		var desired := 3.1
 		move = -radial if away.length()>desired+0.1 else (radial if away.length()<desired-0.1 else Vector3.ZERO)
@@ -161,7 +174,12 @@ func control() -> void:
 		return
 	if c.action!="idle" and (c.action in ["hurt","dodge"] or c.elapsed<float(c.MOVES[c.action].chain)): return
 	if next=="attack": next = "light" if last_attack=="heavy" else "heavy"
-	if next!="" and c.request(next) and next in ["light","heavy"]: last_attack = next
+	if next!="":
+		var accepted: bool = c.request(next)
+		if next=="dodge":
+			recent_dodges.append({"time":snappedf(elapsed,0.01),"accepted":accepted,"action":c.action,"action_time":snappedf(c.elapsed,0.01),"stamina":snappedf(c.stamina,0.1)})
+			if recent_dodges.size()>16: recent_dodges.pop_front()
+		if accepted and next in ["light","heavy"]: last_attack = next
 func finish() -> void:
 	finished = true
 	for action in ["move_left","move_right","move_forward","move_back","sprint"]: Input.action_release(action)
