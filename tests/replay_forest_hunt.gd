@@ -60,6 +60,8 @@ func control() -> void:
 	previous = fighter.position
 	for action in ["move_left","move_right","move_forward","move_back","sprint"]: Input.action_release(action)
 	var c = fighter.combat
+	if control_sample_frame>0 and control_sample_frame%3600==0 and is_instance_valid(monster):
+		print("FOREST_HUNT_PROGRESS: ",JSON.stringify({"time":snappedf(elapsed,0.01),"species":monster.data.id,"phase":monster.phase,"clock":monster.clock,"monster_health":monster.health,"player_position":str(fighter.global_position),"monster_position":str(monster.global_position),"monster_velocity":str(monster.velocity),"route_points":monster.route.size()}))
 	control_sample_frame += 1
 	if control_sample_frame%6==0:
 		var sample := {"time":snappedf(elapsed,0.01),"action":c.action,"action_time":snappedf(c.elapsed,0.01),"stamina":snappedf(c.stamina,0.1)}

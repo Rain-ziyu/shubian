@@ -75,6 +75,17 @@ func _ready() -> void:
 	collider.shape = shape
 	collider.position.y = shape.height/2
 	add_child(collider)
+	# The trunk is longer than its central capsule: close the front/rear gaps
+	# without expanding its full width into empty space beside shoulders/hips.
+	for end in [-1,1]:
+		var trunk_collider := CollisionShape3D.new()
+		trunk_collider.name = "TrunkBlockerFront" if end<0 else "TrunkBlockerRear"
+		var trunk_shape := CapsuleShape3D.new()
+		trunk_shape.radius = float(data.size)*(0.20 if end<0 else 0.22)
+		trunk_shape.height = shape.height
+		trunk_collider.shape = trunk_shape
+		trunk_collider.position = Vector3(0,shape.height/2,end*float(data.size)*(0.28 if end<0 else 0.32))
+		add_child(trunk_collider)
 	mesh = CreatureModel.create(self,data)
 	if data.pattern in ["charge","leap"]: lunge_contact.configure(self)
 	tail_rings = TailContact.profile(mesh.get_node("Tail/TailSurface").mesh)
@@ -281,7 +292,7 @@ func advance_physics(delta: float) -> void:
 		if distance < 20 and target.combat.health > 0:
 			if distance > float(data.reach)*0.82 or not clear_line_to(target.global_position):
 				if route_time<=0:
-					route = get_parent().navigation.path(global_position,target.global_position,float(data.size)*0.34)
+					route = get_parent().navigation.path(global_position,target.global_position,float(data.size)*0.54)
 					route_time = 0.6
 				while not route.is_empty() and Vector2(route[0].x-global_position.x,route[0].z-global_position.z).length()<0.75: route.remove_at(0)
 				var chase := Vector3.ZERO

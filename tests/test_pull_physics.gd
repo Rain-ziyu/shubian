@@ -23,7 +23,8 @@ func run() -> void:
 	var travels: Array[float] = []
 	for blocked in [false,true]:
 		if blocked: world.obstacle(Vector3(0,2,-10.2),Vector3(8,4,0.2),Color.GRAY)
-		m.global_position = Vector3(0,0.05,-12)
+		# Begin clear of the wall with the complete elongated trunk footprint.
+		m.global_position = Vector3(0,0.05,-12.5)
 		m.velocity = Vector3.ZERO
 		m.stagger = 0
 		await physics_frame
@@ -36,7 +37,7 @@ func run() -> void:
 		travels.append(m.global_position.z-before.z)
 		check(m.global_position.distance_to(p.global_position)<before.distance_to(p.global_position),"pull causes real movement toward hunter")
 		check(absf(m.global_position.y-before.y)<0.1,"flat-ground pull does not launch creature")
-		if blocked: check(m.global_position.z<=-10.3-float(m.data.size)*0.34+0.02,"pulled capsule stops before wall")
+		if blocked: check(m.global_position.z<=-10.3-float(m.data.size)*0.48+0.02,"pulled front trunk stops before wall")
 	check(travels[0]>0.5 and travels[1]<travels[0]-0.1,"wall reduces real pull displacement")
 	print("PULL_PHYSICS_CHECKS: ",checks," FAILURES: ",failures," TRAVEL: ",travels)
 	world.queue_free()

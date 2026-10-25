@@ -10,7 +10,7 @@ $controller = Join-Path $projectPath 'tests/replay_forest_hunt.gd'
 $engineLog = Join-Path $reportPath 'engine.log'
 $lines = @(& $GodotPath --headless --path $projectPath --fixed-fps 60 --script $controller --log-file $engineLog --quit-after 40000 2>&1 | ForEach-Object {
     $line = "$_"
-    if ($line -match '^FOREST_HUNT_TARGET:|^FOREST_HUNT_DAMAGE:') { Write-Host $line }
+    if ($line -match '^FOREST_HUNT_TARGET:|^FOREST_HUNT_DAMAGE:|^FOREST_HUNT_PROGRESS:') { Write-Host $line }
     $line
 })
 $code = $LASTEXITCODE

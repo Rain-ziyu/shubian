@@ -118,7 +118,7 @@ func _ready() -> void:
 	# All static obstacles now exist. Build the shared clearance grids before
 	# gameplay, so entering a new species' aggro radius cannot build one mid-frame.
 	navigation.grid_for(0.5)
-	for species in database.species: navigation.grid_for(float(species.size)*0.34)
+	for species in database.species: navigation.grid_for(float(species.size)*0.54)
 	for i in database.species.size():
 		var monster := Monster.new()
 		monster.data = database.species[i]
