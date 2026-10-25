@@ -48,6 +48,9 @@ func run() -> void:
 	check(loaded_root-p.rig.root.position.z>0.18,"reply transfers whole-body weight from load to extension")
 	check(loaded_butt.z-p.rig.weapon.get_node("ButtContact").global_position.z>0.29,"reply sends actual butt contact forward with the body")
 	check(absf(p.rig.legs[1].ankle.global_position.y-p.global_position.y-0.1)<0.002,"rear support foot stays grounded during reply")
+	p.combat.elapsed = 0.67
+	p.animate(0,0)
+	check(p.rig.root.transform.is_equal_approx(braced_body) and p.rig.torso.transform.is_equal_approx(braced_chest),"reply recovery returns both body and chest to the braced pose")
 	p.combat.set_action("heavy")
 	p.combat.elapsed = 0.18
 	p.animate(0,0)
