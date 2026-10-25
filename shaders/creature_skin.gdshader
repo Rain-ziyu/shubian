@@ -32,8 +32,13 @@ void fragment() {
 	float footprint = max(length(dFdx(scales)),length(dFdy(scales)));
 	float detail = 1.0-smoothstep(0.3,0.9,footprint);
 	scales.x += mod(floor(scales.y),2.0)*0.5;
-	float plate = 1.0-smoothstep(0.26,0.49,length((fract(scales)-0.5)*vec2(1.0,1.2)));
-	float grain = (plate-0.5)*0.12*detail*end_fade;
+	vec2 scale_cell = floor(scales);
+	vec2 scale_center = vec2(hash(scale_cell),hash(scale_cell+vec2(19.7,7.3)));
+	vec2 scale_point = fract(scales)-0.5-(scale_center-0.5)*0.16;
+	float scale_size = mix(0.86,1.12,hash(scale_cell+vec2(3.1,41.7)));
+	float plate = 1.0-smoothstep(0.26,0.49,length(scale_point*vec2(1.0,1.2))/scale_size);
+	// Small irregular scales support the broad markings instead of reading as dots.
+	float grain = (plate-0.5)*0.07*detail*end_fade;
 	ALBEDO = COLOR.rgb*(1.0-pattern*pattern_strength*end_fade+grain);
 	ROUGHNESS = clamp(0.82+(1.0-plate)*0.10*detail,0.0,1.0);
 	SPECULAR = 0.25;
