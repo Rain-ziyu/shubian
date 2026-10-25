@@ -28,6 +28,9 @@ func setup() -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	world = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(world)
+	fighter = world.hunter
+	fighter.set_process_unhandled_input(false)
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	await physics_frame
 	await physics_frame
 	fighter = world.hunter
@@ -82,6 +85,7 @@ func control() -> void:
 			return
 		route_clock = 0
 		fighter.lock_target = monster
+		fighter.apply_look(Vector2(0,-(-0.25-fighter.pitch)/0.0025))
 		print("FOREST_HUNT_TARGET: ",monster.data.id," time=",elapsed," health=",c.health)
 	var away := fighter.position-monster.position
 	away.y = 0
@@ -109,7 +113,7 @@ func control() -> void:
 		elif c.flash_window>0: next = "flash"
 		elif not c.shadow_lifetimes.is_empty() and monster.phase=="recover" and away.length()<3.5: next = "spin"
 	elif pattern in ["mist","pulse"]:
-		var desired := 3.1 if pattern=="mist" else 1.85
+		var desired := 3.1
 		move = -radial if away.length()>desired+0.1 else (radial if away.length()<desired-0.1 else Vector3.ZERO)
 		if pattern=="mist":
 			fighter.lock_target = null
@@ -117,10 +121,18 @@ func control() -> void:
 			var aim := atan2(-head.x,-head.z)
 			fighter.apply_look(Vector2(-wrapf(aim-fighter.yaw,-PI,PI)/0.003,-(0.65-fighter.pitch)/0.0025))
 		else:
+			fighter.apply_look(Vector2(0,-(0.65-fighter.pitch)/0.0025))
 			var rear: Vector3 = monster.global_basis.z
 			move = monster.position+rear*desired-fighter.position
 			if radial.dot(rear)<0.3: move = radial.cross(Vector3.UP)+move.normalized()*0.3
 		if away.length()<3.6: next = "attack"
+		if pattern=="pulse" and radial.dot(monster.global_basis.z)<0.70: next = ""
+		if pattern=="pulse" and monster.phase=="windup":
+			# The pulse deals its first tick on spawn; reacting to the hazard is too late.
+			# Leave recovery time before the visible discharge, then use a normal dodge.
+			if monster.clock>float(monster.data.windup)-0.70: next = ""
+			if monster.clock>float(monster.data.windup)-0.18: next = "dodge"
+
 	else:
 		move = -radial if away.length()>2.7 else Vector3.ZERO
 		if c.guard_reward>0: next = "reply"
@@ -129,6 +141,8 @@ func control() -> void:
 		elif monster.phase in ["recover","idle"]: next = "spin" if not c.shadow_lifetimes.is_empty() else "attack"
 	var danger := false
 	for hazard in get_nodes_in_group("hazards"):
+		# Pulse ticks once on spawn; its remaining disc has no second damage tick.
+		if hazard.kind=="pulse" and hazard.clock>hazard.lifetime: continue
 		var offset: Vector3 = fighter.position-hazard.position
 		offset.y = 0
 		if offset.length()<hazard.radius+0.6:

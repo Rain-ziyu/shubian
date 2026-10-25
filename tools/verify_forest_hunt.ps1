@@ -7,7 +7,12 @@ New-Item -ItemType Directory -Path $reportPath -Force | Out-Null
 $revision = (git -C $projectPath rev-parse HEAD).Trim()
 $dirty = [bool](git -C $projectPath status --porcelain --untracked-files=no)
 $controller = Join-Path $projectPath 'tests/replay_forest_hunt.gd'
-$lines = @(& $GodotPath --headless --path $projectPath --fixed-fps 60 --script $controller --quit-after 40000 2>&1 | ForEach-Object { "$_" })
+$engineLog = Join-Path $reportPath 'engine.log'
+$lines = @(& $GodotPath --headless --path $projectPath --fixed-fps 60 --script $controller --log-file $engineLog --quit-after 40000 2>&1 | ForEach-Object {
+    $line = "$_"
+    if ($line -match '^FOREST_HUNT_TARGET:|^FOREST_HUNT_DAMAGE:') { Write-Host $line }
+    $line
+})
 $code = $LASTEXITCODE
 $lines | Set-Content -LiteralPath (Join-Path $reportPath 'run.log') -Encoding utf8
 $result = $null
