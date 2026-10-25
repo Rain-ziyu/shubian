@@ -45,17 +45,25 @@ func run() -> void:
 			matching = matching and cloned[i].get_bone_pose(bone).is_equal_approx(source_skeletons[i].get_bone_pose(bone))
 	check(matching,"snapshot preserves skeleton poses")
 	var visible_parts := 0
+	var visible_vertices := 0
 	for mesh in p.rig.root.find_children("*","MeshInstance3D",true,false):
-		if mesh.is_visible_in_tree(): visible_parts += 1
+		if mesh.is_visible_in_tree():
+			visible_parts += 1
+			for surface in mesh.mesh.get_surface_count(): visible_vertices += mesh.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX].size()
 	var lean_snapshot := true
+	print("GHOST_DRAW_PARTS: source=",visible_parts," snapshot=",effect.ghosts[0].find_children("*","MeshInstance3D",true,false).size())
 	for ghost in effect.ghosts:
 		var meshes: Array = ghost.find_children("*","MeshInstance3D",true,false)
-		lean_snapshot = lean_snapshot and meshes.size()==visible_parts
+		lean_snapshot = lean_snapshot and meshes.size()<visible_parts
+		var vertices := 0
+		for mesh in meshes:
+			for surface in mesh.mesh.get_surface_count(): vertices += mesh.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX].size()
+		lean_snapshot = lean_snapshot and vertices==visible_vertices
 		for mesh in meshes:
 			lean_snapshot = lean_snapshot and mesh.material_override==effect.material and mesh.material_overlay==null
 			for property in mesh.get_property_list():
 				if str(property.name).begins_with("instance_shader_parameters/"): lean_snapshot = false
-	check(lean_snapshot,"snapshots retain only visible geometry and no original instance-shader parameters")
+	check(lean_snapshot,"batched snapshots retain all visible vertices and no original instance-shader parameters")
 	check(p.combat.health==hp and p.combat.stamina==stamina,"presentation preserves combat resources")
 	var ready_height: float = p.rig.root.position.y
 	for tick in 3: p._physics_process(1.0/60)

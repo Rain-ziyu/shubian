@@ -102,6 +102,7 @@ func _ready() -> void:
 	animate(0,0)
 	pose_from = rig.weapon.transform
 	pose_blend = 1.0
+	TeleportFeedback.prepare(rig.root)
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey: virtual_keys.movement(event)
