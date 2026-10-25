@@ -81,6 +81,28 @@ static func profile(parent: Node3D, label: String, profiles: Array, scale: float
 	for ring: Vector4 in profiles: rings.append(ring*scale)
 	return surface(parent,label,rings,color,start,end,28,caps)
 
+static func seat_orbital_ridge(ridge: MeshInstance3D, skull: TriangleMesh, side: int, scale: float) -> void:
+	# Each longitudinal section follows its own skull cross-section; a single
+	# eye-center offset leaves the upper ridge floating above a curved cranium.
+	var arrays: Array = ridge.mesh.surface_get_arrays(0)
+	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var cache := {}
+	for index in vertices.size():
+		var point := ridge.transform*vertices[index]
+		var yz := Vector2(point.y,point.z)
+		if not cache.has(yz): cache[yz] = skull.intersect_segment(Vector3(side*2*scale,point.y,point.z),Vector3(0,point.y,point.z))
+		var contact: Dictionary = cache[yz]
+		if contact.is_empty(): continue
+		point.x = contact.position.x+vertices[index].x*0.70-side*0.006*scale
+		vertices[index] = ridge.transform.affine_inverse()*point
+	arrays[Mesh.ARRAY_VERTEX] = vertices
+	var projected := ArrayMesh.new()
+	projected.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+	var surface := SurfaceTool.new()
+	surface.create_from(projected,0)
+	surface.generate_normals()
+	ridge.mesh = surface.commit()
+
 static func vertical(parent: Node3D, label: String, profiles: Array, scale: float, color: Color) -> MeshInstance3D:
 	var rings := []
 	profiles = smooth_profiles(profiles)

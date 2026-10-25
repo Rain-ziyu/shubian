@@ -117,11 +117,10 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 		var pupil := V.piece(neck,Vector3(side*s*(eye_x+0.013),s*0.20,-s*0.436),Vector3(s*0.006,s*0.018,s*0.012),Color("1c2721"),true)
 		pupil.name = "Pupil"+str(side)
 		var brow := Surface.profile(neck,"EyeRidge"+str(side),[Vector4(-0.51,0.001,0.001,0.225),Vector4(-0.46,0.018,0.012,0.245),Vector4(-0.41,0.028,0.014,0.255),Vector4(-0.35,0.020,0.012,0.245),Vector4(-0.30,0.001,0.001,0.22)],s,c.darkened(0.14))
-		brow.position.x = side*s*0.15*head_width
-		brow.position.x = side*s*(eye_x-0.008)
 		if data.id=="reedclaw":
 			# Seat the ridge against the orbital roof instead of floating above it.
 			brow.position.y = -s*0.025
+		Surface.seat_orbital_ridge(brow,facial_surface,side,s)
 		for tooth in 5:
 			H.tapered(neck,Vector3(side*s*0.10*head_width,-s*0.005,s*(-0.56+tooth*0.045)),s*0.014,s*0.001,s*0.06,Color("c6c5aa"))
 			H.tapered(jaw,Vector3(side*s*0.095*head_width,s*(0.005 if data.id=="stormcrest" else -0.015),s*(-0.5375+tooth*0.045))-hinge,s*0.001,s*0.010,s*0.035,Color("b6b79d"))
