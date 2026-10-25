@@ -26,23 +26,44 @@ static func cylinder(parent: Node3D, label: String, y: float, radius: float, hei
 static func blade(parent: Node3D, label: String, outline: PackedVector2Array, appearance: Material) -> void:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var indices := Geometry2D.triangulate_polygon(outline)
+	st.set_smooth_group(-1)
+	var inset := PackedVector2Array()
+	var orientation := -1.0 if Geometry2D.is_polygon_clockwise(outline) else 1.0
+	for index in outline.size():
+		var incoming := (outline[index]-outline[posmod(index-1,outline.size())]).normalized()
+		var outgoing := (outline[(index+1)%outline.size()]-outline[index]).normalized()
+		var normal := Vector2(-incoming.y,incoming.x)*orientation
+		var next_normal := Vector2(-outgoing.y,outgoing.x)*orientation
+		var bisector := (normal+next_normal).normalized()
+		inset.append(outline[index]+bisector*minf(0.010,0.003/maxf(0.15,bisector.dot(normal))))
+	var indices := Geometry2D.triangulate_polygon(inset)
 	for side in [-1,1]:
 		for index in range(0,indices.size(),3):
 			var triangle := [indices[index],indices[index+1],indices[index+2]]
 			if side==1: triangle.reverse()
 			for vertex in triangle:
-				st.add_vertex(Vector3(outline[vertex].x,outline[vertex].y,side*0.012))
-	for index in outline.size():
-		var a := outline[index]
-		var b := outline[(index+1)%outline.size()]
-		for point in [Vector3(a.x,a.y,-0.012),Vector3(a.x,a.y,0.012),Vector3(b.x,b.y,-0.012),Vector3(b.x,b.y,-0.012),Vector3(a.x,a.y,0.012),Vector3(b.x,b.y,0.012)]: st.add_vertex(point)
+				st.add_vertex(Vector3(inset[vertex].x,inset[vertex].y,side*0.012))
+		for index in outline.size():
+			var next := (index+1)%outline.size()
+			var a := Vector3(outline[index].x,outline[index].y,0)
+			var b := Vector3(outline[next].x,outline[next].y,0)
+			var c := Vector3(inset[index].x,inset[index].y,side*0.012)
+			var d := Vector3(inset[next].x,inset[next].y,side*0.012)
+			var tangent := (outline[next]-outline[index]).normalized()
+			var outward := Vector3(tangent.y*orientation,-tangent.x*orientation,side)
+			bevel_triangle(st,a,b,c,outward)
+			bevel_triangle(st,b,d,c,outward)
 	st.generate_normals()
 	var mesh := MeshInstance3D.new()
 	mesh.name = label
 	mesh.mesh = st.commit()
 	mesh.material_override = appearance
 	parent.add_child(mesh)
+
+static func bevel_triangle(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, outward: Vector3) -> void:
+	# Godot front faces use clockwise winding. Keep every concave hook bevel
+	# facing outwards instead of averaging it into the broad blade face.
+	for point in ([a,c,b] if (b-a).cross(c-a).dot(outward)>0 else [a,b,c]): st.add_vertex(point)
 
 static func create(parent: Node3D, spectral: bool) -> Node3D:
 	var root := Node3D.new()

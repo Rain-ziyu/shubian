@@ -25,6 +25,27 @@ func run() -> void:
 	check(rig.root.has_node("Torso/RainCape1") and rig.root.has_node("Torso/RainCape-1"),"split cape panels exist")
 	check(rig.weapon.has_node("CenterBlade") and rig.weapon.has_node("Hook1") and rig.weapon.has_node("Hook-1"),"three blade silhouettes exist")
 	check(rig.weapon.has_node("Grip") and rig.weapon.has_node("Butt") and rig.weapon.has_node("JadeCell"),"grip butt and jade insert remain separate")
+	for label in ["CenterBlade","Hook-1","Hook1"]:
+		var blade_arrays: Array = rig.weapon.get_node(label).mesh.surface_get_arrays(0)
+		var points: PackedVector3Array = blade_arrays[Mesh.ARRAY_VERTEX]
+		var normals: PackedVector3Array = blade_arrays[Mesh.ARRAY_NORMAL]
+		var edges := {}
+		var outward := true
+		var bevel := false
+		for index in points.size():
+			if absf(points[index].z)>0.0119:
+				outward = outward and points[index].z*normals[index].z>0
+			bevel = bevel or (absf(normals[index].z)>0.05 and absf(normals[index].z)<0.95)
+		for triangle in range(0,points.size(),3):
+			for edge in 3:
+				var a := str(Vector3i((points[triangle+edge]*1000000).round()))
+				var b := str(Vector3i((points[triangle+(edge+1)%3]*1000000).round()))
+				var key := a+"|"+b if a<b else b+"|"+a
+				edges[key] = int(edges.get(key,0))+1
+		var closed := true
+		for count in edges.values(): closed = closed and count==2
+		check(closed,"blade bevel remains a closed surface: "+label)
+		check(outward and bevel,"blade has outward broad faces and distinct angled bevel normals: "+label)
 	var grip: MeshInstance3D = rig.weapon.get_node("Grip")
 	check(grip.position.y-grip.mesh.height/2<=-0.28 and grip.position.y+grip.mesh.height/2>=0.18,"existing hand grip points fit new wrapped handle")
 	check(is_equal_approx(rig.weapon.get_node("TipContact").position.y,1.2) and is_equal_approx(rig.weapon.get_node("ButtContact").position.y,-0.98),"combat endpoints preserved in model markers")
