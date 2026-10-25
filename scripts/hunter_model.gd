@@ -137,6 +137,7 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 	if action in ["plant","wait","counter_window"]: drop = 0.18
 	if action=="dodge": drop = 0.22
 	if action=="hurt": drop = 0.16
+	if action=="spin": drop += 0.05*sin(Motion.turn_progress(action,elapsed)*PI)
 	if action in ["light","heavy"]:
 		var ready := 0.11 if action=="light" else 0.18
 		var release := 0.25 if action=="light" else 0.43
@@ -171,8 +172,8 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 				var swing := (phase-PI/2)/(TAU-PI/2)
 				stance = lerpf(stride,-stride,smoothstep(0,1,swing))
 				lift = sin(swing*PI)*0.14
-		if action=="turn":
-			var turning := smoothstep(0.10,0.58,elapsed)
+		if action in ["turn","spin"]:
+			var turning := Motion.turn_progress(action,elapsed)
 			lift += maxf(0,sin(turning*TAU*2+(PI if side==1 else 0)))*0.09
 		if action=="finisher" and side==-1:
 			var support := smoothstep(0.55,0.82,elapsed)*(1-smoothstep(1.16,1.40,elapsed))
@@ -202,7 +203,8 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 			var weight := chamber*(1-smoothstep(1.02,1.32,elapsed))
 			target.y += lerpf(0.55,0.62,extension)*weight
 			target.z = lerpf(target.z,lerpf(-0.18,-0.72,extension),weight)
-		var planted: bool = action=="turn" and elapsed>=0.10 and elapsed<0.58 and lift<0.001 and ground.is_valid()
+		var turning := Motion.turn_progress(action,elapsed)
+		var planted: bool = action in ["turn","spin"] and turning>0 and turning<1 and lift<0.001 and ground.is_valid()
 		var walk_planted: bool = walking and lift<0.001 and ground.is_valid()
 		var anchor_key := "walk_plant_world" if walking else "turn_plant_world"
 		var inactive_key := "turn_plant_world" if walking else "walk_plant_world"

@@ -51,6 +51,36 @@ func run() -> void:
 	p.on_strike(0)
 	p.update_weapon_contacts()
 	check(m.health<hp,"body turn retains actual swept weapon contact")
+	p.combat.set_action("spin")
+	var previous := 0.0
+	var total := 0.0
+	var lifted := 0.0
+	var worst_step := 0.0
+	var grip_stays_forward := true
+	for frame in 82:
+		p.combat.elapsed = minf(float(frame)/60,1.35)
+		p.animate(0,0)
+		var angle: float = p.rig.root.rotation.y
+		var step := wrapf(angle-previous,-PI,PI)
+		if frame>0:
+			total += step
+			worst_step = maxf(worst_step,absf(step))
+		previous = angle
+		grip_stays_forward = grip_stays_forward and p.rig.weapon.position.z< -0.25
+		lifted = maxf(lifted,absf(p.rig.legs[-1].ankle.global_position.y-p.rig.legs[1].ankle.global_position.y))
+	check(absf(total-TAU)<0.002 and worst_step<0.17,"spin turns the full body continuously through one revolution")
+	check(lifted>0.08,"spin steps with alternating feet rather than rotating a fixed stance")
+	check(grip_stays_forward,"spin carries the grip center in front of the turning chest")
+	check(absf(wrapf(p.rig.root.rotation.y,-PI,PI))<0.002 and is_zero_approx(p.yaw),"spin settles facing forward without changing camera yaw")
+	p.combat.elapsed = 0.38
+	p.animate(0,0)
+	var spin_weapon: Transform3D = p.rig.weapon.global_transform
+	var spin_heading: Vector3 = p.combat_forward()
+	p.clear_body_turn()
+	check(p.rig.weapon.global_transform.is_equal_approx(spin_weapon) and p.combat_forward().distance_to(spin_heading)<0.002,"spin presentation preserves world weapon contact and combat heading when cleared")
+	var spin_health: float = p.combat.health
+	p.take_damage(20,p.global_position+Vector3.FORWARD*3,true)
+	check(p.combat.action=="spin" and is_equal_approx(p.combat.health,spin_health-20),"spinning body retains armor while taking actual damage")
 	print("TURN_BODY_CHECKS: ",checks," FAILURES: ",failures)
 	world.queue_free()
 	await process_frame

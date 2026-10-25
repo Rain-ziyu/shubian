@@ -318,7 +318,7 @@ func animate(delta: float, speed: float) -> void:
 		pose_drawn = combat.drawn
 		pose_blend = 0.0
 	walk_clock += delta*speed*2.6
-	if combat.action=="turn": body_turn_pose = wrapf(TAU*smoothstep(0.10,0.58,combat.elapsed),-PI,PI)
+	if combat.action in ["turn","spin"]: body_turn_pose = wrapf(TAU*HunterModel.Motion.turn_progress(combat.action,combat.elapsed),-PI,PI)
 	else: body_turn_pose = lerp_angle(body_turn_pose,0,1-exp(-18*delta)) if delta>0 else 0.0
 	if absf(body_turn_pose)<0.00001: body_turn_pose = 0
 	body_turn_applied = body_turn_pose
@@ -369,6 +369,11 @@ func animate(delta: float, speed: float) -> void:
 				w.rotation.x += clampf(pitch+0.25,-0.4,0.85)*1.22
 			"turn","spin","finisher":
 				w.rotation.y = -1.5+p*TAU
+				if combat.action=="spin":
+					w.position.z += 0.06*sin(HunterModel.Motion.turn_progress("spin",t)*PI)
+					# Carry the grip center around with the chest instead of leaving
+					# the shaft behind the back halfway through the body turn.
+					w.position = w.position.rotated(Vector3.UP,body_turn_applied)
 				if combat.action=="turn":
 					w.rotation.x += clampf(pitch+0.25,-0.4,0.85)*1.22
 					w.position.z += 0.07*sin(smoothstep(0.10,0.58,t)*PI)
