@@ -163,9 +163,11 @@ static func create(root: Node3D) -> Dictionary:
 	V.piece(root,Vector3(0,1.45,0.18),Vector3(0.09,0.065,0.025),red)
 	create_head(root,skin)
 	var upper_parts: Array[MeshInstance3D] = []
+	var lower_parts: Array[Node3D] = []
 	for child in root.get_children():
 		if child is MeshInstance3D and (child.transform*child.get_aabb().get_center()).y>1.1: upper_parts.append(child)
-	return {"skirts":skirts,"upper_parts":upper_parts,"shoulders":shoulders}
+		elif child is MeshInstance3D or child in skirts.values(): lower_parts.append(child)
+	return {"skirts":skirts,"upper_parts":upper_parts,"lower_parts":lower_parts,"shoulders":shoulders}
 
 static func create_head(root: Node3D, skin: Color) -> void:
 	var first_part := root.get_child_count()

@@ -27,6 +27,10 @@ static func create(parent: Node3D) -> Dictionary:
 	var dark := Color("303834")
 	var armor := Color("6a756b")
 	var costume := Outfit.create(root)
+	var pelvis := V.pivot(root,"Pelvis",Vector3(0,0.89,0))
+	for part in costume.lower_parts:
+		part.reparent(pelvis,false)
+		part.position -= pelvis.position
 	var torso := V.pivot(root,"Torso",Vector3(0,1.08,0))
 	for part in costume.upper_parts:
 		if str(part.name).begins_with("ShoulderPlate"): continue
@@ -57,7 +61,7 @@ static func create(parent: Node3D) -> Dictionary:
 		var boot := Outfit.boot(ankle)
 		legs[side] = {"hip":leg,"knee":knee,"ankle":ankle,"thigh":thigh,"shin":shin,"boot":boot}
 		joints["leg"+str(side)] = leg
-	var rig := {"root":root,"torso":torso,"joints":joints,"arms":arms,"legs":legs,"skirts":costume.skirts,"shoulders":costume.shoulders,"weapon":V.trident(root)}
+	var rig := {"root":root,"torso":torso,"pelvis":pelvis,"joints":joints,"arms":arms,"legs":legs,"skirts":costume.skirts,"shoulders":costume.shoulders,"weapon":V.trident(root)}
 	rig.head_parts = []
 	for part in torso.get_children():
 		if part is Node3D and part.get_meta("head_assembly",false):
@@ -193,6 +197,9 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 	body.position.z = lerpf(body.position.z,shift,1-exp(-delta*18)) if delta>0 else shift
 	var previous_height := body.position.y
 	body.position.y = -drop
+	var hip_turn := Motion.sample(action,elapsed,gait,speed).z*0.45 if action in ["light","heavy"] else 0.0
+	rig.pelvis.rotation.y = lerp_angle(rig.pelvis.rotation.y,hip_turn,1-exp(-delta*18)) if delta>0 else hip_turn
+	for side in [-1,1]: rig.legs[side].hip.position = rig.pelvis.transform*Vector3(side*0.14,0,0)
 	var targets := {}
 	var normals := {}
 	var planting := {}
@@ -224,7 +231,7 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 			var support := smoothstep(0.55,0.82,elapsed)*(1-smoothstep(1.16,1.40,elapsed))
 			stance = lerpf(stance,0.08,support)
 			lift = sin(support*PI)*0.035
-		var target := Vector3(leg.hip.position.x,0.10-body.position.y+lift,stance)
+		var target := Vector3(side*0.14,0.10-body.position.y+lift,stance)
 		if action=="throw" and side==-1:
 			var step := smoothstep(0.02,0.25,elapsed)*(1-smoothstep(0.50,0.80,elapsed))
 			target.z -= 0.08*step

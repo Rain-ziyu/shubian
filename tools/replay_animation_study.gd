@@ -13,6 +13,7 @@ func _initialize() -> void: call_deferred("setup")
 func setup() -> void:
 	world = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(world)
+	world.hunter.set_process_unhandled_input(false)
 	await create_timer(0.5).timeout
 	fighter = world.hunter
 	fighter.set_physics_process(false)
@@ -22,6 +23,7 @@ func setup() -> void:
 		monster.hide()
 	for child in world.get_children():
 		if child is CanvasLayer: child.hide()
+	fighter.pitch = -0.25
 	fighter.yaw = 0
 	fighter.rig.root.rotation.y = 0
 	var camera := Camera3D.new()

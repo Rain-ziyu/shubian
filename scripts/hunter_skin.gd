@@ -11,16 +11,23 @@ static func bind(rig: Dictionary) -> Dictionary:
 	skeleton.set_bone_rest(0,Transform3D.IDENTITY)
 	var skin := Skin.new()
 	skin.add_bind(0,Transform3D.IDENTITY)
+	var pelvis := skeleton.add_bone("Pelvis")
+	var pelvis_rest: Transform3D = rig.pelvis.transform
+	skeleton.set_bone_parent(pelvis,0)
+	skeleton.set_bone_rest(pelvis,pelvis_rest)
+	skeleton.set_bone_pose_position(pelvis,pelvis_rest.origin)
+	skin.add_bind(pelvis,pelvis_rest.affine_inverse())
 	var spine := skeleton.add_bone("Spine")
 	var spine_rest: Transform3D = rig.torso.transform
-	skeleton.set_bone_parent(spine,0)
-	skeleton.set_bone_rest(spine,spine_rest)
-	skeleton.set_bone_pose_position(spine,spine_rest.origin)
+	skeleton.set_bone_parent(spine,pelvis)
+	skeleton.set_bone_rest(spine,pelvis_rest.affine_inverse()*spine_rest)
+	skeleton.set_bone_pose_position(spine,(pelvis_rest.affine_inverse()*spine_rest).origin)
 	skin.add_bind(spine,spine_rest.affine_inverse())
 	var bindings := []
 	var indices := {}
 	var rests := {}
 	rests[spine] = spine_rest
+	rests[pelvis] = pelvis_rest
 	var labels := {}
 	for side in [-1,1]:
 		var prefix := "Left" if side==-1 else "Right"
@@ -47,7 +54,7 @@ static func bind(rig: Dictionary) -> Dictionary:
 		for vertex in vertices.size():
 			vertices[vertex] = global_rest*vertices[vertex]
 			if vertex<normals.size(): normals[vertex] = (normal_basis*normals[vertex]).normalized()
-			bones.append_array(PackedInt32Array([bone,0,0,0]))
+			bones.append_array(PackedInt32Array([bone,pelvis,0,0]))
 			var influence := smoothstep(0.98,1.20,vertices[vertex].y) if source.name=="Undercoat" else 1.0
 			weights.append_array(PackedFloat32Array([influence,1-influence,0,0]))
 		arrays[Mesh.ARRAY_VERTEX] = vertices
@@ -85,6 +92,7 @@ static func bind(rig: Dictionary) -> Dictionary:
 		rests[bone] = rest
 	for source in sources:
 		if rig.torso.is_ancestor_of(source): parent_bone(skeleton,indices[source.get_instance_id()],spine,rests)
+		elif rig.pelvis.is_ancestor_of(source): parent_bone(skeleton,indices[source.get_instance_id()],pelvis,rests)
 	# Forearm and hand are true descendants, rather than independent root transforms.
 	for side in [-1,1]:
 		var arm: Dictionary = rig.arms[side]
@@ -97,7 +105,7 @@ static func bind(rig: Dictionary) -> Dictionary:
 		var thigh: int = indices[leg.thigh.get_instance_id()]
 		var shin: int = indices[leg.shin.get_instance_id()]
 		var boot: int = indices[leg.boot.get_instance_id()]
-		for pair in [[shin,thigh],[boot,shin]]: parent_bone(skeleton,pair[0],pair[1],rests)
+		for pair in [[thigh,pelvis],[shin,thigh],[boot,shin]]: parent_bone(skeleton,pair[0],pair[1],rests)
 	for joint in rig.get("soft_joints",[]):
 		for binding in bindings:
 			if binding.source!=joint.source: continue
@@ -115,7 +123,7 @@ static func bind(rig: Dictionary) -> Dictionary:
 			var mesh := ArrayMesh.new()
 			mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
 			binding.rendered.mesh = mesh
-	return {"skeleton":skeleton,"skin":skin,"bindings":bindings,"spine":spine}
+	return {"skeleton":skeleton,"skin":skin,"bindings":bindings,"spine":spine,"pelvis":pelvis}
 
 static func parent_bone(skeleton: Skeleton3D, child: int, parent: int, rests: Dictionary) -> void:
 	var local: Transform3D = rests[parent].affine_inverse()*rests[child]
@@ -142,6 +150,7 @@ static func update(rig: Dictionary) -> void:
 	if not rig.has("skinning"): return
 	var data: Dictionary = rig.skinning
 	var skeleton: Skeleton3D = data.skeleton
+	skeleton.set_bone_global_pose(data.pelvis,rig.pelvis.transform)
 	skeleton.set_bone_global_pose(data.spine,rig.torso.transform)
 	for binding in data.bindings:
 		var pose := relative_transform(binding.source,rig.root)
