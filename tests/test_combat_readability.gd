@@ -29,9 +29,13 @@ func run() -> void:
 		m.mesh.set_meta("impact_age",0.045)
 		m.CreatureModel.animate(m.mesh,m.data,0,"idle",0,0)
 		check(m.mesh.get_node("Neck").rotation.y*side>0.02 and m.mesh.get_node("BodySurface").rotation.z*side>0.015,"visible recoil follows the actual incoming side")
+		m.mesh.set_meta("impact_age",0.09)
+		m.CreatureModel.animate(m.mesh,m.data,0,"idle",0,0)
+		check(m.mesh.get_node("Tail").rotation.y*side < -0.02,"tail balances the incoming-side recoil after the head")
 		m.mesh.set_meta("impact_age",0.26)
 		m.CreatureModel.animate(m.mesh,m.data,0,"idle",0,0)
 		check(m.mesh.get_node("Neck").rotation.length()<0.001 and m.mesh.get_node("BodySurface").rotation.length()<0.001,"repeated recoil fully returns to authored pose")
+		check(absf(m.mesh.get_node("Tail").rotation.y)<0.001,"tail recoil returns without accumulating over repeated hits")
 	m.phase = "idle"
 	m.clock = 0
 	var ui = world.combat_hud

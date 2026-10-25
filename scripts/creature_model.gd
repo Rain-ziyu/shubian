@@ -317,6 +317,9 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 		var impulse: Vector3 = root.get_meta("impact_rotation",Vector3.ZERO)
 		neck.rotation += Vector3(impulse.x,impulse.y,0)*weight
 		root.get_node("BodySurface").rotation.z += impulse.z*weight
+		# A delayed counter-swing balances the head without moving planted feet.
+		var balance := smoothstep(0.025,0.09,impact_age)*(1-smoothstep(0.09,0.26,impact_age))
+		tail.rotation.y -= impulse.y*0.65*balance
 	if data.id=="mossback":
 		var trunk: MeshInstance3D = root.get_node("BodySurface")
 		for index in 5:

@@ -550,7 +550,7 @@ func receive_strike(amount: float, origin: Vector3, action: String, part := "", 
 		stagger = maxf(stagger,0.45)
 	if health>0 and stagger<=0:
 		var local_source := global_basis.inverse()*toward
-		var strength := (1.4 if weak else 1.0)*(1.25 if action in ["heavy","turn","throw"] else 0.65 if action=="fourfold" else 1.0)
+		var strength := (1.4 if weak else 1.0)*(2.0 if action in ["heavy","turn","throw"] else 0.65 if action=="fourfold" else 1.0)
 		mesh.set_meta("impact_rotation",Vector3(-local_source.z*0.065,local_source.x*0.055,local_source.x*0.045)*strength)
 		mesh.set_meta("impact_age",0.0)
 	return {"hit":true,"weak":weak,"damage":amount*factor,"part":part if part!="" else "legacy-direction","armor_broken":armor_integrity<=0}

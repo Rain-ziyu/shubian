@@ -208,3 +208,9 @@ Shubian-plant-body-drive.mp4 是 4.10 秒固定帧率冻结 AI 动作研究，�
 - Smoothed the existing head and nose longitudinal profiles, narrowed the lower jaw slightly, and reduced the projecting nose tip while burying its attachment into the face. No new parts, materials, rig nodes, or combat changes.
 - Inspected the actual front, three-quarter, and side render: eyes, lids, brows and lips remain visible. This is still prototype character art; likeness, final style and human playfeel are not accepted.
 - Exported and normalized the saved hunter scene. Native costume 26, skin 247, torso/head motion 36, equipment transition 18 and visibility 26 checks passed (353 checks total). Report: regressions-20261025-181311-4cd341.
+
+### Readable heavy impact and balancing tail (2026-10-26)
+- Actual rendered before/45ms/260ms comparison showed ordinary heavy-hit head recoil was too slight at creature framing. Raised heavy/turn/throw recoil multiplier from 1.25 to 2.0; light and interruptible fourfold strengths remain unchanged.
+- Added a smaller delayed tail counter-swing (25ms start, 90ms peak, 260ms fully settled), on top of the authored pose. Feet, AI clocks, damage and stagger rules are unchanged; stagger still owns its separate animation.
+- Native regression report regressions-20261025-181536-41637e: readability 39, committed lunge 54, creature surface 108, tail skin 97, lunge surface 5, parts 28, all passed (331 checks).
+- Normal-AI input replay passed with actual reply 3, flash 3, fourfold 4, spin 2 and finisher 2 contacts, HP 240, 14.97s. This state-aware controller is not human playfeel or difficulty acceptance. Render is a fixed pose fixture, not a full combat demonstration. Overall art and animation remain prototype quality.
