@@ -1,6 +1,14 @@
 extends "res://tests/replay_encounter.gd"
 ## State-aware test controller: mapped movement, no health/damage/resource injection.
 func _init() -> void: controller_name = "flank_tactics"
+func setup() -> void:
+	await super.setup()
+	if "--trace" in OS.get_cmdline_user_args():
+		fighter.hit_confirmed.connect(func(action: String, _beat: int, victim: Node3D, result: Dictionary):
+			if victim!=monster: return
+			var tip: Vector3 = fighter.weapon_contact_points(action,0)[0]
+			print("FLANK_CONTACT: ",JSON.stringify({"time":snappedf(elapsed,0.01),"action":action,"part":result.part,"weak":result.weak,"phase":monster.phase,"phase_time":monster.clock,"exposed":monster.exposed,"pitch":fighter.pitch,"tip_local":str(monster.mesh.to_local(tip)),"marker_local":str(monster.mesh.to_local(monster.weak_marker.global_position))}))
+		)
 func control() -> void:
 	if result_saved: return
 	var c = fighter.combat
@@ -9,6 +17,9 @@ func control() -> void:
 		super.control()
 		return
 	elapsed += 1.0/60
+	if "--aim-flank" in OS.get_cmdline_user_args():
+		# Lift the ordinary look input from the low ready angle toward the torso.
+		fighter.apply_look(Vector2(0,fighter.pitch/0.0025))
 	var away := fighter.global_position-monster.global_position
 	away.y = 0
 	var desired: float = float(monster.data.size)*0.33+1.7

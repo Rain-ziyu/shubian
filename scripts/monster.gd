@@ -176,7 +176,9 @@ func combat_hint() -> String:
 		if data.pattern=="charge": return "冲锋中 · 横向避开"
 		if data.pattern=="leap": return "扑跃中 · 横向避开"
 		return "横扫中 · 躲避或正面格挡"
-	if phase=="recover": return "收势 · 寻找弱点追击"
+	if phase=="recover":
+		if data.pattern=="leap" and exposed>0: return "侧腹暴露 · 抬枪对准亮点追击"
+		return "收势 · 寻找弱点追击"
 	return ""
 
 func update_nameplate() -> void:
