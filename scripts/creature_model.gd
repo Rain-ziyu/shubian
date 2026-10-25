@@ -8,8 +8,8 @@ const GAIT_PER_METER := 4.2
 const CHARGE_NECK_PITCH := -0.35
 
 static func jaw_pose(data: Dictionary, phase: String, clock: float) -> Transform3D:
-	var ready: float = {"sweep":0.16,"charge":0.08,"leap":0.10,"mist":0.30,"pulse":0.04}[data.pattern]
-	var wide: float = {"sweep":0.26,"charge":0.20,"leap":0.30,"mist":0.36,"pulse":0.24}[data.pattern]
+	var ready: float = {"sweep":0.16,"charge":0.08,"leap":0.10,"mist":0.30,"pulse":0.18}[data.pattern]
+	var wide: float = {"sweep":0.26,"charge":0.20,"leap":0.30,"mist":0.36,"pulse":0.36}[data.pattern]
 	var opening := 0.0
 	if phase=="windup": opening = ready*smoothstep(0,float(data.windup),clock)
 	elif phase=="active":
