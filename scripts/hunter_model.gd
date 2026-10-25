@@ -144,7 +144,7 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 		var release_from := 0.15 if action=="light" else 0.30
 		drop += 0.05*smoothstep(0,ready,elapsed)*(1-smoothstep(release_from,release,elapsed))
 	var body: Node3D = rig.root
-	var shift := Motion.sample(action,elapsed,gait,speed).w*1.6 if action in ["light","heavy","hurt","reply"] else 0.0
+	var shift := Motion.sample(action,elapsed,gait,speed).w*1.6 if action in ["light","heavy","hurt","reply","finisher"] else 0.0
 	body.position.z = lerpf(body.position.z,shift,1-exp(-delta*18)) if delta>0 else shift
 	var previous_height := body.position.y
 	body.position.y = -drop
@@ -202,7 +202,7 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 			var extension := smoothstep(0.80,0.95,elapsed)
 			var weight := chamber*(1-smoothstep(1.02,1.32,elapsed))
 			target.y += lerpf(0.55,0.62,extension)*weight
-			target.z = lerpf(target.z,lerpf(-0.18,-0.72,extension),weight)
+			target.z = lerpf(target.z,lerpf(-0.18,-0.72,extension)-body.position.z,weight)
 		var turning := Motion.turn_progress(action,elapsed)
 		var planted: bool = action in ["turn","spin"] and turning>0 and turning<1 and lift<0.001 and ground.is_valid()
 		var walk_planted: bool = walking and lift<0.001 and ground.is_valid()

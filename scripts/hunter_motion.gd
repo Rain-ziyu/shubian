@@ -11,6 +11,8 @@ const LIGHT_WEAPON := [Vector4(0,0,0,0),Vector4(0.11,-0.13,0.12,-0.12),Vector4(0
 const FOURFOLD_WEAPON := [Vector4(0,0,0,0),Vector4(0.08,0,0.04,0.06),Vector4(0.18,0,-0.15,0.18),Vector4(0.28,0,0.035,0.06),Vector4(0.33,0,0.04,0.06),Vector4(0.43,0,-0.15,0.18),Vector4(0.53,0,0.035,0.06),Vector4(0.58,0,0.04,0.06),Vector4(0.68,0,-0.15,0.18),Vector4(0.78,0,0.035,0.06),Vector4(0.83,0,0.04,0.06),Vector4(0.93,0,-0.15,0.18),Vector4(1.03,0,0.035,0.06),Vector4(1.25,0,0,0)]
 # Seconds, unused, fore/aft offset from the braced guard, unused.
 const REPLY_WEAPON := [Vector4(0,0,0,0),Vector4(0.12,0,0.035,0),Vector4(0.26,0,-0.169,0),Vector4(0.42,0,-0.06,0),Vector4(0.67,0,0,0)]
+# Complete the staff rotation before the kick extends; retain the first contact heading.
+const FINISHER_WEAPON := [Vector4(0,-1.5,0,0),Vector4(0.18,-1.95,0,0),Vector4(0.43,-1.5+0.43/1.45*TAU,0,0),Vector4(0.74,TAU-1.5,0,0),Vector4(1.14,TAU-1.5,0,0),Vector4(1.45,TAU,0,0)]
 const KEYS := {
 	"light":[Vector4(0,0,0,0),Vector4(0.11,0.06,-0.16,0.025),Vector4(0.15,0.06,-0.16,0.025),Vector4(0.25,-0.16,0.20,-0.055),Vector4(0.40,-0.07,0.10,-0.025),Vector4(0.66,0,0,0)],
 	"heavy":[Vector4(0,0,0,0),Vector4(0.18,0.05,-0.60,0.035),Vector4(0.30,0.05,-0.60,0.035),Vector4(0.43,-0.12,0.28,-0.05),Vector4(0.61,-0.06,0.65,-0.02),Vector4(0.92,0,0,0)],

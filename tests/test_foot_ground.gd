@@ -30,17 +30,21 @@ func run() -> void:
 	check(shoe_arrays[Mesh.ARRAY_COLOR].size()==shoe_points.size(),"boot retains material regions as vertex colors")
 	for m in get_nodes_in_group("monsters"): m.set_physics_process(false)
 	for slope in [Vector2(0.35,0),Vector2(0,0.35),Vector2(0,-0.35)]:
-		var sample := func(point: Vector3) -> float: return point.x*slope.x+point.z*slope.y
-		for action in ["idle","guard","plant","finisher"]:
+		var terrain := func(point: Vector3) -> float: return point.x*slope.x+point.z*slope.y
+		# The runtime callback receives rig-local points and samples their world
+		# location. Include the authored body shift in this synthetic terrain too.
+		var sample := func(point: Vector3) -> float: return terrain.call(p.rig.root.transform*point)
+		for action in ["idle","guard","plant","finisher","light","heavy","reply","hurt"]:
+			var elapsed: float = {"light":0.25,"heavy":0.43,"reply":0.26,"hurt":0.08}.get(action,0.95)
 			for frame in 90:
-				Model.pose_legs(p.rig,action,0.95,true,0,0,1.0/60,sample)
+				Model.pose_legs(p.rig,action,elapsed,true,0,0,1.0/60,sample)
 			var supported := true
 			for side in [-1,1]:
 				if action=="finisher" and side==1: continue
 				var leg: Dictionary = p.rig.legs[side]
 				var sole: Vector3 = p.rig.root.transform*(leg.hip.transform*leg.knee.transform*leg.ankle.transform*Vector3(0,-0.1,0))
 				# Sole coordinates are in actor space; yaw is zero in this fixture.
-				supported = supported and absf(sole.y-sample.call(sole))<0.003
+				supported = supported and absf(sole.y-terrain.call(sole))<0.003
 			check(supported,"support feet fit slope: "+action+str(slope))
 			check(p.rig.root.position.y> -0.30,"body offset does not accumulate over frames")
 	var ramp := StaticBody3D.new()

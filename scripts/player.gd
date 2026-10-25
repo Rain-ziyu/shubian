@@ -369,6 +369,7 @@ func animate(delta: float, speed: float) -> void:
 				w.rotation.x += clampf(pitch+0.25,-0.4,0.85)*1.22
 			"turn","spin","finisher":
 				w.rotation.y = -1.5+p*TAU
+				if combat.action=="finisher": w.rotation.y = HunterModel.Motion.interpolate(HunterModel.Motion.FINISHER_WEAPON,t).y
 				if combat.action=="spin":
 					w.position.z += 0.06*sin(HunterModel.Motion.turn_progress("spin",t)*PI)
 					# Carry the grip center around with the chest instead of leaving

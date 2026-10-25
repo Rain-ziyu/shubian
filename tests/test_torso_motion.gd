@@ -76,6 +76,13 @@ func run() -> void:
 	var body_center: Vector3 = p.rig.torso.transform*Vector3(0,0.25,0)
 	check(body_center.z>=support.z-0.21 and body_center.z<=support.z+0.09,"kick moves support foot beneath upper body in fore-aft direction")
 	check(absf(p.to_local(p.rig.legs[-1].ankle.to_global(Vector3(0,-0.1,0))).y)<0.002,"support foot is grounded at kick contact")
+	var kick_weapon: Basis = p.rig.weapon.global_basis
+	check(p.rig.root.position.z>0.04,"kick balances the hips backward over the support foot")
+	check(absf(p.to_local(p.rig.legs[1].ankle.global_position).z+0.72)<0.003,"body counterbalance preserves actual forward kick reach")
+	for time in [0.80,1.02,1.14]:
+		p.combat.elapsed = time
+		p.animate(0,0)
+		check(p.rig.weapon.global_basis.is_equal_approx(kick_weapon),"staff stays braced while kick extends and retracts")
 	var worst_grip := 0.0
 	var worst_segment := 0.0
 	var worst_case := ""
