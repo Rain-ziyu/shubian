@@ -63,6 +63,9 @@ func run() -> void:
 			check(absf(sole(model.get_node("Hind1")).y)<0.002,"feet extend back to landing support")
 			check(arm.rotation.length()<0.001,"front limbs settle before recovery")
 			check(absf(wrist.rotation.x)<0.001 and absf(finger.rotation.x)<0.001 and absf(finger.rotation.y+0.20)<0.001,"landing returns wrist and fingers to rest")
+			Model.animate(model,species,0,"recover",0.50,0)
+			check(model.position.y< -float(species.size)*0.02 and arm.rotation.z< -0.25,"recovery keeps a low braced silhouette during flank exposure")
+			check(absf(sole(model.get_node("Hind1")).y)<0.002,"extended recovery brace keeps support sole grounded")
 		Model.animate(model,species,3.0,"active",0.65,speed)
 		var end_body := model.transform
 		var end_neck := neck.transform

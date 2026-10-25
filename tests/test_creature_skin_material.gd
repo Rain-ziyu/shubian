@@ -36,6 +36,17 @@ func run() -> void:
 		var saved = load("res://assets/models/"+str(data.id)+"-v1.tscn").instantiate()
 		holder.add_child(saved)
 		check(saved.get_node("BodySurface").material_override is ShaderMaterial and saved.get_node("Tail/TailSkeleton/SkinnedTail").mesh.surface_get_arrays(0)[Mesh.ARRAY_TEX_UV].size()>0,"saved model retains skin material and UV")
+		if data.id=="reedclaw":
+			var colors: PackedColorArray = arrays[Mesh.ARRAY_COLOR]
+			var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+			var left := 0
+			var right := 0
+			for vertex in vertices.size():
+				if colors[vertex].r>0.50 and colors[vertex].g>0.50:
+					if vertices[vertex].x<0: left += 1
+					else: right += 1
+			check(left>20 and right>20,"both continuous body flanks carry readable soft-scale coloration")
+			check(saved.get_node("BodySurface").mesh.surface_get_arrays(0)[Mesh.ARRAY_COLOR]==colors,"saved reedclaw retains the authored flank colors")
 		if data.id=="stormcrest":
 			Model.animate(model,data,0,"windup",data.windup,0)
 			check(model.get_node("Crest0").material_override is StandardMaterial3D and model.get_node("Crest0").material_override.emission_energy_multiplier>0,"energy crest keeps independent charge cue")

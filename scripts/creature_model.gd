@@ -38,7 +38,21 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 		body_profile = [Vector4(-0.56,0.10,0.15,0.04),Vector4(-0.42,0.30,0.30,0.035),Vector4(-0.15,0.37,0.32,0.025),Vector4(0.20,0.32,0.25,0),Vector4(0.43,0.23,0.18,-0.025),Vector4(0.56,0.08,0.11,-0.025)]
 	var body := Surface.profile(root,"BodySurface",body_profile,s,c)
 	body.position.y = y
-	if data.id=="reedclaw": body.scale = Vector3(0.80,0.85,1)
+	if data.id=="reedclaw":
+		body.scale = Vector3(0.80,0.85,1)
+		# Soft lateral scales belong to the continuous body, without extra hit geometry.
+		var arrays: Array = body.mesh.surface_get_arrays(0)
+		var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		var colors: PackedColorArray = arrays[Mesh.ARRAY_COLOR]
+		for vertex in vertices.size():
+			var point := vertices[vertex]/s
+			var oval := pow(point.y/0.19,2)+pow((point.z-0.015)/0.34,2)
+			var flank := (1-smoothstep(0.50,1.0,oval))*smoothstep(0.18,0.27,absf(point.x))
+			colors[vertex] = colors[vertex].lerp(Color("b2ac82"),flank*0.85)
+		arrays[Mesh.ARRAY_COLOR] = colors
+		var colored := ArrayMesh.new()
+		colored.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+		body.mesh = colored
 	elif data.id=="mistfrill": body.scale = Vector3(0.85,0.90,1)
 	var neck := V.pivot(root,"Neck",Vector3(0,y,-s*0.40))
 	var head_width := 0.78 if data.id in ["reedclaw","mistfrill"] else 1.0
@@ -160,6 +174,10 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 				var land := smoothstep(0.43,0.65,clock)
 				spread = lerpf(0.55,0.18,release)*(1-land)
 				reach = lerpf(-0.30,0.65,release)*(1-land)
+			elif phase=="recover":
+				var brace := smoothstep(0,0.12,clock)*(1-smoothstep(float(data.recovery)*0.6,float(data.recovery),clock))
+				spread = 0.30*brace
+				reach = -0.18*brace
 		arm.rotation = Vector3(reach,0,-side*spread)
 		var wrist := arm.get_node_or_null("Wrist") as Node3D
 		if wrist!=null:
@@ -222,7 +240,8 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 			root.position.y = (0.0 if physical_flight else sin(progress*PI))-compression*(1-smoothstep(0,0.14,clock))
 			neck.rotation.x = lerpf(-0.20,0.15,smoothstep(0,0.30,clock))
 		elif phase=="recover":
-			root.position.y = -float(data.size)*0.06*sin(clampf(clock/0.30,0,1)*PI)
+			var brace := smoothstep(0,0.12,clock)*(1-smoothstep(float(data.recovery)*0.6,float(data.recovery),clock))
+			root.position.y = -float(data.size)*(0.06*sin(clampf(clock/0.30,0,1)*PI)+0.025*brace)
 			neck.rotation.x = 0.15*(1-smoothstep(0,0.40,clock))
 	if data.pattern=="mist":
 		if phase=="active": neck.rotation.x = -0.20+0.12*sin(clampf(clock/0.65,0,1)*PI)

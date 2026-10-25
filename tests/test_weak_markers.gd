@@ -29,6 +29,15 @@ func run() -> void:
 			check(marker.visible and marker.global_position.distance_to(volume.center)<=float(volume.radius),str(m.data.id)+" marker remains inside its actual moving weak volume")
 			active += 1
 		check(active==m.weak_markers.size(),str(m.data.id)+" all open weak parts marked, including both flanks")
+		if m.data.id=="reedclaw":
+			var body: MeshInstance3D = m.mesh.get_node("BodySurface")
+			for marker in m.weak_markers:
+				check(body.get_aabb().grow(0.06).has_point(body.to_local(marker.global_position)),"reedclaw marker stays close to visible body rather than floating beyond thigh")
+			var before: float = m.weak_marker.global_position.y
+			var body_before: float = body.global_position.y
+			m.CreatureModel.animate(m.mesh,m.data,0,"recover",0.5,0)
+			m.update_weak_markers()
+			check(m.weak_marker.global_position.y<before-0.05 and absf((m.weak_marker.global_position.y-before)-(body.global_position.y-body_before))<0.002,"surface marker follows the lowered recovery body")
 		if m.data.id=="mossback":
 			var before: Vector3 = m.weak_marker.global_position
 			m.mesh.get_node("Tail").rotation.y += 0.8

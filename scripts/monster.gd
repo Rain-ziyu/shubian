@@ -39,6 +39,7 @@ var route_time := 0.0
 var gait := 0.0
 var weak_marker: MeshInstance3D
 var weak_markers: Array[MeshInstance3D] = []
+var flank_marker_surface: TriangleMesh
 var data: Dictionary
 var target: CharacterBody3D
 var health := 0.0
@@ -139,6 +140,12 @@ func update_weak_markers() -> void:
 		outward.y = 0
 		if outward.length_squared()<0.001: outward = Vector3.UP
 		marker.global_position = part.center+outward.normalized()*float(part.radius)*0.75
+		if data.id=="reedclaw" and part.id=="flank":
+			var body: MeshInstance3D = mesh.get_node("BodySurface")
+			if flank_marker_surface==null: flank_marker_surface = body.mesh.generate_triangle_mesh()
+			var first := body.to_local(part.center+outward.normalized()*float(data.size))
+			var contact := flank_marker_surface.intersect_segment(first,Vector3.ZERO)
+			if not contact.is_empty(): marker.global_position = body.to_global(contact.position)+outward.normalized()*0.04
 		index += 1
 
 func combat_hint() -> String:

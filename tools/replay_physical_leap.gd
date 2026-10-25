@@ -13,6 +13,8 @@ func setup() -> void:
 	await physics_frame
 	await physics_frame
 	hunter = world.hunter
+	hunter.set_process_unhandled_input(false)
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	world.hud.get_parent().hide()
 	for foe in get_nodes_in_group("monsters"):
 		foe.set_physics_process(false)
@@ -29,10 +31,21 @@ func setup() -> void:
 	hunter.global_position = Vector3(0,0.01,-18.8)
 	hunter.lock_target = creature
 	camera = Camera3D.new()
+	camera.fov = 40
 	world.add_child(camera)
 	camera.position = Vector3(7,4.5,-23)
 	camera.look_at(Vector3(0,1.3,-17))
 	camera.make_current()
+	var layer := CanvasLayer.new()
+	world.add_child(layer)
+	var title := Label.new()
+	title.text = "戍边 / 苇爪兽扑跃恢复\n正常 AI · 自动横向走位 · 非真人操作"
+	title.position = Vector2(24,24)
+	title.add_theme_font_size_override("font_size",24)
+	title.add_theme_color_override("font_shadow_color",Color.BLACK)
+	title.add_theme_constant_override("shadow_offset_x",2)
+	title.add_theme_constant_override("shadow_offset_y",2)
+	layer.add_child(title)
 	await physics_frame
 	await physics_frame
 	creature.set_physics_process(true)
