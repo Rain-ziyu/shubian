@@ -9,7 +9,9 @@ func check(value: bool, label: String) -> void:
 		printerr("FAIL: ",label)
 func cue(model: Node3D, data: Dictionary) -> float:
 	if data.pattern=="mist": return model.get_node("Neck/Frill").scale.x-1
-	return model.get_node("Crest0").material_override.emission_energy_multiplier
+	var material: StandardMaterial3D = model.get_node("Crest0").material_override
+	# Warm light is the interrupted open-spine state, not residual charging.
+	return material.emission_energy_multiplier if material.emission.b>=material.emission.r else 0.0
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	var holder := Node3D.new()
@@ -66,6 +68,9 @@ func run() -> void:
 		monster.receive_strike(100,monster.global_position+Vector3(4,0,0),"light","head" if monster.data.pattern=="mist" else "spine")
 		monster._physics_process(1.0/60)
 		check(monster.stagger>0 and absf(cue(monster.mesh,monster.data))<0.0001,"weakpoint interruption cancels charging cue immediately")
+		if monster.data.pattern=="pulse":
+			var exposed: StandardMaterial3D = monster.mesh.get_node("Crest0").material_override
+			check(monster.weak_part_active("spine") and exposed.emission.r>exposed.emission.b and exposed.emission_energy_multiplier>0,"cancelled charge retains a distinct warm open-spine cue")
 		check(get_nodes_in_group("hazards").is_empty(),"interrupted windup does not spawn attack hazard")
 		Model.charge_visuals(monster.mesh,monster.data,"windup",monster.data.windup)
 		monster.health = 0
