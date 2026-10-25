@@ -196,6 +196,7 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 	var tail := root.get_node("Tail") as Node3D
 	var tail_gait := gait*(1.7/GAIT_PER_METER)
 	tail.rotation.y = sin(tail_gait*0.5)*0.12
+	tail.rotation.x = 0
 	TailSkin.animate(tail,tail_gait,phase,clock)
 	var neck := root.get_node("Neck") as Node3D
 	neck.get_node("Jaw").transform = jaw_pose(data,phase,clock)
@@ -238,19 +239,24 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 			neck.rotation.x = charge_pitch*release
 			root.position.y = -compression*release
 	elif data.pattern=="leap":
-		var compression := float(data.size)*0.10
+		var compression := float(data.size)*0.16
 		if phase=="windup":
 			var load := smoothstep(0,float(data.windup),clock)
 			neck.rotation.x = -0.20*load
 			root.position.y = -compression*load
+			tail.rotation.x = -0.22*load
 		elif phase=="active":
 			var progress := clampf(clock/0.65,0,1)
 			root.position.y = (0.0 if physical_flight else sin(progress*PI))-compression*(1-smoothstep(0,0.14,clock))
 			neck.rotation.x = lerpf(-0.20,0.15,smoothstep(0,0.30,clock))
+			tail.rotation.x = -0.22*(1-smoothstep(0,0.30,clock))
 		elif phase=="recover":
 			var brace := smoothstep(0,0.12,clock)*(1-smoothstep(float(data.recovery)*0.6,float(data.recovery),clock))
 			root.position.y = -float(data.size)*(0.06*sin(clampf(clock/0.30,0,1)*PI)+0.025*brace)
 			neck.rotation.x = 0.15*(1-smoothstep(0,0.40,clock))
+			# Short forelimbs balance the landing; hind legs carry its weight.
+			# Keep the tail extended here to distinguish recovery from coiling.
+			tail.rotation.x = -0.06*brace
 	if data.pattern=="mist":
 		if phase=="active": neck.rotation.x = -0.20+0.12*sin(clampf(clock/0.65,0,1)*PI)
 		elif phase=="recover": neck.rotation.x = -0.20*(1-smoothstep(0,0.45,clock))

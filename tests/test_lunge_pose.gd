@@ -61,6 +61,20 @@ func run() -> void:
 		if species.pattern=="leap":
 			var arm: Node3D = model.get_node("Forelimb1")
 			Model.animate(model,species,0,"windup",species.windup,0)
+			var loaded_height: float = model.position.y
+			var loaded_tail: float = model.get_node("Tail").rotation.x
+			check(loaded_height< -float(species.size)*0.14,"leap clearly compresses hindquarters before takeoff")
+			var jaw_clearance := INF
+			for part_name in ["HeadSurface","Jaw"]:
+				var part: MeshInstance3D = neck.get_node(part_name)
+				for vertex: Vector3 in part.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+					jaw_clearance = minf(jaw_clearance,part.to_global(vertex).y)
+			check(jaw_clearance>0.05,"deeper leap load keeps visible head and jaw above flat ground")
+			Model.animate(model,species,0,"active",0,speed)
+			check(is_equal_approx(model.get_node("Tail").rotation.x,loaded_tail),"counterbalancing tail joins takeoff without a snap")
+			Model.animate(model,species,0,"recover",0.15,0)
+			check(model.position.y>loaded_height+float(species.size)*0.05 and model.get_node("Tail").rotation.x>loaded_tail+0.10,"landing brace has a different height and tail silhouette from loaded leap")
+			Model.animate(model,species,0,"windup",species.windup,0)
 			var loaded_arm := arm.transform
 			var wrist: Node3D = arm.get_node("Wrist")
 			var loaded_wrist := wrist.transform
