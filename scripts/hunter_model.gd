@@ -190,7 +190,11 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 	if action=="fourfold": drop += -Motion.sample(action,elapsed,gait,speed).y*0.25
 	drop += 0.08*arrival_weight
 	if action=="hurt": drop = 0.16
-	if action=="spin": drop += 0.05*sin(Motion.turn_progress(action,elapsed)*PI)
+	if action=="spin":
+		drop += 0.05*sin(Motion.turn_progress(action,elapsed)*PI)
+		# Reload the legs before each contact; preserve authored hit heights.
+		drop += 0.085*smoothstep(0,0.18,elapsed)*(1-smoothstep(0.24,0.38,elapsed))
+		drop += 0.045*smoothstep(0.48,0.65,elapsed)*(1-smoothstep(0.68,0.85,elapsed))
 	if action in ["light","heavy"]:
 		var ready := 0.11 if action=="light" else 0.18
 		var release := 0.25 if action=="light" else 0.43

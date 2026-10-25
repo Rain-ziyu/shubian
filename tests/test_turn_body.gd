@@ -72,6 +72,13 @@ func run() -> void:
 	check(lifted>0.08,"spin steps with alternating feet rather than rotating a fixed stance")
 	check(grip_stays_forward,"spin carries the grip center in front of the turning chest")
 	check(absf(wrapf(p.rig.root.rotation.y,-PI,PI))<0.002 and is_zero_approx(p.yaw),"spin settles facing forward without changing camera yaw")
+	for pair in [[0.24,0.38,0.055],[0.68,0.85,0.035]]:
+		p.combat.elapsed = pair[0]
+		p.animate(0,0)
+		var loaded_height: float = p.rig.root.position.y
+		p.combat.elapsed = pair[1]
+		p.animate(0,0)
+		check(p.rig.root.position.y-loaded_height>float(pair[2]),"spin extends out of a distinct leg load for each hit")
 	p.combat.elapsed = 0.38
 	p.animate(0,0)
 	var spin_weapon: Transform3D = p.rig.weapon.global_transform
