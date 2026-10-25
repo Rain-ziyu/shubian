@@ -134,6 +134,15 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 		if not quad:
 			var arm := Surface.profile(root,"Forelimb"+str(side),[Vector4(-0.24,0.02,0.03,-0.13),Vector4(-0.12,0.045,0.055,-0.10),Vector4(0.02,0.055,0.07,0)],s,c)
 			arm.position = Vector3(side*s*0.28,y,-s*0.35)
+			if data.id=="mistfrill":
+				# Short broad digits balance the throat display; unlike the leaper's
+				# hooked grasp, these carry no independent strike or claw contact.
+				var hand := V.pivot(arm,"Hand",Vector3(0,-s*0.13,-s*0.23))
+				Surface.profile(hand,"Palm",[Vector4(-0.085,0.050,0.021,-0.015),Vector4(-0.045,0.058,0.028,-0.005),Vector4(0.015,0.023,0.029,0)],s,c)
+				for digit in [-1,0,1]:
+					var finger := V.pivot(hand,"Digit"+str(digit),Vector3(digit*s*0.036,-s*0.01,-s*0.065))
+					finger.rotation.y = -digit*0.24
+					Surface.profile(finger,"Finger",[Vector4(-0.12,0.004,0.006,-0.036),Vector4(-0.10,0.012,0.012,-0.026),Vector4(-0.045,0.023,0.020,-0.010),Vector4(0.015,0.020,0.021,0)],s,c.lightened(0.025))
 			if data.id=="stormcrest":
 				# Compact two-toed hands finish the stocky shoulder/forearm silhouette.
 				# They inherit the shoulder and interrupted pose instead of floating at rest.
@@ -232,6 +241,10 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 		if arm==null: continue
 		var spread := 0.0
 		var reach := 0.0
+		if data.pattern=="mist":
+			var load := smoothstep(0,float(data.windup),clock) if phase=="windup" else (1-smoothstep(0.08,0.45,clock) if phase=="active" else 0.0)
+			spread = 0.18*load
+			reach = 0.10*load
 		if data.pattern=="pulse":
 			if phase=="windup":
 				var load := smoothstep(0,float(data.windup),clock)
