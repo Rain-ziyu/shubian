@@ -148,6 +148,45 @@ static func ribbon(parent: Node3D, label: String, points: Array, width: float, c
 	outline.append_array(reverse)
 	return patch(parent,label,outline,color)
 
+static func thicken_plate(surface: ArrayMesh, thickness: float) -> ArrayMesh:
+	var arrays := surface.surface_get_arrays(0)
+	var points: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+	var uv: PackedVector2Array = arrays[Mesh.ARRAY_TEX_UV]
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var edges := {}
+	for triangle in range(0,points.size(),3):
+		for offset in [0,1,2]:
+			var index: int = triangle+offset
+			st.set_normal(normals[index])
+			st.set_uv(uv[index])
+			st.add_vertex(points[index])
+		for offset in [2,1,0]:
+			var index: int = triangle+offset
+			st.set_normal(-normals[index])
+			st.set_uv(uv[index])
+			st.add_vertex(points[index]-normals[index]*thickness)
+		for offset in 3:
+			var first: int = triangle+offset
+			var last: int = triangle+(offset+1)%3
+			var a := str(Vector3i((points[first]*1000000).round()))
+			var b := str(Vector3i((points[last]*1000000).round()))
+			var key := a+"|"+b if a<b else b+"|"+a
+			if not edges.has(key): edges[key] = {"count":0,"first":first,"last":last}
+			edges[key].count += 1
+	for edge in edges.values():
+		if edge.count!=1: continue
+		var a: Vector3 = points[edge.first]
+		var b: Vector3 = points[edge.last]
+		var c: Vector3 = a-normals[edge.first]*thickness
+		var d: Vector3 = b-normals[edge.last]*thickness
+		var outward: Vector3 = (normals[edge.first]+normals[edge.last]).normalized().cross(b-a).normalized()
+		st.set_normal(outward)
+		MetalMesh.bevel_triangle(st,a,b,c,outward)
+		MetalMesh.bevel_triangle(st,b,d,c,outward)
+	return st.commit()
+
 static func armor_plate(parent: Node3D, label: String, points: Array, color: Color) -> MeshInstance3D:
 	var center := Vector3.ZERO
 	for point: Vector3 in points: center += point
@@ -247,7 +286,7 @@ static func create(root: Node3D) -> Dictionary:
 			Vector4(0.058,0.008,0.008,0)
 		],Color("626d61"),0 if side==1 else -PI,PI if side==1 else 0,24,false)
 		shoulder.position = Vector3(side*0.27,1.43,0)
-		shoulder.material_override.cull_mode = BaseMaterial3D.CULL_DISABLED
+		shoulder.mesh = thicken_plate(shoulder.mesh,0.004)
 		shoulder.material_override.metallic = 0.35
 		shoulder.material_override.roughness = 0.65
 		shoulders[side] = shoulder

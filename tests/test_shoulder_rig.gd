@@ -17,6 +17,20 @@ func run() -> void:
 	var skeleton: Skeleton3D = p.rig.skinning.skeleton
 	for side in [-1,1]:
 		var plate: MeshInstance3D = p.rig.shoulders[side]
+		var points: PackedVector3Array = plate.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+		var edges := {}
+		var volume := 0.0
+		for triangle in range(0,points.size(),3):
+			volume += points[triangle].dot(points[triangle+1].cross(points[triangle+2]))/6
+			for edge in 3:
+				var a := str(Vector3i((points[triangle+edge]*1000000).round()))
+				var b := str(Vector3i((points[triangle+(edge+1)%3]*1000000).round()))
+				var key := a+"|"+b if a<b else b+"|"+a
+				edges[key] = int(edges.get(key,0))+1
+		var closed := true
+		for count in edges.values(): closed = closed and count==2
+		check(closed,"shoulder shell has a closed rim and inner surface")
+		check(volume< -0.000001,"shoulder shell encloses outward-facing physical thickness")
 		var binding: Dictionary = {}
 		for candidate in p.rig.skinning.bindings:
 			if candidate.source==plate: binding = candidate
