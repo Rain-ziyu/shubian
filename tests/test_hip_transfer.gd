@@ -47,6 +47,15 @@ func run() -> void:
 			check(absf(sole.y)<0.002 and width_ok,"sole preserves ground and authored support width while pelvis turns")
 		var belt: Node3D = p.rig.pelvis.get_node("Belt")
 		check(belt.global_basis.is_equal_approx(p.rig.pelvis.global_basis),"belt follows hip rotation")
+	p.combat.elapsed = 0.30
+	p.animate(0,0)
+	var loaded: Vector3 = p.rig.root.position
+	var rear_knee: float = absf(p.rig.legs[1].knee.rotation.x)
+	p.combat.elapsed = 0.43
+	p.animate(0,0)
+	check(loaded.z-p.rig.root.position.z>0.20,"heavy visibly transfers body mass from rear support toward forward support")
+	check(loaded.y<p.rig.root.position.y-0.08,"heavy extends out of the loaded crouch during release")
+	check(rear_knee>absf(p.rig.legs[1].knee.rotation.x)+0.08,"rear leg extends to drive the sweep")
 	p.combat.elapsed = 0.92
 	p.animate(0,0)
 	check(p.rig.pelvis.rotation.length()<0.001,"heavy recovery returns pelvis to neutral")
