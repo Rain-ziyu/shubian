@@ -24,7 +24,7 @@ func run() -> void:
 		check(valid,"cloth UV coordinates cover every vertex and remain normalized")
 		check(binding.rendered.mesh.surface_get_arrays(0)[Mesh.ARRAY_TEX_UV]==uv,"skinned cloth preserves authored UV")
 		check(binding.rendered.material_override==material,"rendered cloth uses intended fabric material")
-	check(count==13,"garments and covered elbow/knee joints receive fabric treatment")
+	check(count==11,"garments and covered knee joints receive fabric treatment")
 	check(rig.root.get_node("Torso/Head").material_override is StandardMaterial3D,"face retains original skin material")
 	check(rig.arms[-1].lower.material_override is StandardMaterial3D,"bracer retains armor material")
 	for side in [-1,1]:
@@ -32,6 +32,9 @@ func run() -> void:
 		check(skin!=null and skin.albedo_color.is_equal_approx(H.Outfit.SKIN_TONE),"exposed upper arm shares the facial skin tone")
 		var shoulder_skin := rig.root.get_node("JointClothShoulder"+str(side)).material_override as StandardMaterial3D
 		check(shoulder_skin!=null and shoulder_skin.albedo_color.is_equal_approx(H.Outfit.SKIN_TONE),"exposed shoulder connection keeps skin rather than cloth appearance")
+		var elbow_skin := rig.arms[side].elbow.material_override as StandardMaterial3D
+		var elbow_fold := rig.root.get_node("JointClothElbow"+str(side)).material_override as StandardMaterial3D
+		check(elbow_skin!=null and elbow_fold!=null and elbow_skin.albedo_color.is_equal_approx(skin.albedo_color) and elbow_fold.albedo_color.is_equal_approx(skin.albedo_color),"exposed elbow and its deforming fold continue the upper arm skin")
 	check(rig.legs[-1].boot.material_override is StandardMaterial3D,"boots retain colored sole material")
 	check(rig.weapon.get_node("Shaft").material_override is StandardMaterial3D,"weapon retains metal material")
 	var cape: ShaderMaterial = rig.root.get_node("Torso/RainCape1").material_override
@@ -54,6 +57,9 @@ func run() -> void:
 		if str(mesh.get_meta("source_part","")).begins_with("UpperArmSurface"):
 			var saved_skin := mesh.material_override as StandardMaterial3D
 			check(saved_skin!=null and saved_skin.albedo_color.is_equal_approx(H.Outfit.SKIN_TONE),"saved upper arm retains skin rather than cloth material")
+		if label.begins_with("Elbow") or label.begins_with("JointClothElbow"):
+			var saved_elbow := mesh.material_override as StandardMaterial3D
+			check(saved_elbow!=null and saved_elbow.albedo_color.is_equal_approx(H.Outfit.SKIN_TONE),"saved elbow retains the exposed arm skin")
 		var material := mesh.material_override as ShaderMaterial
 		if material!=null and material.shader.resource_path.ends_with("hunter_fabric.gdshader"):
 			saved_count += 1

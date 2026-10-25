@@ -41,15 +41,15 @@ static func create(parent: Node3D) -> Dictionary:
 	var legs := {}
 	for side in [-1,1]:
 		var shoulder := V.pivot(root,"Arm"+str(side),Vector3(side*0.27,1.43,0))
-		var upper := Outfit.loft(root,"UpperArmSurface"+str(side),[Vector4(-0.5,0.073,0.070,0),Vector4(-0.35,0.084,0.078,-0.003),Vector4(-0.10,0.078,0.075,-0.004),Vector4(0.15,0.067,0.065,0),Vector4(0.40,0.054,0.054,0),Vector4(0.5,0.055,0.054,0)],Outfit.SKIN_TONE)
+		var upper := Outfit.loft(root,"UpperArmSurface"+str(side),[Vector4(-0.65,0.012,0.012,0),Vector4(-0.60,0.040,0.040,0),Vector4(-0.5,0.073,0.070,0),Vector4(-0.35,0.084,0.078,-0.003),Vector4(-0.10,0.078,0.075,-0.004),Vector4(0.15,0.067,0.065,0),Vector4(0.40,0.054,0.054,0),Vector4(0.5,0.055,0.054,0)],Outfit.SKIN_TONE)
 		var lower := Outfit.loft(root,"Bracer"+str(side),[Vector4(-0.5,0.063,0.058,0),Vector4(-0.15,0.073,0.062,0),Vector4(0.35,0.058,0.052,0),Vector4(0.5,0.048,0.045,0)],armor)
 		V.piece(lower,Vector3(0,-0.06,-0.063),Vector3(0.065,0.28,0.012),Color("434b43"))
 		if side==-1:
 			var display := V.piece(lower,Vector3(0,-0.06,-0.071),Vector3(0.039,0.18,0.009),Color("8fb8a0"))
 			display.material_override = V.mat(Color("8fb8a0"),true)
 		var hand := Hand.create(root,side)
-		var elbow_pad := Outfit.blob(root,"Elbow"+str(side),Vector3.ZERO,Vector3.ONE*0.12,dark)
-		arms[side] = {"shoulder":shoulder,"rest_shoulder":shoulder.position,"upper":upper,"lower":lower,"hand":hand,"elbow":elbow_pad}
+		var elbow_surface := Outfit.blob(root,"Elbow"+str(side),Vector3.ZERO,Vector3(0.105,0.13,0.105),Outfit.SKIN_TONE)
+		arms[side] = {"shoulder":shoulder,"rest_shoulder":shoulder.position,"upper":upper,"lower":lower,"hand":hand,"elbow":elbow_surface}
 		joints["arm"+str(side)] = shoulder
 		var leg := V.pivot(root,"Leg"+str(side),Vector3(side*0.14,0.89,0))
 		var thigh := Outfit.loft(leg,"TrouserThigh",[Vector4(-0.43,0.08,0.072,0),Vector4(-0.34,0.10,0.09,0),Vector4(-0.16,0.112,0.10,0),Vector4(0,0.10,0.095,0)],dark)
@@ -76,6 +76,7 @@ static func create(parent: Node3D) -> Dictionary:
 		rig.soft_joints.append({"source":shoulder_cloth,"upper":torso.get_node("Undercoat"),"lower":arm.upper})
 		# Flexible underlayers stay inside the rigid sleeve/trouser openings to avoid intersecting rims.
 		var elbow_cloth := JointCloth.create(root,"JointClothElbow"+str(side),arm.shoulder.position,arm.elbow.position,arm.hand.position,0.046)
+		elbow_cloth.material_override = V.mat(Outfit.SKIN_TONE)
 		rig.soft_joints.append({"source":elbow_cloth,"upper":arm.upper,"lower":arm.lower})
 		var leg: Dictionary = legs[side]
 		var knee_cloth := JointCloth.create(root,"JointClothKnee"+str(side),Skinning.relative_transform(leg.hip,root).origin,Skinning.relative_transform(leg.knee,root).origin,Skinning.relative_transform(leg.ankle,root).origin,0.070)

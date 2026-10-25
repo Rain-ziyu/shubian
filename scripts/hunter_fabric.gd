@@ -3,7 +3,7 @@ extends RefCounted
 static func apply(root: Node3D) -> void:
 	for part in root.find_children("*","MeshInstance3D",true,false):
 		var label := str(part.name)
-		if label.begins_with("JointClothShoulder"): continue
+		if label.begins_with("JointClothShoulder") or label.begins_with("JointClothElbow"): continue
 		if label not in ["Undercoat","CoatPanel","TrouserThigh","TrouserShin"] and not label.begins_with("RainCape") and not label.begins_with("Sleeve") and not label.begins_with("JointCloth"): continue
 		var original := part.material_override as StandardMaterial3D
 		if original==null: continue
