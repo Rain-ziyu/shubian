@@ -49,6 +49,9 @@ func run() -> void:
 	p.combat.elapsed = 0.18
 	p.animate(0,0)
 	check(p.rig.torso.rotation.y< -0.20,"heavy anticipates with torso windup")
+	p.combat.elapsed = 0.50
+	p.animate(0,0)
+	check(absf(p.to_local(p.rig.weapon.get_node("TipContact").global_position).x)>0.70,"heavy follow-through clears the tip laterally beyond the torso")
 	p.combat.elapsed = 0.61
 	p.animate(0,0)
 	check(p.rig.torso.rotation.y>0.20,"heavy follows through across the body")

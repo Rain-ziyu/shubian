@@ -105,6 +105,20 @@ func run() -> void:
 	p.on_strike(0)
 	p.update_weapon_contacts()
 	check(mist.stagger>0,"raised visible tip can interrupt exposed front mist sac")
+	p.pitch = -0.25
+	p.yaw = 0
+	p.rig.root.rotation.y = 0
+	m.global_position = Vector3(0,0,-2)
+	p.combat.set_action("heavy")
+	p.combat.elapsed = 0.43
+	p.animate(0,0)
+	hp = m.health
+	p.on_strike(0)
+	for frame in 8:
+		p.combat.elapsed = 0.43+float(frame)/60
+		p.animate(0,0)
+		p.update_weapon_contacts()
+	check(m.health<hp,"heavy front pass still contacts real visible monster geometry")
 	print("WEAPON_TRACE_CHECKS: ",checks," FAILURES: ",failures)
 	world.queue_free()
 	await process_frame
