@@ -54,7 +54,7 @@ func run() -> void:
 		check(absf(tail.get_bone_pose_rotation(3).dot(tail_before))>0.99999,"stagger entry preserves deformed tail bone")
 		check(not m.rear_attack and not m.rear_tell.visible and m.rear_cooldown>0,"interruption cancels pending tail attack but preserves cooldown")
 		for frame in 20: m._physics_process(1.0/60)
-		check(m.mesh.get_node("Neck").rotation.length()<0.001 and absf(m.mesh.get_node("Tail").rotation.y)<0.001,"stagger releases loaded neck and tail instead of freezing")
+		check(m.mesh.get_node("Neck").rotation.x>0.02 and absf(m.mesh.get_node("Tail").rotation.y)<0.001,"stagger releases loaded neck into brace and releases the tail instead of freezing")
 		var leg: Node3D = m.mesh.get_node("Hind1")
 		var bones: Skeleton3D = leg.get_node("LegSkeleton")
 		var foot_mesh: MeshInstance3D = leg.get_node("Foot")
@@ -65,6 +65,14 @@ func run() -> void:
 		check(m.stagger==0 and m.phase=="recover" and m.mesh.get_node("Neck").rotation.length()<0.001,"recovery does not restart abandoned attack follow-through")
 		check(m.mesh.get_node("Neck/Jaw").rotation.length()<0.001,"stagger closes the jaw smoothly and recovery does not restart the cancelled mouth action")
 		check(m.health==health and p.combat.health==240,"pose blend injects no damage or health change")
+		m.stagger = 1.3
+		m.was_staggering = false
+		m.velocity = Vector3.ZERO
+		for frame in 25: m._physics_process(1.0/60)
+		check(m.stagger>0.8 and m.mesh.get_node("Neck").rotation.x>0.08,"long stagger retains a lowered, braced head instead of standing ready: "+str(m.data.id))
+		check(m.mesh.position.y-float(m.mesh.get_meta("ground_offset",0.0))< -float(m.data.size)*0.015,"long stagger keeps weight lowered until recovery")
+		for frame in 65: m._physics_process(1.0/60)
+		check(m.stagger==0 and m.mesh.get_node("Neck").rotation.length()<0.001,"long stagger releases brace without restarting attack")
 		m.global_position = Vector3(80+monsters.find(m)*12,0,80)
 		await physics_frame
 		await physics_frame
