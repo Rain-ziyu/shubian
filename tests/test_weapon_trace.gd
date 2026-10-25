@@ -15,10 +15,12 @@ func run() -> void:
 	check(not Parts.cast_volumes(parts,Vector3.ZERO,Vector3.UP,0,0.075).is_empty(),"stationary overlapping blade contacts part")
 	var world = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(world)
-	await physics_frame
-	await physics_frame
 	var p = world.hunter
 	p.set_physics_process(false)
+	p.set_process_unhandled_input(false)
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	await physics_frame
+	await physics_frame
 	var monsters := get_nodes_in_group("monsters")
 	for creature in monsters: creature.set_physics_process(false)
 	var m = monsters[0]

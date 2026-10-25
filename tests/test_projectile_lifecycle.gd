@@ -14,10 +14,19 @@ func fly(shot) -> void:
 func run() -> void:
 	var world = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(world)
-	await physics_frame
-	await physics_frame
 	var p = world.hunter
+	# Manual-flight fixture: native window mouse capture must not alter its aim.
 	p.set_physics_process(false)
+	p.set_process_unhandled_input(false)
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	await physics_frame
+	await physics_frame
+	var aim_before := Vector2(p.yaw,p.pitch)
+	var interference := InputEventMouseMotion.new()
+	interference.relative = Vector2(0,-360)
+	Input.parse_input_event(interference)
+	await process_frame
+	check(Vector2(p.yaw,p.pitch).is_equal_approx(aim_before),"external mouse input cannot steer the manual lifecycle fixture")
 	for m in get_nodes_in_group("monsters"): m.set_physics_process(false)
 	var monster = get_nodes_in_group("monsters")[0]
 	monster.global_position = Vector3(0,0,-16)
