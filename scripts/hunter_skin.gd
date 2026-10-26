@@ -126,6 +126,23 @@ static func bind(rig: Dictionary) -> Dictionary:
 		var shin: int = indices[leg.shin.get_instance_id()]
 		var boot: int = indices[leg.boot.get_instance_id()]
 		for pair in [[thigh,pelvis],[shin,thigh],[boot,shin]]: parent_bone(skeleton,pair[0],pair[1],rests)
+		# The shaft follows the calf while the sole remains rigid on the foot.
+		# Blend only above the instep; support-plane and toe geometry stay intact.
+		for binding in bindings:
+			if binding.source!=leg.boot: continue
+			var arrays: Array = binding.rendered.mesh.surface_get_arrays(0)
+			var originals: PackedVector3Array = leg.boot.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+			var bones := PackedInt32Array()
+			var weights := PackedFloat32Array()
+			for point in originals:
+				var shin_weight := smoothstep(0.43,1.13,point.y)
+				bones.append_array(PackedInt32Array([boot,shin,0,0]))
+				weights.append_array(PackedFloat32Array([1-shin_weight,shin_weight,0,0]))
+			arrays[Mesh.ARRAY_BONES] = bones
+			arrays[Mesh.ARRAY_WEIGHTS] = weights
+			var mesh := ArrayMesh.new()
+			mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+			binding.rendered.mesh = mesh
 	for joint in rig.get("soft_joints",[]):
 		for binding in bindings:
 			if binding.source!=joint.source: continue
