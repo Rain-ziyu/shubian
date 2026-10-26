@@ -89,6 +89,7 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 		armored.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
 		head_surface.mesh = armored
 	var facial_surface: TriangleMesh = head_surface.mesh.generate_triangle_mesh()
+	Surface.mouth_lining(head_surface,Vector3.ZERO,s,head_width,true)
 	var jaw_profile := [Vector4(-0.68,0.006*head_width,0.004,-0.04),Vector4(-0.66,0.035*head_width,0.015,-0.04),Vector4(-0.58,0.13*head_width,0.035,-0.05),Vector4(-0.30,0.145*head_width,0.055,-0.045),Vector4(-0.12,0.06,0.025,0.01)]
 	if data.id=="stormcrest": jaw_profile = [Vector4(-0.69,0.008,0.005,-0.04),Vector4(-0.67,0.040,0.018,-0.045),Vector4(-0.64,0.10,0.032,-0.050),Vector4(-0.60,0.145,0.040,-0.055),Vector4(-0.40,0.165,0.055,-0.055),Vector4(-0.20,0.13,0.050,-0.025),Vector4(-0.12,0.060,0.025,0.010)]
 	Surface.profile(neck,"Jaw",jaw_profile,s,c.darkened(0.16))

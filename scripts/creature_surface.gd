@@ -94,8 +94,8 @@ static func tooth_root(surface_mesh: TriangleMesh, x: float, z: float, radius: f
 		height = maxf(height,contact.position.y) if upper else minf(height,contact.position.y)
 	return Vector3(x,height+scale*(0.003 if upper else -0.003),z)
 
-static func mouth_lining(jaw: MeshInstance3D, hinge: Vector3, scale: float, head_width: float) -> MeshInstance3D:
-	# Fit a shallow inner lining to the real mandible, rather than suspending
+static func mouth_lining(jaw: MeshInstance3D, hinge: Vector3, scale: float, head_width: float, upper := false) -> MeshInstance3D:
+	# Fit a shallow inner lining to the actual jaw surface, rather than suspending
 	# a flat slab above it. No per-frame projection or new contact geometry.
 	var sections := [Vector2(-0.65,0.006),Vector2(-0.60,0.055*head_width),Vector2(-0.53,0.085*head_width),Vector2(-0.44,0.11*head_width),Vector2(-0.34,0.115*head_width),Vector2(-0.24,0.09*head_width),Vector2(-0.16,0.045*head_width),Vector2(-0.125,0.008)]
 	var surface_mesh := jaw.mesh.generate_triangle_mesh()
@@ -106,12 +106,16 @@ static func mouth_lining(jaw: MeshInstance3D, hinge: Vector3, scale: float, head
 			var across := float(column)/8*2-1
 			var x := across*section.y*scale
 			var z := section.x*scale-hinge.z
-			var contact := surface_mesh.intersect_segment(Vector3(x,scale*0.25,z),Vector3(x,-scale*0.25,z))
-			assert(not contact.is_empty(),"Mouth lining must stay inside its mandible")
+			var contact := surface_mesh.intersect_segment(Vector3(x,-scale*0.25 if upper else scale*0.25,z),Vector3(x,scale*0.40 if upper else -scale*0.25,z))
+			assert(not contact.is_empty(),"Mouth lining must stay on its corresponding jaw surface")
 			var central := 1-smoothstep(0.2,0.9,absf(across))
 			var tongue := central*smoothstep(-0.65,-0.53,section.x)*(1-smoothstep(-0.26,-0.125,section.x))
-			var point: Vector3 = contact.position+hinge+Vector3.UP*scale*(0.0015+0.004*tongue)
-			var color := Color("1c2b23").lerp(Color("52614b"),tongue*0.75)
+			var point: Vector3 = contact.position+hinge+Vector3.UP*scale*(-0.0015 if upper else 0.0015+0.004*tongue)
+			var color := Color("302830").lerp(Color("66575f"),tongue*0.50)
+			if upper:
+				var depth := smoothstep(-0.65,-0.125,section.x)
+				var fold := 0.5+0.5*cos((section.x+0.65)*90)
+				color = Color("483a40").lerp(Color("211d24"),depth).lightened(0.045*fold*central*(1-depth))
 			row.append({"point":point,"color":color,"uv":Vector2(float(column)/8,(section.x+0.65)/0.525)})
 		rows.append(row)
 	var st := SurfaceTool.new()
@@ -119,13 +123,15 @@ static func mouth_lining(jaw: MeshInstance3D, hinge: Vector3, scale: float, head
 	st.set_smooth_group(0)
 	for row in range(rows.size()-1):
 		for column in 8:
-			for item in [rows[row][column],rows[row][column+1],rows[row+1][column],rows[row][column+1],rows[row+1][column+1],rows[row+1][column]]:
+			var quad: Array = [rows[row][column],rows[row][column+1],rows[row+1][column],rows[row][column+1],rows[row+1][column+1],rows[row+1][column]]
+			if upper: quad.reverse()
+			for item in quad:
 				st.set_color(item.color)
 				st.set_uv(item.uv)
 				st.add_vertex(item.point)
 	st.generate_normals()
 	var result := MeshInstance3D.new()
-	result.name = "MouthFloor"
+	result.name = "MouthRoof" if upper else "MouthFloor"
 	result.mesh = st.commit()
 	var material := StandardMaterial3D.new()
 	material.vertex_color_use_as_albedo = true

@@ -77,6 +77,26 @@ func run() -> void:
 		stage.add_child(saved)
 		var saved_lining: MeshInstance3D = saved.get_node("Neck/Jaw/MouthFloor")
 		check(saved_lining.transform.is_equal_approx(lining.transform) and saved_lining.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]==lining_points,"saved mouth lining matches the fitted runtime mesh")
+		var head: MeshInstance3D = neck.get_node("HeadSurface")
+		check(head.has_node("MouthRoof"),"upper palate stays attached to the cranium")
+		var roof: MeshInstance3D = head.get_node("MouthRoof")
+		var roof_arrays: Array = roof.mesh.surface_get_arrays(0)
+		var roof_points: PackedVector3Array = roof_arrays[Mesh.ARRAY_VERTEX]
+		var roof_normals: PackedVector3Array = roof_arrays[Mesh.ARRAY_NORMAL]
+		var skull := head.mesh.generate_triangle_mesh()
+		var roof_fitted := true
+		var roof_downward := true
+		for index in roof_points.size():
+			var point: Vector3 = roof.transform*roof_points[index]
+			var contact := skull.intersect_segment(Vector3(point.x,-float(data.size)*0.25,point.z),Vector3(point.x,float(data.size)*0.40,point.z))
+			roof_fitted = roof_fitted and not contact.is_empty()
+			if not contact.is_empty():
+				var clearance: float = contact.position.y-point.y
+				roof_fitted = roof_fitted and clearance>float(data.size)*0.0005 and clearance<float(data.size)*0.003
+			roof_downward = roof_downward and roof_normals[index].y< -0.2
+		check(roof_fitted,"upper palate follows the actual skull underside with bounded clearance")
+		check(roof_downward,"upper palate normals face the mouth opening")
+		check(saved.get_node("Neck/HeadSurface/MouthRoof").mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]==roof_points,"saved upper palate matches runtime geometry")
 		var saved_neck: Node3D = saved.get_node("Neck")
 		var saved_jaw: MeshInstance3D = saved.get_node("Neck/Jaw")
 		check_teeth(saved_neck,saved_neck.get_node("HeadSurface"),float(data.size),true)
