@@ -433,6 +433,8 @@ func animate(delta: float, speed: float) -> void:
 				var base := Transform3D(Basis.from_euler(Vector3(-PI/2-aim,PI,-0.15)),Vector3(0,1.20+maxf(0,aim)*0.5,0.23))
 				var grip := Vector3(0,-0.28,0)
 				var pivot := base*grip
+				# Lift the one-hand sweep to shoulder/chest level before its active arc.
+				pivot.y += 0.22*smoothstep(0.10,0.20,t)*(1-smoothstep(0.54,0.82,t))
 				var swing := smoothstep(0.10,0.36,t)
 				var follow := 0.22*smoothstep(0.36,0.48,t)*(1-smoothstep(0.54,0.82,t))
 				w.rotation = Vector3(-PI/2+aim*(2*swing-1),PI+PI*swing+follow,-0.15)
