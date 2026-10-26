@@ -13,6 +13,9 @@ func error_to(p: CharacterBody3D, m: Node3D) -> float:
 func run() -> void:
 	var world = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(world)
+	world.hunter.set_process_input(false)
+	world.hunter.set_process_unhandled_input(false)
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	await physics_frame
 	await physics_frame
 	var p = world.hunter
@@ -22,6 +25,7 @@ func run() -> void:
 	m.global_position = p.global_position+Vector3(6,0,-6)
 	p.lock_target = m
 	p.yaw = 0
+	p.camera_manual_time = 0
 	p.update_lock_camera(1.0/60)
 	check(p.yaw<0 and p.yaw> -PI/4,"lock begins a smooth turn rather than snapping")
 	for frame in 120: p.update_lock_camera(1.0/60)

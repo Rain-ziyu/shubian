@@ -47,6 +47,9 @@ func run() -> void:
 	check(not Contact.touches(rings,before,after,Vector3(2,0,4),Vector3(-2,0,4)),"crossing motion outside tail length remains clear")
 	world = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(world)
+	world.hunter.set_process_input(false)
+	world.hunter.set_process_unhandled_input(false)
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	await physics_frame
 	await physics_frame
 	fighter = world.hunter
