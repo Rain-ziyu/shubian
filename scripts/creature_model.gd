@@ -429,7 +429,8 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 				var lift := 0.0
 				var foot_basis := Basis.IDENTITY
 				if limb_speed>0.1:
-					target.z = sin(step)*side*minf(float(data.size)*0.16,limb_speed*0.06)*stride_weight
+					# Swing from rear to front; support travels backward relative to the moving body.
+					target.z = -sin(step)*side*minf(float(data.size)*0.16,limb_speed*0.06)*stride_weight
 					lift = maxf(0,cos(step)*side)*minf(float(data.size)*0.10,limb_speed*0.035)*stride_weight
 					target.y += lift
 				if data.pattern=="leap" and phase=="active":

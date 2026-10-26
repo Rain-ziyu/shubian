@@ -64,6 +64,20 @@ func run() -> void:
 		check(leg.get_meta("plant_world").distance_to(old)>5,"large reposition does not stretch a stale anchor")
 		Model.animate(model,species,0,"idle",0,2.4)
 		check(not leg.has_meta("plant_world"),"missing ground releases world lock")
+		# Measure the rendered ankle rather than repeating the authored sine formula.
+		actor.transform = Transform3D.IDENTITY
+		var swing_leg: Node3D = model.get_node("Hind1")
+		Model.animate(model,species,-PI/3,"idle",0,2.4)
+		var swing_start := sole(swing_leg)
+		Model.animate(model,species,PI/3,"idle",0,2.4)
+		var swing_end := sole(swing_leg)
+		print("FORWARD_STRIDE: ",species.id," swing_z=",swing_end.z-swing_start.z)
+		check(swing_end.z<swing_start.z-0.1,"lifted foot advances toward the creature facing direction: "+str(species.id))
+		Model.animate(model,species,PI/2,"idle",0,2.4)
+		var touchdown := sole(swing_leg)
+		Model.animate(model,species,PI*1.5,"idle",0,2.4)
+		var liftoff := sole(swing_leg)
+		check(touchdown.z<liftoff.z-0.1,"foot lands ahead and finishes support behind the hip: "+str(species.id))
 		actor.queue_free()
 	await process_frame
 	print("CREATURE_FOOT_LOCK_CHECKS: ",checks," FAILURES: ",failures)
