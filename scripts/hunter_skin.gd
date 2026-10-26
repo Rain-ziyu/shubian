@@ -102,7 +102,10 @@ static func bind(rig: Dictionary) -> Dictionary:
 		var bones := PackedInt32Array()
 		var weights := PackedFloat32Array()
 		for point in vertices:
-			var arm_weight := 0.70*smoothstep(0.16,0.29,absf(point.x))*(1-smoothstep(1.42,1.49,point.y))
+			# The raised shoulder crown reaches 1.53 m. Do not pin its outer
+			# vertices to the chest at the former, lower neckline.
+			var shoulder_follow := lerpf(0.70,1.0,smoothstep(1.35,1.44,point.y))
+			var arm_weight := shoulder_follow*smoothstep(0.16,0.29,absf(point.x))*(1-smoothstep(1.51,1.53,point.y))
 			bones.append_array(PackedInt32Array([binding.bone,upper,0,0]))
 			weights.append_array(PackedFloat32Array([1-arm_weight,arm_weight,0,0]))
 		arrays[Mesh.ARRAY_BONES] = bones

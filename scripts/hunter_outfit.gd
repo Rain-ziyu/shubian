@@ -360,8 +360,8 @@ static func create(root: Node3D) -> Dictionary:
 		var cape := loft(root,"RainCape"+str(side),[
 			Vector4(1.14,0.43,0.245,0.018),Vector4(1.25,0.385,0.225,0.018),
 			Vector4(1.34,0.35,0.195,0.018),Vector4(1.39,0.34,0.18,0.012),
-			Vector4(1.44,0.325,0.16,0.008),Vector4(1.48,0.30,0.14,0.004),
-			Vector4(1.515,0.21,0.10,0),Vector4(1.53,0.10,0.08,0)
+			Vector4(1.44,0.34,0.16,0.008),Vector4(1.48,0.34,0.14,0.004),
+			Vector4(1.515,0.23,0.10,0),Vector4(1.53,0.10,0.08,0)
 		],green,begin,finish,24,false)
 		cape.material_override.cull_mode = BaseMaterial3D.CULL_DISABLED
 		cape.material_override.roughness = 0.92
