@@ -455,6 +455,9 @@ func animate(delta: float, speed: float) -> void:
 					var ready := Basis.from_euler(Vector3(-PI/2,0,-0.15)).get_rotation_quaternion()
 					w.quaternion = ready.slerp(Basis.from_euler(Vector3(0,0,PI)).get_rotation_quaternion(),smoothstep(0,0.18,t))
 			"throw":
+				# Carry the loaded shaft beside the upper-back saddles, then return
+				# to the unchanged projectile release point.
+				w.position.x += 0.10*smoothstep(0.0,0.12,t)*(1-smoothstep(0.25,0.38,t))
 				var path := HunterModel.Motion.interpolate(HunterModel.Motion.THROW_WEAPON,t)
 				w.position.y += path.y
 				w.position.z += path.z
@@ -467,8 +470,13 @@ func animate(delta: float, speed: float) -> void:
 		var goal := w.transform
 		w.transform = pose_from.interpolate_with(w.transform,smoothstep(0,1,pose_blend))
 		if equipment_route:
+			# Leave the open saddles before turning the long shaft; align before seating.
+			var travel := smoothstep(0,1,pose_blend)
+			var rotation_weight := smoothstep(0.20,1.0,travel) if combat.drawn else smoothstep(0.0,0.80,travel)
+			w.quaternion = pose_from.basis.get_rotation_quaternion().slerp(goal.basis.get_rotation_quaternion(),rotation_weight)
 			var arc := Vector3(maxf(0,0.40-absf(pose_from.origin.x)),maxf(0,1.65-maxf(pose_from.origin.y,goal.origin.y)),0)
-			w.position += arc*sin(smoothstep(0,1,pose_blend)*PI)
+			w.position += arc*sin(travel*PI)
+
 		equipment_grip = lerpf(equipment_from,1.0 if combat.drawn else 0.0,smoothstep(0,0.7,pose_blend))
 		equipment_main = lerpf(equipment_main_from,1.0,smoothstep(0,0.7,pose_blend)) if combat.drawn else lerpf(equipment_main_from,0.0,smoothstep(0.82,1,pose_blend))
 	else:

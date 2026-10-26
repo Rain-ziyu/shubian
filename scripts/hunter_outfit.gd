@@ -394,14 +394,24 @@ static func back_mount(root: Node3D) -> void:
 	# Same shaft axis as the sheathed weapon. Side-open saddles release toward
 	# the existing positive-X equipment arc rather than enclosing the shaft.
 	var carry := Transform3D(Basis(Vector3.BACK,0.35),Vector3(0,1.05,0.26))
-	var center := carry*Vector3(-0.06,0.30,0)
-	var rail := V.piece(root,Vector3(center.x,center.y,center.z),Vector3(0.055,0.36,0.10),Color("586157"))
+	var center := carry*Vector3(-0.06,0.50,0)
+	var rail := V.piece(root,Vector3(center.x,center.y,center.z),Vector3(0.055,0.24,0.10),Color("586157"))
 	rail.name = "BackMountRail"
 	rail.rotation.z = 0.35
+	# Two short stand-offs visibly secure the raised rail through the cape to
+	# the upper-back harness; combine them into the existing rail skin part.
+	var support := SurfaceTool.new()
+	support.begin(Mesh.PRIMITIVE_TRIANGLES)
+	support.append_from(rail.mesh,0,Transform3D.IDENTITY)
+	for pair in [[Vector3(-0.12,1.44,0.10),Vector3(-0.16,1.60,0.15)],[Vector3(-0.16,1.60,0.15),carry*Vector3(-0.06,0.60,0)],[Vector3(-0.16,1.44,0.07),Vector3(-0.20,1.58,0.16)],[Vector3(-0.20,1.58,0.16),carry*Vector3(-0.08,0.48,0)]]:
+		var axis: Vector3 = pair[1]-pair[0]
+		var strut := Transform3D(Basis(Quaternion(Vector3.UP,axis.normalized())).scaled(Vector3(0.018,axis.length(),0.018)),(pair[0]+pair[1])*0.5)
+		support.append_from(BoxMesh.new(),0,rail.transform.affine_inverse()*strut)
+	rail.mesh = support.commit()
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_smooth_group(0)
-	for seat in [0.17,0.40]:
+	for seat in [0.40,0.60]:
 		for segment in 24:
 			var a := deg_to_rad(70+220*float(segment)/24)
 			var b := deg_to_rad(70+220*float(segment+1)/24)

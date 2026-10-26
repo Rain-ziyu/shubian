@@ -3,6 +3,7 @@ var checks := 0
 var failures := 0
 var hits := 0
 var hit_time := 0.0
+var mount_meshes := {}
 func check(ok: bool, label: String) -> void:
 	checks += 1
 	if not ok:
@@ -59,13 +60,16 @@ func run() -> void:
 	var lengths := true
 	var side_route := false
 	var main_holds := false
+	var sheath_clear := true
 	for frame in 30:
 		p.animate(1.0/60,0)
+		sheath_clear = sheath_clear and not crosses_mount(p)
 		if p.rig.weapon.position.x>0.25 and p.rig.weapon.position.y>1.4: side_route = true
 		if frame==8: main_holds = p.rig.arms[1].hand.position.distance_to(p.rig.weapon.transform*Vector3(0,-0.28,0))<0.002
 		for side in [-1,1]:
 			var arm: Dictionary = p.rig.arms[side]
 			lengths = lengths and absf(arm.upper.scale.y-0.39)<0.002 and absf(arm.lower.scale.y-0.39)<0.002
+	check(sheath_clear,"shaft and grip clear actual back mount triangles throughout sheathing")
 	check(lengths,"release transition retains both arm segment lengths")
 	check(side_route,"equipment path lifts beside torso instead of only straight interpolation")
 	check(main_holds,"main hand holds shaft through middle of sheath transfer")
@@ -80,12 +84,15 @@ func run() -> void:
 		hits += 1
 		hit_time = p.combat.elapsed
 	)
+	var draw_clear := true
 	for frame in 16:
 		p.combat.advance(1.0/60)
 		p.animate(1.0/60,0)
+		draw_clear = draw_clear and not crosses_mount(p)
 		for side in [-1,1]:
 			var arm: Dictionary = p.rig.arms[side]
 			lengths = lengths and absf(arm.upper.scale.y-0.39)<0.002 and absf(arm.lower.scale.y-0.39)<0.002
+	check(draw_clear,"shaft and grip clear actual back mount triangles throughout drawing")
 	check(lengths,"draw arc also retains fixed arm lengths")
 	check(hits==1 and hit_time>=0.25 and hit_time<=0.25+1.0/60+0.001,"visual draw preserves first strike threshold within one physics tick")
 	check(is_equal_approx(p.equipment_grip,1),"hands settle on grips before first strike")
@@ -104,7 +111,67 @@ func run() -> void:
 		p.combat.elapsed = sample[0]
 		p.animate(0,0)
 		check(absf(p.rig.arms[-1].hand.get_blend_shape_value(0)-sample[1])<0.001,"throw progressively opens fingers before projectile release")
+	# Sample between 60Hz frames too, including all back-to-special draw routes.
+	for move in ["light","heavy","fourfold","spin"]:
+		p.combat.set_action("idle")
+		p.combat.drawn = false
+		p.animate(0,0)
+		p.combat.shadow_lifetimes.assign([180.0])
+		check(p.combat.request(move),"fine sampling starts the normal draw request "+move)
+		var fine_clear := true
+		var fine_lengths := true
+		for frame in 25:
+			p.combat.advance(1.0/240)
+			p.animate(1.0/240,0)
+			fine_clear = fine_clear and not crosses_mount(p)
+			for side in [-1,1]:
+				var arm: Dictionary = p.rig.arms[side]
+				fine_lengths = fine_lengths and absf(arm.upper.scale.y-0.39)<0.002 and absf(arm.lower.scale.y-0.39)<0.002
+		check(fine_clear and fine_lengths,"240Hz draw samples clear the mount without stretching arms "+move)
+		p.combat.set_action("idle")
+		p.combat.drawn = true
+		p.animate(0,0)
+		p.combat.request("sheathe")
+		fine_clear = true
+		for frame in 73:
+			p.animate(1.0/240,0)
+			fine_clear = fine_clear and not crosses_mount(p)
+		check(fine_clear,"240Hz sheath samples clear the mount "+move)
+	for action in ["light","heavy","pull","turn","guard","reply","fourfold","spin","throw","plant","wait","counter_window","finisher","hurt","dodge"]:
+		p.combat.drawn = true
+		p.combat.set_action(action)
+		var held_clear := true
+		var held_lengths := true
+		for sample in 31:
+			p.combat.elapsed = float(p.Combat.MOVES[action].duration)*sample/30
+			p.animate(0,0)
+			held_clear = held_clear and not crosses_mount(p)
+			for side in [-1,1]:
+				var arm: Dictionary = p.rig.arms[side]
+				held_lengths = held_lengths and absf(arm.upper.scale.y-0.39)<0.002 and absf(arm.lower.scale.y-0.39)<0.002
+		check(held_clear,"sampled held shaft clears the back mount "+action)
+		check(held_lengths,"sampled held pose retains arm lengths "+action)
 	print("EQUIPMENT_TRANSITION_CHECKS: ",checks," FAILURES: ",failures)
 	world.queue_free()
 	await process_frame
 	quit(1 if failures else 0)
+
+func crosses_mount(p: CharacterBody3D) -> bool:
+	for label in ["BackMountRail","BackMountClips"]:
+		var mount: MeshInstance3D = p.rig.torso.get_node(label)
+		if not mount_meshes.has(label): mount_meshes[label] = mount.mesh.generate_triangle_mesh()
+		var triangles: TriangleMesh = mount_meshes[label]
+		for part_label in ["Shaft","Grip","ButtNeck"]:
+			var part: MeshInstance3D = p.rig.weapon.get_node(part_label)
+			var transform := mount.global_transform.affine_inverse()*part.global_transform
+			var vertices := part.mesh.get_faces()
+			for triangle in range(0,vertices.size(),3):
+				for edge in 3:
+					var a := transform*vertices[triangle+edge]
+					var b := transform*vertices[triangle+(edge+1)%3]
+					if not mount.get_aabb().intersects_segment(a,b): continue
+					var crossing := triangles.intersect_segment(a,b)
+					if not crossing.is_empty():
+						print("MOUNT_CROSSING: ",label," part=",part_label," blend=",p.pose_blend," drawn=",p.combat.drawn," point=",mount.to_global(crossing.position))
+						return true
+	return false
