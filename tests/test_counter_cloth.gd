@@ -45,6 +45,8 @@ func shaft_hits_for(skeleton: Skeleton3D, weapon: Node3D, include_head := false)
 				hits.append(label)
 				break
 	return hits
+func prepare_player(_player: CharacterBody3D) -> void: pass
+
 func run() -> void:
 	var stage := Node3D.new()
 	root.add_child(stage)
@@ -53,6 +55,7 @@ func run() -> void:
 	stage.add_child(p)
 	p.set_process_input(false)
 	p.set_process_unhandled_input(false)
+	prepare_player(p)
 	p.yaw = 0
 	p.pitch = -0.25
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE

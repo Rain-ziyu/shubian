@@ -101,7 +101,7 @@ static func counter_grip(elapsed: float) -> float:
 	var slide := smoothstep(0.0,0.16,elapsed)*(1-smoothstep(0.54,0.82,elapsed))
 	return lerpf(-0.28,-0.82,slide)
 
-static func pose_arms(rig: Dictionary, armed: bool, gait: float, grip_weight := 1.0, main_grip := -1.0, finger_release := 0.0, right_grip := -0.28) -> void:
+static func pose_arms(rig: Dictionary, armed: bool, gait: float, grip_weight := 1.0, main_grip := -1.0, finger_release := 0.0, right_grip := -0.28, delta := 0.0) -> void:
 	for side in [-1,1]:
 		var arm: Dictionary = rig.arms[side]
 		var shoulder: Vector3 = arm.shoulder.position
@@ -117,6 +117,8 @@ static func pose_arms(rig: Dictionary, armed: bool, gait: float, grip_weight := 
 		var unit := offset.normalized()
 		bend = (bend-unit*bend.dot(unit)).normalized()
 		var height := sqrt(maxf(0,0.39*0.39-pow(distance*0.5,2)))
+		if rig.get("elbow_continuity",false):
+			bend = preload("res://scripts/hunter_arm_clearance.gd").solve(shoulder,target,bend,height,rig.weapon.transform,side,arm.elbow.position,delta,armed and rig.weapon.visible and rig.get("shaft_clearance",false))
 		var elbow := middle+bend*height
 		segment(arm.upper,shoulder,elbow)
 		# Use the anatomical elbow plane, avoiding shortest-arc roll and pole switches.

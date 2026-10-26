@@ -473,10 +473,11 @@ func animate(delta: float, speed: float) -> void:
 					w.transform = first
 					if combat.action=="turn":
 						var last := Transform3D(w.basis,HunterModel.Motion.orbital_grip(shaft,left,right,-1.0))
-						if t<0.34: w.transform = first
+						var handoff_start := 0.28 if rig.get("shaft_clearance",false) else 0.34
+						if t<handoff_start: w.transform = first
 						elif t<0.44:
-							var waypoint := Vector3(0,1.38,-0.60).rotated(Vector3.UP,body_turn_applied)
-							w.transform = HunterModel.Motion.upright_handoff(first,last,(t-0.34)/0.10,waypoint,waypoint)
+							var waypoint := Vector3(0,1.38,-0.90 if rig.get("shaft_clearance",false) else -0.60).rotated(Vector3.UP,body_turn_applied)
+							w.transform = HunterModel.Motion.upright_handoff(first,last,(t-handoff_start)/(0.44-handoff_start),waypoint,waypoint)
 						else: w.transform = last
 
 			"guard":
@@ -575,7 +576,7 @@ func animate(delta: float, speed: float) -> void:
 		var goal := w.transform
 		w.transform = pose_from.interpolate_with(w.transform,smoothstep(0,1,pose_blend))
 		if not equipment_route and pose_source_action=="spin" and combat.action=="light" and pose_blend<1:
-			var waypoint := Vector3(0.20,1.30,-0.50)
+			var waypoint := Vector3(0.20,1.30,-0.70 if rig.get("shaft_clearance",false) else -0.50)
 			w.transform = HunterModel.Motion.upright_handoff(pose_from,goal,pose_blend,waypoint,waypoint)
 		if not equipment_route and pose_source_action=="turn" and combat.action in ["light","heavy","pull"] and pose_blend<1:
 			w.transform = HunterModel.Motion.upright_handoff(pose_from,goal,pose_blend,Vector3(-0.20,1.30,-0.50),Vector3(0.20,1.30,-0.50))
@@ -628,7 +629,7 @@ func animate(delta: float, speed: float) -> void:
 				var grip: Vector3 = w.transform*Vector3(0,0.18 if side==-1 else right_hand_grip,0)
 				var offset := relaxed.lerp(grip,weight)-shoulder
 				if offset.length()>0.778: w.position -= offset.normalized()*(offset.length()-0.778)/weight
-	HunterModel.pose_arms(rig,combat.drawn or equipment_grip>0 or equipment_main>0,walk_clock,offhand,main_hand,release,right_hand_grip)
+	HunterModel.pose_arms(rig,combat.drawn or equipment_grip>0 or equipment_main>0,walk_clock,offhand,main_hand,release,right_hand_grip,delta)
 
 func arrival_pose_weight() -> float:
 	if arrival_pose_left<=0 or combat.action not in ["idle","throw"]: return 0.0
