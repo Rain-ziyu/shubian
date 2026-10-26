@@ -23,6 +23,14 @@ func run() -> void:
 	p.set_physics_process(false)
 	stage.add_child(p)
 	p.set_physics_process(false)
+	var segmented := "--segmented-mantle" in OS.get_cmdline_user_args()
+	if segmented: preload("res://tools/prepare_segmented_mantle.gd").apply(p)
+	if "--shoulder-parts" in OS.get_cmdline_user_args():
+		var component_colors := {"UpperArmSurface":"ff3333","JointClothShoulder":"3388ff","Elbow":"ff33ff","JointClothElbow":"ffff33"}
+		for binding in p.rig.skinning.bindings:
+			var name: String = str(binding.source.name)
+			for prefix in component_colors:
+				if name.begins_with(prefix): binding.rendered.material_override = Player.Visuals.mat(Color(component_colors[prefix]))
 	await process_frame
 	await process_frame
 	var camera := Camera3D.new()
@@ -102,9 +110,9 @@ func run() -> void:
 	paths["fourfold"] = "Shubian-fourfold-keyframes"
 	paths["turn"] = "Shubian-turn-keyframes"
 	paths["spin"] = "Shubian-spin-keyframes"
-	var suffix := "-feet" if feet_detail else ("-shoulder" if shoulder_detail else ("-game-view" if game_view else ""))
+	var suffix := "-parts" if "--shoulder-parts" in OS.get_cmdline_user_args() else "-feet" if feet_detail else ("-shoulder" if shoulder_detail else ("-game-view" if game_view else ""))
 	if aimed: suffix += "-aim"
-	sheet.save_png(ProjectSettings.globalize_path("res://../"+str(paths[action])+suffix+".png"))
+	sheet.save_png(ProjectSettings.globalize_path("res://../"+("segmented-" if segmented else "")+str(paths[action])+suffix+".png"))
 	stage.queue_free()
 	await process_frame
 	quit()

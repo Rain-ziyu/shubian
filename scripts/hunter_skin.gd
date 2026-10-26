@@ -101,11 +101,14 @@ static func bind(rig: Dictionary) -> Dictionary:
 		var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 		var bones := PackedInt32Array()
 		var weights := PackedFloat32Array()
-		for point in vertices:
+		var region_uv: PackedVector2Array = arrays[Mesh.ARRAY_TEX_UV2] if binding.source.get_meta("segmented_mantle",false) else PackedVector2Array()
+		for vertex in vertices.size():
+			var point := vertices[vertex]
 			# The raised shoulder crown reaches 1.53 m. Do not pin its outer
 			# vertices to the chest at the former, lower neckline.
 			var shoulder_follow := lerpf(0.70,1.0,smoothstep(1.35,1.44,point.y))
 			var arm_weight := shoulder_follow*smoothstep(0.16,0.29,absf(point.x))*(1-smoothstep(1.51,1.53,point.y))
+			if not region_uv.is_empty(): arm_weight = region_uv[vertex].x
 			bones.append_array(PackedInt32Array([binding.bone,upper,0,0]))
 			weights.append_array(PackedFloat32Array([1-arm_weight,arm_weight,0,0]))
 		arrays[Mesh.ARRAY_BONES] = bones
