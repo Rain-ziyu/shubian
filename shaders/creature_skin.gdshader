@@ -4,6 +4,8 @@ uniform int pattern_style = 0;
 uniform float pattern_count = 6.0;
 uniform float pattern_strength : hint_range(0.0,1.0) = 0.24;
 uniform float slant = 0.5;
+uniform vec4 ventral_tint : source_color = vec4(0.55,0.56,0.43,1.0);
+instance uniform float ventral_weight : hint_range(0.0,1.0) = 0.0;
 // Facial skin carries finer contrast so the eyes and attack direction stay legible.
 instance uniform float fine_scale_weight : hint_range(0.0,1.0) = 1.0;
 float hash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
@@ -41,7 +43,11 @@ void fragment() {
 	float plate = 1.0-smoothstep(0.26,0.49,length(scale_point*vec2(1.0,1.2))/scale_size);
 	// Small irregular scales support the broad markings instead of reading as dots.
 	float grain = (plate-0.5)*0.07*detail*end_fade*fine_scale_weight;
-	ALBEDO = COLOR.rgb*(1.0-pattern*pattern_strength*end_fade+grain);
+	// Broad countershading makes the jaw and underside readable through turns.
+	float underside = 1.0-smoothstep(-0.65,0.15,wrapped.y);
+	float skin_variation = mix(0.92,1.05,mottling);
+	vec3 skin_color = mix(COLOR.rgb,ventral_tint.rgb*skin_variation,underside*ventral_weight);
+	ALBEDO = skin_color*(1.0-pattern*pattern_strength*end_fade+grain);
 	ROUGHNESS = clamp(0.82+(1.0-plate)*0.10*detail*fine_scale_weight,0.0,1.0);
 	SPECULAR = 0.25;
 }

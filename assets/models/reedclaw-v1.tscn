@@ -9,6 +9,7 @@ shader_parameter/pattern_style = 1
 shader_parameter/pattern_count = 11.0
 shader_parameter/pattern_strength = 0.34
 shader_parameter/slant = 1.6
+shader_parameter/ventral_tint = Color(0.7019608, 0.654902, 0.50980395, 1)
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_br0dg"]
 _surfaces = [{
@@ -926,6 +927,7 @@ bind/16/pose = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.16899998, -3.8688)
 [node name="BodySurface" type="MeshInstance3D" parent="." unique_id=1369455297]
 transform = Transform3D(0.8, 0, 0, 0, 0.85, 0, 0, 0, 1, 0, 1.664, 0)
 material_override = SubResource("ShaderMaterial_68i71")
+instance_shader_parameters/ventral_weight = 0.55
 mesh = SubResource("ArrayMesh_br0dg")
 
 [node name="Neck" type="Node3D" parent="." unique_id=571898651]
@@ -934,12 +936,14 @@ transform = Transform3D(0.88, 0, 0, 0, 0.88, 0, 0, 0, 0.88, 0, 1.664, -1.04)
 [node name="HeadSurface" type="MeshInstance3D" parent="Neck" unique_id=1460441759]
 material_override = SubResource("ShaderMaterial_68i71")
 instance_shader_parameters/fine_scale_weight = 0.35
+instance_shader_parameters/ventral_weight = 0.7
 mesh = SubResource("ArrayMesh_0tli1")
 
 [node name="Jaw" type="MeshInstance3D" parent="Neck" unique_id=965421257]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.026, -0.312)
 material_override = SubResource("ShaderMaterial_68i71")
 instance_shader_parameters/fine_scale_weight = 0.35
+instance_shader_parameters/ventral_weight = 0.7
 mesh = SubResource("ArrayMesh_4qvkl")
 
 [node name="MouthFloor" type="MeshInstance3D" parent="Neck/Jaw" unique_id=1148121911]
@@ -1369,6 +1373,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4144, 1.17)
 [node name="TailSurface" type="MeshInstance3D" parent="Tail" unique_id=188713092]
 visible = false
 material_override = SubResource("ShaderMaterial_68i71")
+instance_shader_parameters/ventral_weight = 0.55
 mesh = SubResource("ArrayMesh_0ukct")
 
 [node name="TailSkeleton" type="Skeleton3D" parent="Tail" unique_id=168538550]
@@ -1494,6 +1499,7 @@ bones/16/scale = Vector3(1, 1, 1)
 
 [node name="SkinnedTail" type="MeshInstance3D" parent="Tail/TailSkeleton" unique_id=449017576]
 material_override = SubResource("ShaderMaterial_68i71")
+instance_shader_parameters/ventral_weight = 0.55
 mesh = SubResource("ArrayMesh_bh8il")
 skin = SubResource("Skin_ojvha")
 skeleton = NodePath("..")

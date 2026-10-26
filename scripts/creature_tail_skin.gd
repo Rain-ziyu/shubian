@@ -40,6 +40,7 @@ static func bind(tail: Node3D) -> void:
 	rendered.skin = skin
 	rendered.skeleton = NodePath("..")
 	rendered.material_override = source.material_override
+	rendered.set_instance_shader_parameter("ventral_weight",source.get_instance_shader_parameter("ventral_weight"))
 	skeleton.add_child(rendered)
 	source.hide()
 static func animate(tail: Node3D, gait: float, phase: String, clock: float) -> void:
