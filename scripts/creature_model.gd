@@ -9,16 +9,17 @@ const EYE_SHADER = preload("res://shaders/creature_eye.gdshader")
 const IRIS_COLORS := {"sweep":"bc954d","charge":"b77943","mist":"83a497","leap":"c0ad68","pulse":"94a7b5"}
 const GAIT_PER_METER := 4.2
 const CHARGE_NECK_PITCH := -0.35
+const REST_JAW_ROTATION := Vector3(0.065,0,0)
 
 static func jaw_pose(data: Dictionary, phase: String, clock: float) -> Transform3D:
 	var ready: float = {"sweep":0.16,"charge":0.08,"leap":0.10,"mist":0.30,"pulse":0.18}[data.pattern]
 	var wide: float = {"sweep":0.26,"charge":0.20,"leap":0.30,"mist":0.36,"pulse":0.36}[data.pattern]
-	var opening := 0.0
-	if phase=="windup": opening = ready*smoothstep(0,float(data.windup),clock)
+	var opening := -REST_JAW_ROTATION.x
+	if phase=="windup": opening = lerpf(-REST_JAW_ROTATION.x,ready,smoothstep(0,float(data.windup),clock))
 	elif phase=="active":
 		opening = lerpf(ready,wide,smoothstep(0,0.12,clock))
-		if data.pattern!="mist": opening *= 1-smoothstep(0.35,0.65,clock)
-	elif phase=="recover" and data.pattern=="mist": opening = wide*(1-smoothstep(0,0.45,clock))
+		if data.pattern!="mist": opening = lerpf(opening,-REST_JAW_ROTATION.x,smoothstep(0.35,0.65,clock))
+	elif phase=="recover" and data.pattern=="mist": opening = lerpf(wide,-REST_JAW_ROTATION.x,smoothstep(0,0.45,clock))
 	var hinge := Vector3(0,float(data.size)*0.01,-float(data.size)*0.12)
 	var rotation := Basis(Vector3.RIGHT,-opening)
 	return Transform3D(rotation,hinge)

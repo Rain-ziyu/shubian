@@ -10,6 +10,7 @@ static func create(neck: Node3D, skull: MeshInstance3D, jaw: MeshInstance3D, siz
 		var rest := Transform3D.IDENTITY if index==0 else jaw.transform
 		skeleton.set_bone_rest(index,rest)
 		skeleton.set_bone_pose_position(index,rest.origin)
+		skeleton.set_bone_pose_rotation(index,rest.basis.get_rotation_quaternion())
 		skin.add_bind(index,rest.affine_inverse())
 	var head_surface := skull.mesh.generate_triangle_mesh()
 	var jaw_surface := jaw.mesh.generate_triangle_mesh()

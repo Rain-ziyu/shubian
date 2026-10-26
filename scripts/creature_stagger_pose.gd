@@ -36,7 +36,7 @@ func apply(actor: CharacterBody3D, delta: float) -> void:
 	# Entry remains the captured attack pose; no ordinary-hit flinch is introduced.
 	var brace := smoothstep(0,0.10,clock)*smoothstep(0,0.18,actor.stagger)
 	var override := {"body_y":float(source.body_y)*(1-blend)-float(actor.data.size)*(0.018*sin(blend*PI)+0.025*brace),"body_rotation":source.body_rotation.lerp(Vector3.ZERO,blend),"neck_rotation":source.neck_rotation.lerp(Vector3(0.16*brace,0,0),blend),"tail_rotation":source.tail_rotation.lerp(Vector3.ZERO,blend),"feet":source.feet,"blend":blend}
-	override.jaw_rotation = source.jaw_rotation.lerp(Vector3.ZERO,blend)
+	override.jaw_rotation = source.jaw_rotation.lerp(Model.REST_JAW_ROTATION,blend)
 	override.body_surface_rotation = source.body_surface_rotation.lerp(Vector3.ZERO,blend)
 	override.forelimbs = source.forelimbs
 	Model.animate(actor.mesh,actor.data,actor.gait,"stagger",clock,0,actor.foot_ground_height if actor.is_on_floor() else Callable(),actor.foot_ground_normal if actor.is_on_floor() else Callable(),actor.data.pattern=="leap",override)
@@ -46,4 +46,4 @@ func apply(actor: CharacterBody3D, delta: float) -> void:
 	tail.force_update_all_bone_transforms()
 	clock += delta
 static func neutral() -> Dictionary:
-	return {"body_y":0.0,"body_rotation":Vector3.ZERO,"body_surface_rotation":Vector3.ZERO,"neck_rotation":Vector3.ZERO,"jaw_rotation":Vector3.ZERO,"tail_rotation":Vector3.ZERO,"cancelled_attack":true}
+	return {"body_y":0.0,"body_rotation":Vector3.ZERO,"body_surface_rotation":Vector3.ZERO,"neck_rotation":Vector3.ZERO,"jaw_rotation":Model.REST_JAW_ROTATION,"tail_rotation":Vector3.ZERO,"cancelled_attack":true}

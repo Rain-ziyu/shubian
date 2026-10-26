@@ -88,7 +88,7 @@ func run() -> void:
 		check(absf(bones.get_bone_global_pose(0).origin.distance_to(bones.get_bone_global_pose(1).origin)-bones.get_bone_rest(1).origin.length())<0.001,"stagger preserves leg segment length")
 		for frame in 18: m._physics_process(1.0/60)
 		check(m.stagger==0 and m.phase=="recover" and m.mesh.get_node("Neck").rotation.length()<0.001,"recovery does not restart abandoned attack follow-through")
-		check(m.mesh.get_node("Neck/Jaw").rotation.length()<0.001,"stagger closes the jaw smoothly and recovery does not restart the cancelled mouth action")
+		check(m.mesh.get_node("Neck/Jaw").rotation.distance_to(m.CreatureModel.REST_JAW_ROTATION)<0.001,"stagger closes the jaw smoothly and recovery does not restart the cancelled mouth action")
 		if m.data.id=="reedclaw":
 			for side in [-1,1]:
 				check(m.mesh.get_node("Forelimb"+str(side)).rotation.length()<0.001,"stagger recovery does not replay the cancelled leap landing reach")

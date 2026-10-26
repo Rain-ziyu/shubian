@@ -48,6 +48,9 @@ func run() -> void:
 		var tip := Vector3(0,-float(data.size)*0.04,-float(data.size)*0.66)-hinge
 		Model.animate(mesh,data,0,"idle",0,0)
 		var closed := neck.to_local(jaw.to_global(tip))
+		var resting_basis := jaw.basis
+		var uncanted_tip := hinge+tip
+		check(closed.y-uncanted_tip.y>float(data.size)*0.02,"resting mandible closes the former idle mouth gap")
 		Model.animate(mesh,data,0,"active",0.15,0)
 		var open := neck.to_local(jaw.to_global(tip))
 		check(closed.y-open.y>float(data.size)*0.10,str(data.id)+" visibly lowers the mandible during its attack")
@@ -108,7 +111,7 @@ func run() -> void:
 		check(loaded.is_equal_approx(Model.jaw_pose(data,"active",0)),"jaw joins anticipation to attack without a snap")
 		check(Model.jaw_pose(data,"active",0.65).is_equal_approx(Model.jaw_pose(data,"recover",0)),"jaw joins attack to recovery without a snap")
 		Model.animate(mesh,data,0,"recover",float(data.recovery),0)
-		check(jaw.basis.is_equal_approx(Basis.IDENTITY) and jaw.position.distance_to(hinge)<0.001,"recovery returns the mouth to its authored rest shape")
+		check(jaw.basis.is_equal_approx(resting_basis) and jaw.position.distance_to(hinge)<0.001,"recovery returns the mouth to its authored rest shape")
 		# A lower capsule probe distinguishes the articulated jaw from the old frame.
 		Model.animate(mesh,data,0,"active",0.15,0)
 		var rings := Contact.profile(jaw.mesh)

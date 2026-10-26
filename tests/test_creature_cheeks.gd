@@ -17,7 +17,7 @@ func inspect(model: Node3D, data: Dictionary, context: String) -> void:
 	var skull: MeshInstance3D = neck.get_node("HeadSurface")
 	var skeleton: Skeleton3D = neck.get_node("MouthSkeleton")
 	var size: float = data.size
-	var rest := Transform3D(Basis.IDENTITY,Vector3(0,size*0.01,-size*0.12))
+	var rest := jaw.transform
 	var jaw_surface := jaw.mesh.generate_triangle_mesh()
 	var head_surface := skull.mesh.generate_triangle_mesh()
 	var state := {}
