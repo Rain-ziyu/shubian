@@ -125,7 +125,8 @@ func run() -> void:
 				p.animate(0,0)
 				for side in [-1,1]:
 					var arm: Dictionary = p.rig.arms[side]
-					var grip: Vector3 = p.rig.weapon.transform*Vector3(0,0.18 if side==-1 else -0.28,0)
+					var right_grip := lerpf(-0.28,-0.82,smoothstep(0.0,0.16,p.combat.elapsed)*(1-smoothstep(0.54,0.82,p.combat.elapsed))) if action=="reply" else -0.28
+					var grip: Vector3 = p.rig.weapon.transform*Vector3(0,0.18 if side==-1 else right_grip,0)
 					var release := smoothstep(0.38,0.60,p.combat.elapsed) if action=="throw" else 0.0
 					if action=="reply" and side==-1: release = smoothstep(0,0.12,p.combat.elapsed)*(1-smoothstep(0.54,0.82,p.combat.elapsed))
 					var relaxed: Vector3 = arm.shoulder.position+Vector3(0,-0.72,-0.015)

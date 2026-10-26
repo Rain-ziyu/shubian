@@ -30,11 +30,12 @@ func run() -> void:
 			p.animate(0,0)
 			for side in [-1,1]:
 				var arm: Dictionary = p.rig.arms[side]
-				var grip: Vector3 = p.rig.weapon.transform*Vector3(0,0.18 if side==-1 else -0.28,0)
+				var right_grip := lerpf(-0.28,-0.82,smoothstep(0.0,0.16,p.combat.elapsed)*(1-smoothstep(0.54,0.82,p.combat.elapsed))) if action=="reply" else -0.28
+				var grip: Vector3 = p.rig.weapon.transform*Vector3(0,0.18 if side==-1 else right_grip,0)
 				if action=="reply" and side==-1 and p.combat.elapsed>0:
 					if p.combat.elapsed>=0.12 and p.combat.elapsed<=0.54: check(arm.hand.position.distance_to(grip)>0.10,"counter sweep releases the left hand for balance")
 				else: check(arm.hand.position.distance_to(grip)<0.001,"hand follows grip "+action)
-				check(arm.shoulder.position.distance_to(grip)<0.80,"grip reachable "+action)
+				check(arm.shoulder.position.distance_to(arm.hand.position)<0.80,"grip reachable "+action)
 	p.combat.set_action("guard")
 	p.combat.elapsed = 0
 	p.animate(0,0)
@@ -55,7 +56,7 @@ func run() -> void:
 	for time in [0.10,0.26,0.36,0.52]:
 		p.combat.elapsed = time
 		p.animate(0,0)
-		var hand_pivot: Vector3 = p.rig.weapon.transform*Vector3(0,-0.28,0)
+		var hand_pivot: Vector3 = p.rig.arms[1].hand.position
 		check(Vector2(hand_pivot.x,hand_pivot.z).distance_to(Vector2(pivot.x,pivot.z))<0.001,"counter raises its right hand while retaining the horizontal sweep pivot")
 		if time==0.26: check(absf(p.rig.weapon.get_node("TipContact").position.y)>1,"counter retains its physical blade endpoint")
 		if time==0.36:
