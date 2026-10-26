@@ -53,7 +53,7 @@ func run() -> void:
 	var counter_weapon: Node3D = model.get_node("Trident")
 	var main_hand: Transform3D = skeleton.get_bone_global_pose(skeleton.find_bone("RightHand"))
 	var free_hand: Transform3D = skeleton.get_bone_global_pose(skeleton.find_bone("LeftHand"))
-	check(main_hand.origin.distance_to(counter_weapon.transform*Vector3(0,-0.28,0))<0.002,"saved counter sweep keeps the right hand on the shaft")
+	check(main_hand.origin.distance_to(counter_weapon.transform*Vector3(0,preload("res://scripts/hunter_model.gd").counter_grip(0.36),0))<0.002,"saved counter sweep keeps the right hand on the shaft")
 	check(free_hand.origin.distance_to(counter_weapon.transform*Vector3(0,0.18,0))>0.10,"saved counter sweep releases the left hand")
 	player.play("heavy")
 	player.advance(0)

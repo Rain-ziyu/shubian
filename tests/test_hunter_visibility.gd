@@ -34,6 +34,9 @@ func run() -> void:
 	var p = load("res://scripts/player.gd").new()
 	stage.add_child(p)
 	p.set_physics_process(false)
+	p.set_process_input(false)
+	p.set_process_unhandled_input(false)
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	var cue = p.get_node("OcclusionVisibility")
 	cue.set_physics_process(false)
 	check(not cue.parts.is_empty(),"cue targets rendered skin meshes")
@@ -154,6 +157,36 @@ func run() -> void:
 		cue._physics_process(0)
 		check(is_equal_approx(float(cue.material.get_shader_parameter("hurt_flash")),strength/0.22),"hurt flash retains each changing fade value")
 	check(cue.parameter_updates==updates+3,"hurt fade only submits the changing material parameter")
+	# A packet prefilter must match the unfiltered per-part oracle, including
+	# rotated/scaled geometry. Off-ray details should not be tested per ray.
+	wall.show()
+	for index in 32:
+		var decoy := MeshInstance3D.new()
+		decoy.mesh = BoxMesh.new()
+		blocker.mesh.add_child(decoy)
+		decoy.position = Vector3((8+index%5)*(1 if index%2==0 else -1),1,index%3-1)
+		decoy.rotation = Vector3(0.2*index,0.3*index,0.1)
+		decoy.scale = Vector3(0.5,1.3,0.8)
+	cue.visual_bounds.clear()
+	for camera_point in [Vector3(0,1.4,5),Vector3(3,2.3,4)]:
+		camera.position = camera_point
+		for pose in [["idle",0.0],["heavy",0.43],["reply",0.36],["finisher",0.95]]:
+			p.combat.set_action(pose[0])
+			p.combat.elapsed = pose[1]
+			p.animate(0,0)
+			var all_surfaces: Array = cue.collect_surfaces()
+			cue.update_visibility()
+			var equal_mask := true
+			var packet := AABB(camera_point,Vector3.ZERO)
+			for index in cue.parts.size():
+				if index>=cue.weapon_start_index and not cue.sources[index].is_visible_in_tree(): continue
+				var destination: Vector3 = cue.sources[index].to_global(cue.sources[index].get_aabb().get_center())
+				packet = packet.expand(destination)
+				equal_mask = equal_mask and cue.blocked_states[index]==cue.foreign_blocks(camera_point,destination,all_surfaces)
+			var candidates: Array = cue.collect_surfaces(packet.grow(0.002))
+			check(equal_mask,"packet prefilter preserves every original part ray: "+str(pose[0]))
+			check(candidates.size()<all_surfaces.size()/2,"packet excludes off-ray transformed details before per-part tests")
+			print("OCCLUSION_PACKET: all=",all_surfaces.size()," candidates=",candidates.size())
 	p.combat.health = 0
 	cue._physics_process(0)
 	check(cue.material.get_shader_parameter("enabled")==false,"death disables cue")

@@ -37,6 +37,10 @@ func run() -> void:
 	p.combat.elapsed = 0.23
 	p.animate(0,0)
 	var tip: Vector3 = p.rig.weapon.get_node("TipContact").global_position
+	var grip: Vector3 = p.rig.weapon.to_global(Vector3(0,-0.82,0))
+	check(p.rig.arms[1].hand.global_position.distance_to(grip)<0.002,"right hand holds the tail during the active sweep")
+	var normal_radius: float = Vector3(0,1.2,0).distance_to(Vector3(0,-0.28,0))
+	check(tip.distance_to(grip)>normal_radius+0.50,"physical blade sweep radius exceeds the ordinary grip by over half a metre")
 	var body: MeshInstance3D = target.mesh.get_node("BodySurface")
 	var offset: Vector3 = target.to_local(body.to_global(body.mesh.get_aabb().get_center()))
 	target.global_position = tip+Vector3(0.5,0,0)-offset

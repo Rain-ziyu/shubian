@@ -431,8 +431,8 @@ func animate(delta: float, speed: float) -> void:
 			"reply":
 				var aim := clampf(pitch+0.25,-0.4,0.85)
 				var base := Transform3D(Basis.from_euler(Vector3(-PI/2-aim,PI,-0.15)),Vector3(0,1.20+maxf(0,aim)*0.5,0.23))
-				var grip := Vector3(0,-0.28,0)
-				var pivot := base*grip
+				var grip := Vector3(0,HunterModel.counter_grip(t),0)
+				var pivot := base*Vector3(0,-0.28,0)
 				# Lift the one-hand sweep to shoulder/chest level before its active arc.
 				pivot.y += 0.22*smoothstep(0.10,0.20,t)*(1-smoothstep(0.54,0.82,t))
 				var swing := smoothstep(0.10,0.36,t)
@@ -488,7 +488,7 @@ func animate(delta: float, speed: float) -> void:
 		arm_release = 0.0
 	var offhand := equipment_grip*(1-arm_release)
 	if combat.action=="reply": offhand *= 1-smoothstep(0,0.12,combat.elapsed)*(1-smoothstep(0.54,0.82,combat.elapsed))
-	HunterModel.pose_arms(rig,combat.drawn or equipment_grip>0 or equipment_main>0,walk_clock,offhand,equipment_main*(1-arm_release),release)
+	HunterModel.pose_arms(rig,combat.drawn or equipment_grip>0 or equipment_main>0,walk_clock,offhand,equipment_main*(1-arm_release),release,HunterModel.counter_grip(combat.elapsed) if combat.action=="reply" else -0.28)
 
 func arrival_pose_weight() -> float:
 	if arrival_pose_left<=0 or combat.action not in ["idle","throw"]: return 0.0

@@ -96,7 +96,11 @@ static func segment(mesh: MeshInstance3D, start: Vector3, end: Vector3) -> void:
 	mesh.quaternion = Quaternion(Vector3.UP,axis.normalized())
 	mesh.scale.y = axis.length()
 
-static func pose_arms(rig: Dictionary, armed: bool, gait: float, grip_weight := 1.0, main_grip := -1.0, finger_release := 0.0) -> void:
+static func counter_grip(elapsed: float) -> float:
+	var slide := smoothstep(0.0,0.16,elapsed)*(1-smoothstep(0.54,0.82,elapsed))
+	return lerpf(-0.28,-0.82,slide)
+
+static func pose_arms(rig: Dictionary, armed: bool, gait: float, grip_weight := 1.0, main_grip := -1.0, finger_release := 0.0, right_grip := -0.28) -> void:
 	for side in [-1,1]:
 		var arm: Dictionary = rig.arms[side]
 		var shoulder: Vector3 = arm.shoulder.position
@@ -104,7 +108,7 @@ static func pose_arms(rig: Dictionary, armed: bool, gait: float, grip_weight := 
 		if armed:
 			# Anatomical left stays head-side, right stays butt-side through rotation.
 			var weight: float = main_grip if side==1 and main_grip>=0 else grip_weight
-			target = target.lerp(rig.weapon.transform*Vector3(0,0.18 if side==-1 else -0.28,0),weight)
+			target = target.lerp(rig.weapon.transform*Vector3(0,0.18 if side==-1 else right_grip,0),weight)
 		var offset := target-shoulder
 		var distance := offset.length()
 		var middle := (shoulder+target)*0.5

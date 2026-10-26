@@ -35,13 +35,23 @@ func _physics_process(_delta: float) -> void:
 func update_visibility() -> void:
 	var camera := get_viewport().get_camera_3d()
 	occluded = false
-	var surfaces: Array = collect_surfaces() if is_instance_valid(camera) and hunter.combat.health>0 else []
+	var valid_camera: bool = is_instance_valid(camera) and hunter.combat.health>0
+	var camera_position: Vector3 = camera.global_position if valid_camera else Vector3.ZERO
+	var destinations := PackedVector3Array()
+	var active := PackedByteArray()
+	destinations.resize(parts.size())
+	active.resize(parts.size())
+	var ray_bounds := AABB(camera_position,Vector3.ZERO)
+	for index in parts.size():
+		if not valid_camera or (index>=weapon_start_index and not sources[index].is_visible_in_tree()): continue
+		active[index] = 1
+		destinations[index] = sources[index].to_global(sources[index].get_aabb().get_center())
+		ray_bounds = ray_bounds.expand(destinations[index])
+	# Every individual camera-to-part segment lies inside this conservative box.
+	var surfaces: Array = collect_surfaces(ray_bounds.grow(0.002)) if valid_camera else []
 	for index in parts.size():
 		var blocked := false
-		if is_instance_valid(camera) and hunter.combat.health>0 and (index<weapon_start_index or sources[index].is_visible_in_tree()):
-			var source := sources[index]
-			var center := source.to_global(source.get_aabb().get_center())
-			blocked = foreign_blocks(camera.global_position,center,surfaces)
+		if active[index]: blocked = foreign_blocks(camera_position,destinations[index],surfaces)
 		# Keep ray tests current; submit shader state only when its value changes.
 		if index>=blocked_states.size():
 			blocked_states.append(blocked)
@@ -62,7 +72,7 @@ func update_visibility() -> void:
 		material.set_shader_parameter("hurt_flash",hurt)
 		parameter_updates += 1
 
-func collect_surfaces() -> Array:
+func collect_surfaces(ray_bounds: Variant = null) -> Array:
 	# Geometry is static, but articulated transforms change each tick. Share this
 	# snapshot across all hunter parts rather than inverting it for every ray.
 	var surfaces := []
@@ -73,7 +83,12 @@ func collect_surfaces() -> Array:
 		for mesh in visual_bounds[id]:
 			if not is_instance_valid(mesh) or not mesh.is_visible_in_tree(): continue
 			var transform: Transform3D = mesh.global_transform
-			surfaces.append({"bounds":mesh.get_aabb(),"transform":transform,"inverse":transform.affine_inverse(),"geometry":mesh.mesh,"id":mesh.mesh.get_instance_id()})
+			var inverse := transform.affine_inverse()
+			var bounds: AABB = mesh.get_aabb()
+			if ray_bounds!=null:
+				var packet: AABB = ray_bounds
+				if not bounds.grow(0.002).intersects(inverse*packet): continue
+			surfaces.append({"bounds":bounds,"transform":transform,"inverse":inverse,"geometry":mesh.mesh,"id":mesh.mesh.get_instance_id()})
 	return surfaces
 
 func foreign_blocks(camera_position: Vector3, destination: Vector3, surfaces: Variant = null) -> bool:
