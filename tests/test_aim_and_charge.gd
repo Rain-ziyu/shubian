@@ -14,6 +14,12 @@ func sole_position(leg: Node3D) -> Vector3:
 func run() -> void:
 	var world = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(world)
+	# Controlled fixture: desktop motion must not change the starting view.
+	world.hunter.set_process_input(false)
+	world.hunter.set_process_unhandled_input(false)
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	world.hunter.yaw = 0
+	world.hunter.pitch = -0.25
 	await physics_frame
 	await physics_frame
 	var p = world.hunter

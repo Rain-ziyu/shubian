@@ -26,6 +26,10 @@ func run() -> void:
 	floor_mesh.create_trimesh_collision()
 	var p := Player.new()
 	stage.add_child(p)
+	# Only explicit logical events below drive this deterministic fixture.
+	p.set_process_input(false)
+	p.set_process_unhandled_input(false)
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	p.set_physics_process(false)
 	await physics_frame
 	await physics_frame
