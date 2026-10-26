@@ -18,6 +18,7 @@ var previous_health := 240.0
 var damage_events: Array[Dictionary] = []
 var recent_control: Array[Dictionary] = []
 var recent_dodges: Array[Dictionary] = []
+var progress_samples: Array[Dictionary] = []
 var control_sample_frame := 0
 var weakness_tactics := false
 var weakpoint_events := {}
@@ -67,7 +68,7 @@ func control() -> void:
 	for action in ["move_left","move_right","move_forward","move_back","sprint"]: Input.action_release(action)
 	var c = fighter.combat
 	if control_sample_frame>0 and control_sample_frame%3600==0 and is_instance_valid(monster):
-		print("FOREST_HUNT_PROGRESS: ",JSON.stringify({"time":snappedf(elapsed,0.01),"species":monster.data.id,"phase":monster.phase,"clock":monster.clock,"monster_health":monster.health,"player_position":str(fighter.global_position),"monster_position":str(monster.global_position),"monster_velocity":str(monster.velocity),"route_points":monster.route.size()}))
+		progress_samples.append({"time":snappedf(elapsed,0.01),"species":monster.data.id,"phase":monster.phase,"clock":monster.clock,"monster_health":monster.health,"player_position":str(fighter.global_position),"monster_position":str(monster.global_position),"monster_velocity":str(monster.velocity),"route_points":monster.route.size()})
 	control_sample_frame += 1
 	if control_sample_frame%6==0:
 		var sample := {"time":snappedf(elapsed,0.01),"action":c.action,"action_time":snappedf(c.elapsed,0.01),"stamina":snappedf(c.stamina,0.1)}
@@ -200,8 +201,13 @@ func control() -> void:
 			recent_dodges.append({"time":snappedf(elapsed,0.01),"accepted":accepted,"action":c.action,"action_time":snappedf(c.elapsed,0.01),"stamina":snappedf(c.stamina,0.1)})
 			if recent_dodges.size()>16: recent_dodges.pop_front()
 		if accepted and next in ["light","heavy"]: last_attack = next
+func flush_progress() -> void:
+	for sample in progress_samples: print("FOREST_HUNT_PROGRESS: ",JSON.stringify(sample))
+	progress_samples.clear()
+
 func finish() -> void:
 	finished = true
+	flush_progress()
 	for action in ["move_left","move_right","move_forward","move_back","sprint"]: Input.action_release(action)
 	var passed: bool = encounters.size()==5 and fighter.combat.health>0
 	var missing_weakness: Array[String] = []

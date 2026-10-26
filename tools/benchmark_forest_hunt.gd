@@ -124,6 +124,7 @@ func finish() -> void:
 	print("FOREST_PERFORMANCE_FILE: ",ProjectSettings.globalize_path(path))
 	if sample_limit>0:
 		finished = true
+		flush_progress()
 		for action in ["move_left","move_right","move_forward","move_back","sprint"]: Input.action_release(action)
 		print("FOREST_PARTIAL_SAMPLE: completed diagnostic sample; no expedition acceptance")
 		world.queue_free()
