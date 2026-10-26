@@ -405,7 +405,7 @@ static func back_mount(root: Node3D) -> void:
 	support.append_from(rail.mesh,0,Transform3D.IDENTITY)
 	for pair in [[Vector3(-0.12,1.44,0.10),Vector3(-0.16,1.60,0.15)],[Vector3(-0.16,1.60,0.15),carry*Vector3(-0.06,0.60,0)],[Vector3(-0.16,1.44,0.07),Vector3(-0.20,1.58,0.16)],[Vector3(-0.20,1.58,0.16),carry*Vector3(-0.08,0.48,0)]]:
 		var axis: Vector3 = pair[1]-pair[0]
-		var strut := Transform3D(Basis(Quaternion(Vector3.UP,axis.normalized())).scaled(Vector3(0.018,axis.length(),0.018)),(pair[0]+pair[1])*0.5)
+		var strut := Transform3D(Basis(Quaternion(Vector3.UP,axis.normalized())).scaled_local(Vector3(0.018,axis.length(),0.018)),(pair[0]+pair[1])*0.5)
 		support.append_from(BoxMesh.new(),0,rail.transform.affine_inverse()*strut)
 	rail.mesh = support.commit()
 	var st := SurfaceTool.new()

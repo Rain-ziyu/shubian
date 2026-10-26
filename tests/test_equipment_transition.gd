@@ -13,6 +13,12 @@ func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	var world = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(world)
+	# Geometry fixture uses explicit action requests, not desktop mouse input.
+	world.hunter.set_process_input(false)
+	world.hunter.set_process_unhandled_input(false)
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	world.hunter.yaw = 0
+	world.hunter.pitch = -0.25
 	await physics_frame
 	await physics_frame
 	var p = world.hunter
@@ -21,6 +27,20 @@ func run() -> void:
 	p.combat.set_action("idle")
 	p.combat.drawn = true
 	p.animate(0,0)
+	# Each authored support endpoint must be reached by its actual solid mesh.
+	var rail: MeshInstance3D = p.rig.torso.get_node("BackMountRail")
+	var carry := Transform3D(Basis(Vector3.BACK,0.35),Vector3(0,1.05,0.26))
+	var stored: Node3D = load("res://assets/models/hunter-forest-v1.tscn").instantiate()
+	world.add_child(stored)
+	for model_root: Node3D in [p.rig.root,stored]:
+		var mesh_source: MeshInstance3D = model_root.get_node("Torso/BackMountRail")
+		for anchor in [Vector3(-0.12,1.44,0.10),Vector3(-0.16,1.60,0.15),carry*Vector3(-0.06,0.60,0),Vector3(-0.16,1.44,0.07),Vector3(-0.20,1.58,0.16),carry*Vector3(-0.08,0.48,0)]:
+			var nearest := INF
+			for vertex: Vector3 in mesh_source.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+				var actual: Vector3 = model_root.to_local(mesh_source.to_global(vertex))
+				nearest = minf(nearest,actual.distance_to(anchor))
+			check(nearest<0.014,"solid support reaches its harness/rail endpoint "+str(anchor))
+	stored.queue_free()
 	# Inspect the actual clip mesh against the shaft axis through moving carry poses.
 	p.combat.drawn = false
 	for phase in [0.0,0.8,1.6,2.4]:
