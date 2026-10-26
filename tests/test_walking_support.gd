@@ -5,6 +5,7 @@ var failures := 0
 class FacingTarget:
 	extends Node3D
 	var health := 100
+	var data := {"size":2.0}
 func check(ok: bool, label: String) -> void:
 	checks += 1
 	if not ok:
