@@ -14,6 +14,9 @@ func _initialize() -> void:
 func run() -> void:
 	var scene = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(scene)
+	scene.hunter.set_process_input(false)
+	scene.hunter.set_process_unhandled_input(false)
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	await physics_frame
 	await physics_frame
 	var monsters := get_nodes_in_group("monsters")
