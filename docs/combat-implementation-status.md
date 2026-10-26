@@ -1261,3 +1261,11 @@ D盘原生渲染检查counter_sweep_arc 7、front_guard 7、skin 250项通过（
 实际原生渲染：../Shubian-trident-surface.png（正面/斜面）与 ../Shubian-character-turnaround.png；旧图保存在 before-steel 对照文件。保存角色模型已重新导出并归一化254资源ID，仅10行保存数据差异。原生 test_costume 30、test_skin 250、test_weapon_trace 20 共300项通过：../verification/regressions-20261026-123426-0cfbcd/summary.json。初次命令误用短名，工具在执行前拒绝，随后使用实际 test_ 文件名通过。
 
 此改动改善武器材质层次，不代表角色/怪物整体美术完成，也未以本轮检查声称当前实时整图帧率。
+
+## 披肩肩顶衔接（2026-10-26）
+
+人物转面图显示披肩在上臂肩头内侧过早收窄：旧1.44m环半宽0.245m，肩枢轴x±0.27m，披肩顶端1.49m。调整同一布片的肩顶轮廓，1.44m环半宽0.325m，增加1.48m/0.30m过渡，收至1.53m领口，保留下摆、前后开衩、材料与现有骨骼。静态肩颈覆合改善；原生四连刺和右手反击近景已检查。
+
+保存模型已导出并归一化254资源ID；原生服装30/支架与装备过渡80/肩甲18/蒙皮250，共378项通过：../verification/regressions-20261026-123914-d8dd09/summary.json。检查证明既有绑骨、支架路径及保存模型结构保持，不覆盖所有布料穿模。
+
+新图 ../Shubian-character-turnaround.png，旧图 ../Shubian-character-before-cape-shoulder.png；近景 ../Shubian-fourfold-keyframes-shoulder.png 与 ../Shubian-reply-motion-shoulder.png。反击近景仍观察到枪杆与前侧布料相交，需要后续处理；不能把支架检查通过写成全衣料无穿模。整体美术和自然动作目标仍未完成。
