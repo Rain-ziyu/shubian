@@ -366,10 +366,14 @@ func animate(delta: float, speed: float) -> void:
 		if dash.is_zero_approx(): dash = combat_forward()
 		leg_travel = rig.root.global_basis.inverse()*dash.normalized()
 	HunterModel.pose_legs(rig,combat.action,combat.elapsed,combat.drawn,walk_clock,speed,delta,foot_ground_height if is_on_floor() else Callable(),foot_ground_normal if is_on_floor() else Callable(),leg_travel,arrival_weight,motion_epoch)
+	HunterModel.pose_torso(rig,combat.action,combat.elapsed,walk_clock,speed,delta,leg_travel,arrival_weight)
 	var w: Node3D = rig.weapon
 	w.visible = not is_instance_valid(projectile)
 	w.position = Vector3(0,1.20,-0.32) if combat.drawn else Vector3(0,1.05,0.26)
 	w.rotation = Vector3(-PI/2,0,-0.15) if combat.drawn else Vector3(0,0,0.35)
+	if not combat.drawn:
+		var torso_motion: Transform3D = rig.torso.transform*Transform3D(Basis.IDENTITY,Vector3(0,-1.08,0))
+		w.transform = torso_motion*w.transform
 	if combat.action!="idle":
 		var t: float = combat.elapsed
 		var p := clampf(t/float(Combat.MOVES[combat.action].duration),0,1)
@@ -479,7 +483,6 @@ func animate(delta: float, speed: float) -> void:
 		if ghosts[i].visible:
 			ghosts[i].get_meta("spectral_material").set_shader_parameter("life_fade",0.2+0.8*smoothstep(0,6,combat.shadow_lifetimes[i]))
 			ghosts[i].get_meta("spectral_material").set_shader_parameter("gain_flash",shadow_gain_left[i]/0.35)
-	HunterModel.pose_torso(rig,combat.action,combat.elapsed,walk_clock,speed,delta,leg_travel,arrival_weight)
 	var release := smoothstep(0.28,0.38,combat.elapsed) if combat.action=="throw" else 0.0
 	if is_instance_valid(projectile): release = 1.0
 	var arm_release := smoothstep(0.38,0.60,combat.elapsed) if combat.action=="throw" else (1.0 if is_instance_valid(projectile) else 0.0)

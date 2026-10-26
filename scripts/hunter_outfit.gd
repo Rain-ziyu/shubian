@@ -381,8 +381,7 @@ static func create(root: Node3D) -> Dictionary:
 		var pouch := loft(root,"BeltPouch"+str(side),[Vector4(0.865,0.055,0.035,0),Vector4(1.00,0.06,0.035,0)],Color("67644d"),0,TAU,12)
 		pouch.position = Vector3(side*0.215,0,0.04)
 		V.piece(root,Vector3(side*0.215,0.96,-0.003),Vector3(0.035,0.045,0.015),Color("8b8b73"))
-	V.piece(root,Vector3(0,1.30,0.15),Vector3(0.07,0.31,0.055),Color("586157"))
-	V.piece(root,Vector3(0,1.45,0.18),Vector3(0.09,0.065,0.025),red)
+	back_mount(root)
 	create_head(root,skin)
 	var upper_parts: Array[MeshInstance3D] = []
 	var lower_parts: Array[Node3D] = []
@@ -390,6 +389,49 @@ static func create(root: Node3D) -> Dictionary:
 		if child is MeshInstance3D and (child.transform*child.get_aabb().get_center()).y>1.1: upper_parts.append(child)
 		elif child is MeshInstance3D or child in skirts.values(): lower_parts.append(child)
 	return {"skirts":skirts,"upper_parts":upper_parts,"lower_parts":lower_parts,"shoulders":shoulders,"fasteners":fasteners}
+
+static func back_mount(root: Node3D) -> void:
+	# Same shaft axis as the sheathed weapon. Side-open saddles release toward
+	# the existing positive-X equipment arc rather than enclosing the shaft.
+	var carry := Transform3D(Basis(Vector3.BACK,0.35),Vector3(0,1.05,0.26))
+	var center := carry*Vector3(-0.06,0.30,0)
+	var rail := V.piece(root,Vector3(center.x,center.y,center.z),Vector3(0.055,0.36,0.10),Color("586157"))
+	rail.name = "BackMountRail"
+	rail.rotation.z = 0.35
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(0)
+	for seat in [0.17,0.40]:
+		for segment in 24:
+			var a := deg_to_rad(70+220*float(segment)/24)
+			var b := deg_to_rad(70+220*float(segment+1)/24)
+			# Inner wall, outer wall, and both axial faces form a solid open clip.
+			for face in 4:
+				var corners: Array[Vector3] = []
+				for pair in [Vector2(0,0),Vector2(1,0),Vector2(1,1),Vector2(0,1)]:
+					var angle := lerpf(a,b,pair.x)
+					var radius := 0.033 if face==0 else (0.045 if face==1 else lerpf(0.033,0.045,pair.y))
+					var y := lerpf(-0.018,0.018,pair.y) if face<2 else (-0.018 if face==2 else 0.018)
+					corners.append(carry*Vector3(cos(angle)*radius,seat+y,sin(angle)*radius))
+				var radial := Vector3(cos((a+b)/2),0,sin((a+b)/2))
+				var outward := carry.basis*(-radial if face==0 else (radial if face==1 else (Vector3.DOWN if face==2 else Vector3.UP)))
+				MetalMesh.bevel_triangle(st,corners[0],corners[1],corners[2],outward)
+				MetalMesh.bevel_triangle(st,corners[0],corners[2],corners[3],outward)
+		for angle in [deg_to_rad(70),deg_to_rad(290)]:
+			var corners: Array[Vector3] = []
+			for pair in [Vector2(0,0),Vector2(1,0),Vector2(1,1),Vector2(0,1)]:
+				var radius := lerpf(0.033,0.045,pair.x)
+				corners.append(carry*Vector3(cos(angle)*radius,seat+lerpf(-0.018,0.018,pair.y),sin(angle)*radius))
+			var outward := carry.basis*Vector3(-sin(angle),0,cos(angle))*(1.0 if angle<PI else -1.0)
+			MetalMesh.bevel_triangle(st,corners[0],corners[1],corners[2],outward)
+			MetalMesh.bevel_triangle(st,corners[0],corners[2],corners[3],outward)
+	st.generate_normals()
+	var clips := MeshInstance3D.new()
+	clips.name = "BackMountClips"
+	clips.mesh = st.commit()
+	clips.material_override = V.mat(Color("777c70"))
+	clips.material_override.cull_mode = BaseMaterial3D.CULL_DISABLED
+	root.add_child(clips)
 
 static func create_head(root: Node3D, skin: Color) -> void:
 	var first_part := root.get_child_count()

@@ -20,6 +20,38 @@ func run() -> void:
 	p.combat.set_action("idle")
 	p.combat.drawn = true
 	p.animate(0,0)
+	# Inspect the actual clip mesh against the shaft axis through moving carry poses.
+	p.combat.drawn = false
+	for phase in [0.0,0.8,1.6,2.4]:
+		p.walk_clock = phase
+		p.animate(0,4.5)
+		var clips: MeshInstance3D = p.rig.torso.get_node("BackMountClips")
+		var aligned := true
+		for vertex: Vector3 in clips.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+			var local: Vector3 = p.rig.weapon.to_local(clips.to_global(vertex))
+			var radius := Vector2(local.x,local.z).length()
+			aligned = aligned and radius>=0.0329 and radius<=0.0451
+		check(aligned,"actual carry clips retain shaft clearance during gait "+str(phase))
+	var clips: MeshInstance3D = p.rig.torso.get_node("BackMountClips")
+	var clip_points: PackedVector3Array = clips.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+	var edges := {}
+	for triangle in range(0,clip_points.size(),3):
+		for edge in 3:
+			var a := str(Vector3i((clip_points[triangle+edge]*1000000).round()))
+			var b := str(Vector3i((clip_points[triangle+(edge+1)%3]*1000000).round()))
+			var key := a+"|"+b if a<b else b+"|"+a
+			edges[key] = int(edges.get(key,0))+1
+	var closed := true
+	for count in edges.values(): closed = closed and count==2
+	check(closed,"both side-open clips have closed metal thickness, including cut ends")
+	var opening_clear := true
+	for vertex in clip_points:
+		var local: Vector3 = p.rig.weapon.to_local(clips.to_global(vertex))
+		opening_clear = opening_clear and local.x<0.016
+	check(opening_clear,"clip mouths remain open toward the positive-X equipment route")
+	p.walk_clock = 0
+	p.combat.drawn = true
+	p.animate(0,0)
 	var armed: Vector3 = p.rig.weapon.position
 	check(p.combat.request("sheathe"),"idle accepts sheath request")
 	p.animate(1.0/60,0)
