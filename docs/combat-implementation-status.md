@@ -1167,3 +1167,13 @@ D盘原生渲染检查counter_sweep_arc 7、front_guard 7、skin 250项通过（
 引擎映射输入实战链通过（D:/vscode/Shubian/outputs/mount-route-input-chain.log）：14.4秒、HP240、3次反击实际命中、四连刺4次、旋枪实际接触1次/2节拍、终结2次接触；Input.parse_input_event，非物理OS输入或人类难度验收。保存模型已重导出并规范254个资源ID，轨道BoxMesh改ArrayMesh为预期的唯一类型变更；17动画重烘。本轮也将上轮重烘后遗留未提交的动画库改动纳入提交，避免源库与工作副本分离。新背架三视图仍在Shubian-back-mount.png。
 
 本轮未重跑完整实时帧预算；最新整图帧预算通过仅对应74fcd56。人物及怪物最终艺术质量、自然动作与玩家偏难验收仍未完成，目标保持进行中。
+
+## 2026-10-26 当前版本真实中断复验与面部鳞片对比
+
+首先在干净运行时e75b566执行原生live interruption流程（D:/vscode/Shubian/outputs/current-live-interruptions.log）：12.53秒、HP156，两次实际42伤害，四连刺进入hurt、旋枪仍为spin，5项行为检查通过。截图中的提示与实际状态一致；并非物理OS输入、难度或最终手感证明。
+
+实际战斗近景中头部细鳞片较抢眼，本轮只降低HeadSurface/Jaw的细鳞片颜色及粗糙度对比，以减少其与眼睛、角和头部方向轮廓的竞争。新增共享皮肤shader的实例参数fine_scale_weight，默认1；只有头/下颌设为0.35，身体大纹样、背棘发光、模型形态、碰撞与动作不变。该判断是局部外观改进，不当作动作辨识度或艺术质量已验收。
+
+修改后同一原生实际伤害流程再通过（facial-scale-live-interruptions.log）：仍12.53秒、HP156、相同两次伤害与中断/霸体状态。四个相关原生脚本199项通过（regressions-20261026-054044-34b2f4）：jaw95、skin_material42、head_sweep57、lunge_surface5。没有为低影响材质参数增加镜像测试。五个保存模型重导出并规范136/129/119/125/127资源ID，保留reedclaw/stormcrest各20个自动牙齿名称；每模型仅新增头/下颌两条实例参数，无几何变更。当前原生图仍为Shubian-action-feedback-interrupted.png与Shubian-action-feedback-armored.png。
+
+本轮不重复整图实时帧预算，旧74fcd56通过证据不延伸为当前通过。角色/怪物整体模型质量、自然动作、玩家难度与真人手感验收仍待完成，目标保持进行中。

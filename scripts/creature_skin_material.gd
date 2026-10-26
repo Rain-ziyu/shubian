@@ -8,3 +8,4 @@ static func apply(root: Node3D, data: Dictionary) -> void:
 	for part in root.find_children("*","MeshInstance3D",true,false):
 		if str(part.name) in ["BodySurface","HeadSurface","Jaw","LegSurface","TailSurface"] or str(part.name).begins_with("Forelimb"):
 			part.material_override = material
+			if str(part.name) in ["HeadSurface","Jaw"]: part.set_instance_shader_parameter("fine_scale_weight",0.35)

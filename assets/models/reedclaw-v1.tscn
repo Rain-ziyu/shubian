@@ -933,11 +933,13 @@ transform = Transform3D(0.88, 0, 0, 0, 0.88, 0, 0, 0, 0.88, 0, 1.664, -1.04)
 
 [node name="HeadSurface" type="MeshInstance3D" parent="Neck" unique_id=1460441759]
 material_override = SubResource("ShaderMaterial_68i71")
+instance_shader_parameters/fine_scale_weight = 0.35
 mesh = SubResource("ArrayMesh_0tli1")
 
 [node name="Jaw" type="MeshInstance3D" parent="Neck" unique_id=965421257]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.026, -0.312)
 material_override = SubResource("ShaderMaterial_68i71")
+instance_shader_parameters/fine_scale_weight = 0.35
 mesh = SubResource("ArrayMesh_4qvkl")
 
 [node name="MouthFloor" type="MeshInstance3D" parent="Neck/Jaw" unique_id=1148121911]
