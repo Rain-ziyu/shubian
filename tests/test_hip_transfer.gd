@@ -170,10 +170,54 @@ func run() -> void:
 			check(leg.hip.position.distance_to(p.rig.pelvis.transform*Vector3(side*0.14,0,0))<0.001,"guard/reply thigh sockets follow the anatomical pelvis")
 		check(grounded>=1,"guard/reply retain a support foot during the turn")
 	var saved = load("res://assets/models/hunter-forest-v1.tscn").instantiate()
+	p.combat.set_action("reply")
+	var counter_support := {}
+	var counter_planted := true
+	var counter_grounded := true
+	var counter_drift := 0.0
+	var counter_height := 0.0
+	for frame in 65:
+		p.combat.elapsed = 0.54*frame/64
+		p.animate(0,0)
+		for side in [-1,1]:
+			var foot: Vector3 = p.to_local(p.rig.legs[side].boot.to_global(Vector3(0,-0.5,-0.3)))
+			# The lead foot already takes a 6 cm opening step, with a 4.5 cm
+			# lift. Measure its planted interval, not that intentional step.
+			if side==-1 and (p.combat.elapsed<0.16 or p.combat.elapsed>0.42): continue
+			if not counter_support.has(side): counter_support[side] = foot
+			counter_planted = counter_planted and Vector2(foot.x,foot.z).distance_to(Vector2(counter_support[side].x,counter_support[side].z))<0.002
+			counter_grounded = counter_grounded and absf(foot.y)<0.002
+			counter_drift = maxf(counter_drift,Vector2(foot.x,foot.z).distance_to(Vector2(counter_support[side].x,counter_support[side].z)))
+			counter_height = maxf(counter_height,absf(foot.y))
+	print("COUNTER_SUPPORT_DEVIATION: horizontal=",counter_drift," vertical=",counter_height)
+	check(counter_planted and counter_grounded,"counter pivots both heels around stationary grounded forefeet")
+	check(p.rig.legs[1].sole_yaw>0.30 and p.rig.legs[-1].sole_yaw>0.10 and p.rig.legs[1].sole_yaw>p.rig.legs[-1].sole_yaw*2,"rear support turns farther to drive the tail-grip counter")
+	p.combat.elapsed = 0.82
+	p.animate(0,0)
+	check(absf(p.rig.legs[1].sole_yaw)<0.001 and absf(p.rig.legs[-1].sole_yaw)<0.001,"counter restores ready foot direction at recovery end")
 	world.add_child(saved)
 	var saved_belt: MeshInstance3D = saved.get_node("Pelvis/Belt")
 	var center := saved_belt.to_global(saved_belt.get_aabb().get_center())
 	check(center.y>0.98 and center.y<1.02,"exported belt remains at the authored waist height")
+	var saved_skeleton: Skeleton3D = saved.get_node("Skeleton3D")
+	var saved_preview: AnimationPlayer = saved.get_node("AnimationPreview")
+	var saved_skin: Skin
+	for part in saved_skeleton.get_children():
+		if part is MeshInstance3D: saved_skin = part.skin; break
+	var saved_support := {}
+	var saved_planted := true
+	for frame in 33:
+		saved_preview.play("reply")
+		saved_preview.seek(0.18+0.22*frame/32,true)
+		for side in [-1,1]:
+			var boot: Node3D = saved.get_node("Leg"+str(side)+"/Knee/Ankle/ForestBoot")
+			var rest_point: Vector3 = saved.to_local(boot.to_global(Vector3(0,-0.5,-0.3)))
+			var bone := saved_skeleton.find_bone("LeftFoot" if side==-1 else "RightFoot")
+			var point := saved_skeleton.to_global(saved_skeleton.get_bone_global_pose(bone)*saved_skin.get_bind_pose(bone)*rest_point)
+			if frame==0: saved_support[side] = point
+			saved_planted = saved_planted and point.distance_to(saved_support[side])<0.002 and absf(point.y)<0.002
+	check(saved_planted,"saved counter clip preserves grounded forefeet between authored keys")
+	check(saved_skeleton.get_bone_global_pose(saved_skeleton.find_bone("RightFoot")).basis.get_euler().y>0.30,"saved counter clip turns the rear foot with the body")
 	print("HIP_TRANSFER_CHECKS: ",checks," FAILURES: ",failures)
 	world.queue_free()
 	await process_frame

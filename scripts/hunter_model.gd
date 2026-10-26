@@ -244,6 +244,7 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 	for side in [-1,1]:
 		var leg: Dictionary = rig.legs[side]
 		var desired_sole_yaw := Motion.sweep_foot_yaw(side,elapsed) if action=="heavy" else 0.0
+		if action=="reply": desired_sole_yaw = Motion.counter_foot_yaw(side,elapsed)
 		leg.sole_yaw = lerp_angle(float(rig.sole_from.get(side,0.0)),desired_sole_yaw,stance_weight) if stance_weight<1 and rig.has("sole_from") else desired_sole_yaw
 		if action!="finisher" or finisher_reset:
 			if leg.hip.has_meta("finisher_release_from"): leg.hip.remove_meta("finisher_release_from")

@@ -57,6 +57,10 @@ static func sweep_foot_yaw(side: int, elapsed: float) -> float:
 	var drive := smoothstep(0.30,0.50,elapsed)*(1-smoothstep(0.70,0.92,elapsed))
 	return (0.16 if side==-1 else 0.42)*drive
 
+static func counter_foot_yaw(side: int, elapsed: float) -> float:
+	var drive := smoothstep(0.10,0.36,elapsed)*(1-smoothstep(0.54,0.82,elapsed))
+	return (0.12 if side==-1 else 0.34)*drive
+
 static func interpolate(keys: Array, elapsed: float) -> Vector4:
 	if elapsed<=float(keys[0].x): return keys[0]
 	for index in range(1,keys.size()):
