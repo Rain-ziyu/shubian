@@ -14,6 +14,13 @@ func run() -> void:
 	await physics_frame
 	var p = world.hunter
 	p.set_physics_process(false)
+	# This is a controlled fixture, not a window-input test.
+	p.set_process_input(false)
+	p.set_process_unhandled_input(false)
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	p.yaw = 0
+	p.pitch = -0.25
+	p.rig.root.rotation.y = 0
 	for m in get_nodes_in_group("monsters"): m.set_physics_process(false)
 	for action in ["idle","light","heavy","turn","guard","reply","flash","fourfold","spin","plant","wait","counter_window","finisher"]:
 		p.combat.set_action(action)

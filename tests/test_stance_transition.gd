@@ -42,6 +42,39 @@ func run() -> void:
 		for side in [-1,1]: settled[side] = p.rig.legs[side].ankle.global_position
 		p.animate(0,0)
 		for side in [-1,1]: check(settled[side].distance_to(p.rig.legs[side].ankle.global_position)<0.002,"stance reaches authored pose after transition")
+	# Stopping movement is still the idle action: it needs its own handoff.
+	for sample in 16:
+		var armed := sample>=8
+		p.combat.drawn = armed
+		p.combat.set_action("idle")
+		p.walk_clock = float(sample%8)*PI/4
+		p.animate(0,4.5)
+		var moving_feet := {}
+		for side in [-1,1]: moving_feet[side] = p.rig.legs[side].ankle.global_position
+		p.animate(1.0/60,0)
+		var stop_step := 0.0
+		for side in [-1,1]: stop_step = maxf(stop_step,moving_feet[side].distance_to(p.rig.legs[side].ankle.global_position))
+		print("LOCOMOTION_STOP_FIRST_STEP: ",armed," meters=",stop_step)
+		check(stop_step<0.035,"releasing movement does not teleport the foot to neutral")
+		for frame in 8: p.animate(1.0/60,0)
+		var stopped_feet := {}
+		for side in [-1,1]: stopped_feet[side] = p.rig.legs[side].ankle.global_position
+		p.animate(0,0)
+		for side in [-1,1]: check(stopped_feet[side].distance_to(p.rig.legs[side].ankle.global_position)<0.002,"movement stop reaches its actual rest stance")
+		p.animate(1.0/60,4.5)
+		var start_step := 0.0
+		for side in [-1,1]: start_step = maxf(start_step,stopped_feet[side].distance_to(p.rig.legs[side].ankle.global_position))
+		check(start_step<0.035,"starting movement carries feet out of rest continuously")
+		p.animate(0,4.5)
+		var before_attack := {}
+		for side in [-1,1]: before_attack[side] = p.rig.legs[side].ankle.global_position
+		p.combat.set_action("light")
+		p.animate(1.0/60,0)
+		var attack_step := 0.0
+		for side in [-1,1]: attack_step = maxf(attack_step,before_attack[side].distance_to(p.rig.legs[side].ankle.global_position))
+		check(attack_step<0.035,"movement into attack carries the airborne foot height")
+
+	p.combat.drawn = true
 	# A late sweep has the largest return angle. Check its whole handoff, not
 	# only the first frame, where a short blend can hide its peak rotation speed.
 	p.combat.set_action("heavy")

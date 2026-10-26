@@ -22,6 +22,13 @@ func run() -> void:
 	var p := Player.new()
 	stage.add_child(p)
 	p.set_physics_process(false)
+	# This is a controlled fixture, not a window-input test.
+	p.set_process_input(false)
+	p.set_process_unhandled_input(false)
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	p.yaw = 0
+	p.pitch = -0.25
+	p.rig.root.rotation.y = 0
 	p.position = Vector3(0,0.02,0)
 	p.yaw = 0
 	await physics_frame
@@ -48,11 +55,15 @@ func run() -> void:
 	var slide_distance := Vector2(p.position.x-start.x,p.position.z-start.z).length()
 	check(p.position.x-start.x>0.5 and absf(p.position.z-start.z)<0.01,"diagonal input slides along the real wall")
 	check(absf((p.walk_clock-phase)/slide_distance-free_phase/free_distance)<0.03,"wall sliding keeps the same gait per actual meter as free movement")
+	var feet_before_release := {}
+	for side in [-1,1]: feet_before_release[side] = p.rig.legs[side].ankle.global_position
 	Input.action_release("move_forward")
 	Input.action_release("move_right")
 	start = p.position
 	phase = p.walk_clock
-	await step(p,12)
+	await step(p,1)
+	for side in [-1,1]: check(feet_before_release[side].distance_to(p.rig.legs[side].ankle.global_position)<0.04,"real movement release carries rendered ankle continuously")
+	await step(p,11)
 	check(p.position.distance_to(start)<0.01 and is_equal_approx(p.walk_clock,phase),"release stops movement and cycle advancement")
 	check(p.combat.health==240 and p.combat.stamina==100,"locomotion measurements do not consume combat resources")
 	print("LOCOMOTION_PHYSICS_CHECKS: ",checks," FAILURES: ",failures)

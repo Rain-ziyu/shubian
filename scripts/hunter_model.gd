@@ -161,27 +161,31 @@ static func pose_torso(rig: Dictionary, action: String, elapsed: float, gait: fl
 		arm.shoulder.position = rig.torso.transform*(arm.rest_shoulder-Vector3(0,1.08,0))
 
 static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bool, gait: float, speed: float, delta: float, ground: Callable = Callable(), ground_normal: Callable = Callable(), travel := Vector3.FORWARD, arrival_weight := 0.0, motion_epoch := 0) -> void:
-	# Blend only horizontal ordinary stances. Ground height and authored aerial,
-	# stagger, turn and kick poses retain their existing solve and timing.
+	# Blend ordinary stance offsets; starting/stopping locomotion also carries
+	# swing-foot height. Ground solve and authored aerial/kick timing remain.
+	var walking := action=="idle" and speed>0.1
 	var previous_action: String = rig.get("stance_action","")
+	var previous_walking := bool(rig.get("stance_walking",walking))
+	var locomotion_change := previous_action==action and action=="idle" and walking!=previous_walking
 	var discontinuity: bool = rig.get("stance_epoch",motion_epoch)!=motion_epoch
 	var finisher_reset: bool = previous_action!="finisher" or elapsed<float(rig.get("finisher_last_time",elapsed)) or discontinuity
 	rig.finisher_last_time = elapsed
 	if delta<=0 or discontinuity or action not in BLENDED_STANCES or previous_action not in BLENDED_STANCES:
 		rig.stance_age = STANCE_BLEND_SECONDS
-	elif previous_action!=action:
+	elif previous_action!=action or locomotion_change:
+		rig.stance_vertical = locomotion_change or previous_walking or walking
 		rig.stance_from = {}
 		rig.sole_from = {}
 		for side in [-1,1]:
 			rig.stance_from[side] = rig.legs[side].ankle.global_position
 			rig.sole_from[side] = float(rig.legs[side].get("sole_yaw",0.0))
 		rig.stance_age = 0.0
+	rig.stance_walking = walking
 	rig.stance_action = action
 	rig.stance_epoch = motion_epoch
 	rig.stance_age = minf(STANCE_BLEND_SECONDS,float(rig.get("stance_age",STANCE_BLEND_SECONDS))+maxf(0,delta))
 	var stance_weight := smoothstep(0,STANCE_BLEND_SECONDS,float(rig.stance_age))
 	var drop := 0.09 if armed else 0.015
-	var walking := action=="idle" and speed>0.1
 	if walking: drop = 0.12
 	if action=="guard": drop += 0.04*smoothstep(0,0.18,elapsed)
 	if action=="reply": drop = 0.13+0.035*smoothstep(0,0.12,elapsed)*(1-smoothstep(0.12,0.26,elapsed))
@@ -310,6 +314,7 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 			var from: Vector3 = body.to_local(rig.stance_from[side])
 			target.x = lerpf(from.x,target.x,stance_weight)
 			target.z = lerpf(from.z,target.z,stance_weight)
+			if rig.get("stance_vertical",false): target.y = lerpf(from.y,target.y,stance_weight)
 		normals[side] = Vector3.UP
 		if action=="finisher" and side==1:
 			var chamber := smoothstep(0.60,0.80,elapsed)
