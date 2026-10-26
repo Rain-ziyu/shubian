@@ -4,6 +4,8 @@ const H = preload("res://scripts/hunter_model.gd")
 const Surface = preload("res://scripts/creature_surface.gd")
 const TailSkin = preload("res://scripts/creature_tail_skin.gd")
 const LegSkin = preload("res://scripts/creature_leg_skin.gd")
+const EYE_SHADER = preload("res://shaders/creature_eye.gdshader")
+const IRIS_COLORS := {"sweep":"bc954d","charge":"b77943","mist":"83a497","leap":"c0ad68","pulse":"94a7b5"}
 const GAIT_PER_METER := 4.2
 const CHARGE_NECK_PITCH := -0.35
 
@@ -120,6 +122,12 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 		nostril.material_override.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		var eye := V.piece(neck,Vector3(side*s*eye_x,s*0.20,-s*0.43),Vector3(s*0.028,s*0.02,s*0.045),Color("dba75d"),true)
 		eye.name = "Eye"+str(side)
+		eye.mesh.radial_segments = 24
+		eye.mesh.rings = 12
+		var iris := ShaderMaterial.new()
+		iris.shader = EYE_SHADER
+		iris.set_shader_parameter("iris_tint",Color(IRIS_COLORS[data.pattern]))
+		eye.material_override = iris
 		var pupil := V.piece(neck,Vector3(side*s*(eye_x+0.013),s*0.20,-s*0.436),Vector3(s*0.006,s*0.018,s*0.012),Color("1c2721"),true)
 		pupil.name = "Pupil"+str(side)
 		# The orbital roof meets the top of the eye instead of forming a detached eyebrow.

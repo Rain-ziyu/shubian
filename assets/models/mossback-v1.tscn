@@ -1,6 +1,7 @@
 [gd_scene format=4]
 
 [ext_resource type="Shader" path="res://shaders/creature_skin.gdshader" id="1_ad5cx"]
+[ext_resource type="Shader" path="res://shaders/creature_eye.gdshader" id="2_4mjir"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_64alt"]
 render_priority = 0
@@ -195,13 +196,14 @@ albedo_color = Color(0.078431375, 0.12941177, 0.09411765, 1)
 radial_segments = 12
 rings = 6
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hi8gg"]
-albedo_color = Color(0.85882354, 0.654902, 0.3647059, 1)
-roughness = 0.65
+[sub_resource type="ShaderMaterial" id="StandardMaterial3D_hi8gg"]
+render_priority = 0
+shader = ExtResource("2_4mjir")
+shader_parameter/iris_tint = Color(0.7372549, 0.58431375, 0.3019608, 1)
 
 [sub_resource type="SphereMesh" id="SphereMesh_sl82i"]
-radial_segments = 12
-rings = 6
+radial_segments = 24
+rings = 12
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_stkl7"]
 albedo_color = Color(0.10980392, 0.15294118, 0.12941177, 1)
@@ -284,13 +286,14 @@ albedo_color = Color(0.078431375, 0.12941177, 0.09411765, 1)
 radial_segments = 12
 rings = 6
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_g4oro"]
-albedo_color = Color(0.85882354, 0.654902, 0.3647059, 1)
-roughness = 0.65
+[sub_resource type="ShaderMaterial" id="StandardMaterial3D_g4oro"]
+render_priority = 0
+shader = ExtResource("2_4mjir")
+shader_parameter/iris_tint = Color(0.7372549, 0.58431375, 0.3019608, 1)
 
 [sub_resource type="SphereMesh" id="SphereMesh_stmcu"]
-radial_segments = 12
-rings = 6
+radial_segments = 24
+rings = 12
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6h5sk"]
 albedo_color = Color(0.10980392, 0.15294118, 0.12941177, 1)

@@ -81,7 +81,12 @@ func run() -> void:
 				var eye_triangles := eye.mesh.generate_triangle_mesh()
 				var pupil_point := eye.to_local(pupil.global_position)
 				var iris_seat := eye_triangles.intersect_segment(Vector3(side*float(data.size),pupil_point.y,pupil_point.z),Vector3(0,pupil_point.y,pupil_point.z))
-				check(not iris_seat.is_empty() and absf(pupil_point.x)+float(data.size)*0.003>absf(iris_seat.get("position",Vector3.ZERO).x),"live and saved pupil protrudes beyond eye surface: "+str(data.id))
+				# Compare actual pupil vertices in eye-local space; world-size offsets
+				# cannot be added to coordinates already divided by eyeball scale.
+				var pupil_extent := 0.0
+				for vertex: Vector3 in pupil.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+					pupil_extent = maxf(pupil_extent,absf(eye.to_local(pupil.to_global(vertex)).x))
+				check(not iris_seat.is_empty() and pupil_extent>absf(iris_seat.get("position",Vector3.ZERO).x),"live and saved pupil protrudes beyond eye surface: "+str(data.id))
 				var ridge: MeshInstance3D = instance.get_node("Neck/EyeRidge"+str(side))
 				var roots := {}
 				var ray_cache := {}
