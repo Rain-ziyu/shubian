@@ -22,6 +22,8 @@ func run() -> void:
 	p.combat.drawn = true
 	p.combat.set_action("idle")
 	p.animate(0,0)
+	var ready_body: Transform3D = p.rig.root.transform
+	var ready_chest: Transform3D = p.rig.torso.transform
 	var ready_weapon: Transform3D = p.rig.weapon.transform
 	var ready_foot: Vector3 = p.rig.legs[-1].ankle.global_position
 	p.combat.set_action("guard")
@@ -42,15 +44,15 @@ func run() -> void:
 	p.combat.elapsed = 0.12
 	p.animate(0,0)
 	var loaded_root: float = p.rig.root.position.z
-	var loaded_butt: Vector3 = p.rig.weapon.get_node("ButtContact").global_position
-	p.combat.elapsed = 0.26
+	var loaded_head: Vector3 = p.rig.weapon.get_node("TipContact").global_position
+	p.combat.elapsed = 0.36
 	p.animate(0,0)
-	check(loaded_root-p.rig.root.position.z>0.18,"reply transfers whole-body weight from load to extension")
-	check(loaded_butt.z-p.rig.weapon.get_node("ButtContact").global_position.z>0.29,"reply sends actual butt contact forward with the body")
+	check(loaded_root-p.rig.root.position.z>0.12,"reply transfers whole-body weight from load to extension")
+	check(loaded_head.z-p.rig.weapon.get_node("TipContact").global_position.z>0.8,"counter sweep sends the physical blade forward with the body")
 	check(absf(p.rig.legs[1].ankle.global_position.y-p.global_position.y-0.1)<0.002,"rear support foot stays grounded during reply")
-	p.combat.elapsed = 0.67
+	p.combat.elapsed = 0.82
 	p.animate(0,0)
-	check(p.rig.root.transform.is_equal_approx(braced_body) and p.rig.torso.transform.is_equal_approx(braced_chest),"reply recovery returns both body and chest to the braced pose")
+	check(p.rig.root.transform.is_equal_approx(ready_body) and p.rig.torso.transform.is_equal_approx(ready_chest),"counter sweep returns body and chest to the forward ready pose")
 	p.combat.set_action("heavy")
 	p.combat.elapsed = 0.18
 	p.animate(0,0)
@@ -125,6 +127,7 @@ func run() -> void:
 					var arm: Dictionary = p.rig.arms[side]
 					var grip: Vector3 = p.rig.weapon.transform*Vector3(0,0.18 if side==-1 else -0.28,0)
 					var release := smoothstep(0.38,0.60,p.combat.elapsed) if action=="throw" else 0.0
+					if action=="reply" and side==-1: release = smoothstep(0,0.12,p.combat.elapsed)*(1-smoothstep(0.54,0.82,p.combat.elapsed))
 					var relaxed: Vector3 = arm.shoulder.position+Vector3(0,-0.72,-0.015)
 					var expected: Vector3 = grip.lerp(relaxed,release)
 					worst_grip = maxf(worst_grip,arm.hand.position.distance_to(expected))

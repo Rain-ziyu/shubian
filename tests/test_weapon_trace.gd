@@ -49,19 +49,19 @@ func run() -> void:
 	p.update_weapon_contacts()
 	check(m.health==hp,"spin does not hit entire circle before blade arrives")
 	p.combat.set_action("reply")
-	p.combat.elapsed = 0.26
+	p.combat.elapsed = 0.20
 	p.animate(0,0)
-	var butt: PackedVector3Array = p.weapon_contact_points("reply",0)
-	check(butt[0].distance_to(p.rig.weapon.to_global(Vector3(0,-0.98,0)))<0.001,"reply traces butt end")
-	check(butt[0].distance_to(p.rig.weapon.to_global(Vector3(0,1.2,0)))>2,"reply does not trace forward prongs")
+	var sweep: PackedVector3Array = p.weapon_contact_points("reply",0)
+	check(sweep[0].distance_to(p.rig.weapon.get_node("TipContact").global_position)<0.001,"counter sweep traces the actual blade tip")
+	check(sweep.size()==7 and sweep[0].distance_to(p.rig.weapon.get_node("ButtContact").global_position)>2,"counter sweep traces its prongs instead of the butt")
 	m.global_position = Vector3(40,0,40)
 	p.feedback.advance(2)
 	p.on_strike(0)
 	p.update_weapon_contacts()
 	check(not "落空" in p.feedback.text,"miss cue waits until the contact window closes")
-	p.combat.elapsed = 0.39
+	p.combat.elapsed = 0.49
 	p.update_weapon_contacts()
-	check("反击落空" in p.feedback.text and "未开启闪刺" in p.feedback.text and p.combat.flash_window==0,"expired untouched reply explains why flash is unavailable")
+	check("横扫落空" in p.feedback.text and "未获得枪意" in p.feedback.text and p.combat.shadow_lifetimes.is_empty(),"expired untouched counter sweep explains that no intent was earned")
 	var foot: PackedVector3Array = p.weapon_contact_points("finisher",1)
 	check(foot.size()==1 and foot[0].distance_to(p.rig.legs[1].boot.to_global(Vector3(0,-0.5,-0.45)))<0.001,"finisher second beat uses actual forefoot sole")
 	p.combat.set_action("fourfold")

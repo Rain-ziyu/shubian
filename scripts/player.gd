@@ -140,6 +140,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_SPACE: request_action("plant" if event.ctrl_pressed else "dodge")
 			KEY_CTRL:
 				if combat.action=="wait": request_action("counter_window")
+				elif combat.guard_reward>0: request_action("reply")
+				elif combat.action=="guard": feedback.show_event("尚未格挡成功 · 挡住攻击后按 Ctrl 横扫",Color("e7c88b"),0.8,1)
 			KEY_F5: get_tree().reload_current_scene()
 	if event is InputEventMouseButton:
 		if event.pressed and event.button_index==MOUSE_BUTTON_MIDDLE:
@@ -148,8 +150,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.button_index==MOUSE_BUTTON_LEFT and event.pressed:
 			var next := "light"
 			if event.alt_pressed: next = "turn"
-			elif event.ctrl_pressed: next = "flash" if combat.flash_window>0 or combat.action=="reply" else "fourfold"
-			elif combat.guard_reward>0: next = "reply"
+			elif event.ctrl_pressed: next = "fourfold"
 			request_action(next)
 		if event.button_index==MOUSE_BUTTON_RIGHT:
 			if event.pressed:
@@ -324,7 +325,7 @@ func update_action_audio() -> void:
 		if action_audio_beats.has(beat) or combat.elapsed<time-0.07: continue
 		action_audio_beats[beat] = true
 		if combat.elapsed>time+0.10: continue
-		var kind := "thrust" if combat.action in ["light","flash","fourfold","reply"] else "sweep"
+		var kind := "thrust" if combat.action in ["light","flash","fourfold"] else "sweep"
 		if combat.action=="throw": kind = "throw"
 		elif combat.action=="finisher" and beat==1: kind = "kick"
 		CombatAudio.emit_at(get_parent(),kind,global_position+Vector3.UP*1.1)
@@ -420,16 +421,23 @@ func animate(delta: float, speed: float) -> void:
 				if combat.action=="turn":
 					w.rotation.x += clampf(pitch+0.25,-0.4,0.85)*1.22
 					w.position.z += 0.07*sin(smoothstep(0.10,0.58,t)*PI)
-			"guard","reply":
-				var brace := 1.0 if combat.action=="reply" else smoothstep(0,0.18,t)
+			"guard":
+				var brace := smoothstep(0,0.18,t)
 				var aim := clampf(pitch+0.25,-0.4,0.85)*brace
 				w.position.y += maxf(0,aim)*0.5
-				# The butt faces forward after rotation, so its elevation has the
-				# opposite pitch sign to the head-first thrusts.
 				w.rotation.x -= aim
-				w.rotation.y = PI if combat.action=="reply" else PI*clampf(t/0.18,0,1)
+				w.rotation.y = PI*clampf(t/0.18,0,1)
 				w.position.z += 0.55*brace
-				if combat.action=="reply": w.position.z += HunterModel.Motion.interpolate(HunterModel.Motion.REPLY_WEAPON,t).z
+			"reply":
+				var aim := clampf(pitch+0.25,-0.4,0.85)
+				var base := Transform3D(Basis.from_euler(Vector3(-PI/2-aim,PI,-0.15)),Vector3(0,1.20+maxf(0,aim)*0.5,0.23))
+				var grip := Vector3(0,-0.28,0)
+				var pivot := base*grip
+				var swing := smoothstep(0.10,0.36,t)
+				var follow := 0.22*smoothstep(0.36,0.48,t)*(1-smoothstep(0.54,0.82,t))
+				w.rotation = Vector3(-PI/2+aim*(2*swing-1),PI+PI*swing+follow,-0.15)
+				w.position = pivot-w.basis*grip
+				w.position = w.position.lerp(Vector3(0,1.20+maxf(0,aim)*0.5,-0.32),smoothstep(0.54,0.82,t))
 			"plant","wait","counter_window":
 				var seated := planted_weapon_height()
 				w.position = Vector3(0,seated,-0.35)
@@ -476,7 +484,9 @@ func animate(delta: float, speed: float) -> void:
 	if combat.action=="throw" and throw_recalled:
 		release = 0.0
 		arm_release = 0.0
-	HunterModel.pose_arms(rig,combat.drawn or equipment_grip>0 or equipment_main>0,walk_clock,equipment_grip*(1-arm_release),equipment_main*(1-arm_release),release)
+	var offhand := equipment_grip*(1-arm_release)
+	if combat.action=="reply": offhand *= 1-smoothstep(0,0.12,combat.elapsed)*(1-smoothstep(0.54,0.82,combat.elapsed))
+	HunterModel.pose_arms(rig,combat.drawn or equipment_grip>0 or equipment_main>0,walk_clock,offhand,equipment_main*(1-arm_release),release)
 
 func arrival_pose_weight() -> float:
 	if arrival_pose_left<=0 or combat.action not in ["idle","throw"]: return 0.0
@@ -515,14 +525,14 @@ func take_damage(amount: float, origin: Vector3, blockable: bool, interrupt := t
 	var exhausted_guard: bool = combat.action=="guard" and combat.elapsed>=0.12 and blockable and front and combat.stamina<15
 	var previous_health: float = combat.health
 	var result: String = combat.receive_damage(amount,blockable,front,interrupt)
-	if result=="guarded": feedback.show_event("格挡成功 · 左键反击",Color("f3d58b"),0.85,2)
+	if result=="guarded": feedback.show_event("格挡成功 · 按 Ctrl 右手横扫",Color("f3d58b"),0.85,2)
 	elif result=="counter": feedback.show_event("迎击成功 · 旋枪踢击",Color("f3d58b"),0.85,2)
 	elif result=="armored": feedback.show_event("霸体承伤 · 动作继续",Color("e7c88b"),0.8,2)
 	elif result=="immune": feedback.show_event("闪避免伤" if combat.action=="dodge" else "反击免伤",Color("bde4d4"),0.55,1)
 	elif result=="hurt" and exhausted_guard: feedback.show_event("耐力耗尽 · 格挡被击破",Color("f0947d"),1.15,3)
 	if result=="guarded": CombatAudio.emit_at(get_parent(),"guard",global_position+Vector3.UP)
 	elif combat.health<previous_health: CombatAudio.emit_at(get_parent(),"hurt",global_position+Vector3.UP)
-	message = {"counter":"反击成功！旋转踢击，不消耗枪影。","guarded":"格挡成功：左键反击，再 Ctrl+左键闪刺。","immune":"免伤","armored":"霸体承伤：动作继续","hurt":"受击！注意预警与站位。"}.get(result,result)
+	message = {"counter":"反击成功！旋转踢击，不消耗枪意。","guarded":"格挡成功：按 Ctrl 右手横扫，命中获得枪意。","immune":"免伤","armored":"霸体承伤：动作继续","hurt":"受击！注意预警与站位。"}.get(result,result)
 	if result=="ongoing": message = "毒雾持续伤害：离开绿色区域！"
 	if result=="hurt" and exhausted_guard: message = "耐力不足，架势被击破！先走位恢复。"
 	if result in ["hurt","armored"]: trigger_camera_impact(0.04)
@@ -571,15 +581,13 @@ func on_strike(_beat: int) -> void:
 		shot.global_position = launch
 		shot.look_at(shot.global_position+shot.direction)
 		return
-	strike_windows.append({"action":action,"beat":_beat,"ends":combat.elapsed+0.12,"previous":weapon_contact_points(action,_beat),"victims":{}})
+	strike_windows.append({"action":action,"beat":_beat,"ends":combat.elapsed+float(Combat.MOVES[action].get("contact_window",0.12)),"previous":weapon_contact_points(action,_beat),"victims":{}})
 
 func weapon_contact_points(action: String, beat: int) -> PackedVector3Array:
 	var points := PackedVector3Array()
 	if action=="finisher" and beat==1:
 		# Use the kicking foot rather than granting another full circular weapon hit.
 		points.append(rig.legs[1].boot.to_global(Vector3(0,-0.5,-0.45)))
-	elif action=="reply":
-		for label in ["ButtContact","ButtNeckContact"]: points.append(rig.weapon.get_node(label).global_position)
 	elif action=="pull":
 		for label in ["LeftHookContact","RightHookContact"]: points.append(rig.weapon.get_node(label).global_position)
 	else:
@@ -598,7 +606,7 @@ func update_weapon_contacts() -> void:
 			continue
 		var points := weapon_contact_points(window.action,window.beat)
 		if not (window.action=="finisher" and window.beat==1):
-			var labels: Array = ["ButtContact","ButtNeckContact"] if window.action=="reply" else (["LeftHookContact","RightHookContact"] if window.action=="pull" else ["TipContact","HeadBaseContact"])
+			var labels: Array = ["LeftHookContact","RightHookContact"] if window.action=="pull" else ["TipContact","HeadBaseContact"]
 			weapon_trail.add_sample(rig.weapon.get_node(labels[0]).global_position,rig.weapon.get_node(labels[1]).global_position,window.action+str(window.beat),window.action in ["flash","fourfold","spin","finisher"])
 		var previous: PackedVector3Array = window.previous
 		if previous.is_empty(): previous = points

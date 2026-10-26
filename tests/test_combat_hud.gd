@@ -30,15 +30,15 @@ func run() -> void:
 	c.drawn = true
 	c.guard_reward = 0.5
 	ui.update_state(p,2)
-	check("左键枪尾反击" in ui.context.text,"successful guard shows next action")
+	check("Ctrl 右手横扫" in ui.context.text,"successful guard shows next action")
 	c.guard_reward = 0
 	c.flash_window = 0.4
 	ui.update_state(p,2)
-	check("Ctrl+左键闪刺" in ui.context.text,"reply followup window is visible")
+	check("闪刺" not in ui.context.text,"retired flash window is not advertised")
 	c.flash_window = 0
 	c.set_action("reply")
 	ui.update_state(p,2)
-	check("可预输入" in ui.context.text and "命中后闪刺" in ui.context.text,"travelling reply explains buffered input without promising a confirmed hit")
+	check("右手横扫中" in ui.context.text and "命中获得" in ui.context.text,"counter sweep explains its actual reward condition")
 	c.set_action("idle")
 	p.heavy_held = 0.2
 	ui.update_state(p,2)

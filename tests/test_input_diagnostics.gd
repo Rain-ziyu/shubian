@@ -17,6 +17,18 @@ func click_ctrl() -> void:
 		event.ctrl_pressed = true
 		Input.parse_input_event(event)
 	Input.flush_buffered_events()
+func tap_ctrl() -> void:
+	var key := InputEventKey.new()
+	key.keycode = KEY_CTRL
+	key.physical_keycode = KEY_CTRL
+	key.pressed = true
+	key.ctrl_pressed = true
+	Input.parse_input_event(key)
+	key = key.duplicate()
+	key.pressed = false
+	key.ctrl_pressed = false
+	Input.parse_input_event(key)
+	Input.flush_buffered_events()
 func run() -> void:
 	var world = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(world)
@@ -36,21 +48,22 @@ func run() -> void:
 	p.combat.advance(0.20)
 	click_ctrl()
 	p.combat.advance(0.18)
-	p.combat.set_action("reply")
-	p.combat.advance(0.08)
-	click_ctrl()
-	check(p.combat.buffered=="flash" and p.combat.action=="reply","early flash still follows ordinary buffer rules")
-	var key := InputEventKey.new()
-	key.keycode = KEY_CTRL
-	key.physical_keycode = KEY_CTRL
-	key.pressed = true
-	key.ctrl_pressed = true
-	Input.parse_input_event(key)
-	key = key.duplicate()
-	key.pressed = false
-	key.ctrl_pressed = false
-	Input.parse_input_event(key)
-	Input.flush_buffered_events()
+	p.combat.set_action("guard")
+	p.combat.advance(0.15)
+	tap_ctrl()
+	check(p.combat.action=="guard" and p.combat.shadow_lifetimes.is_empty(),"Ctrl before a successful block cannot start or reward a sweep")
+	p.combat.receive_damage(10)
+	tap_ctrl()
+	check(p.combat.action=="reply" and p.combat.shadow_lifetimes.is_empty(),"Ctrl starts an earned counter without granting intent before contact")
+	var distant := 0
+	for monster in get_nodes_in_group("monsters"):
+		monster.global_position = Vector3(80+distant*12,0,80)
+		distant += 1
+	for frame in 55:
+		p.combat.advance(1.0/60)
+		p.animate(1.0/60,0)
+		p.update_weapon_contacts()
+	check(p.combat.action=="idle" and p.combat.shadow_lifetimes.is_empty(),"a complete physical counter sweep miss grants no intent")
 	trace._process(0)
 	trace.queue_free()
 	await process_frame
@@ -72,11 +85,12 @@ func run() -> void:
 		if row.event=="key": modifier_key = modifier_key or (row.ctrl and row.pressed and row.physical==KEY_CTRL)
 		if row.event=="action_request":
 			if row.requested=="fourfold":
-				rejection = rejection or (row.outcome=="rejected" and "枪影不足" in row.reason)
-				hidden_reason = hidden_reason or (row.state.feedback=="受击提示" and "枪影不足" in row.reason)
-				if row.outcome=="queued": queued_combo = true
+				rejection = rejection or (row.outcome=="rejected" and "枪意不足" in row.reason)
+				hidden_reason = hidden_reason or (row.state.feedback=="受击提示" and "枪意不足" in row.reason)
+				if row.outcome=="queued":
+					queued_combo = true
+					queued = true
 				if queued_combo and row.outcome=="rejected" and row.state.elapsed>=0.37: delayed_rejection = true
-			if row.requested=="flash": queued = row.outcome=="queued" and row.state.buffered=="flash"
 	check(modifier_mouse and modifier_key,"raw key and mouse events retain their actual modifier flags")
 	check(rejection,"trace records the exact resource rejection")
 	check(queued,"queued followup is distinguished from immediate execution")

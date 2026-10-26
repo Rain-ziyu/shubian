@@ -23,7 +23,7 @@ func run() -> void:
 	check(c.request("reply"),"earned reply remains available at zero stamina")
 	check(c.receive_damage(40)=="immune" and c.health==240,"successful reply keeps required damage immunity")
 	c.confirm_hit()
-	check(c.flash_window>0,"reply contact still opens flash followup")
+	check(c.shadow_lifetimes.size()==1 and c.flash_window==0,"counter sweep contact directly grants intent without a flash followup")
 	var exhausted = Combat.new()
 	exhausted.stamina = 10
 	exhausted.request("guard")
@@ -64,7 +64,7 @@ func run() -> void:
 	check("耐力不足" in world.combat_hud.context.text,"guard HUD warns before next failed block")
 	p.combat.guard_reward = 0.8
 	world.combat_hud.update_state(p,0)
-	check("左键枪尾反击" in world.combat_hud.context.text,"earned reply prompt has priority over low stamina warning")
+	check("Ctrl 右手横扫" in world.combat_hud.context.text,"earned reply prompt has priority over low stamina warning")
 	print("GUARD_STAMINA_CHECKS: ",checks," FAILURES: ",failures)
 	world.queue_free()
 	await process_frame

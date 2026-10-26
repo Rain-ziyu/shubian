@@ -86,7 +86,7 @@ func _ready() -> void:
 	hints.offset_top = -34
 	hints.text = "WASD 移动  ·  空格闪避  ·  中键锁定 / Tab 切换  ·  F1 操作说明  ·  F5 重试"
 	help = text_at(Vector2(22,280),17)
-	help.text = "操作说明 · 不暂停战斗\n左键斜刺 / 右键短按横扫、长按松开投枪瞬移\nE 回拉 / Alt+左键转身 / Q 架势 / R 收枪\n架势内不恢复耐力，每次成功格挡消耗 15\n格挡成功 → 左键反击 → Ctrl+左键闪刺\n有枪影：Ctrl+左键四连刺 / Ctrl+右键旋枪\n拔枪后 Ctrl+空格插地，再按 Ctrl 迎击\nTab 切换目标 / Shift+Tab 反向切换\n锁定跟随 / 鼠标上下调整枪尖高度\nShift 奔跑 / Esc 切换鼠标 / F1 收起说明"
+	help.text = "操作说明 · 不暂停战斗\n左键斜刺 / 右键短按横扫、长按松开投枪瞬移\nE 回拉 / Alt+左键转身 / Q 架势 / R 收枪\n架势内不恢复耐力，每次成功格挡消耗 15\n格挡成功 → 按 Ctrl 右手横扫，命中获得枪意\n有枪意：Ctrl+左键四连刺 / Ctrl+右键旋枪\n拔枪后 Ctrl+空格插地，再按 Ctrl 迎击\nTab 切换目标 / Shift+Tab 反向切换\n锁定跟随 / 鼠标上下调整枪尖高度\nShift 奔跑 / Esc 切换鼠标 / F1 收起说明"
 	help.hide()
 	target_text = text_at(Vector2.ZERO,17)
 	target_text.anchor_left = 0.5
@@ -142,17 +142,16 @@ static func followup(c, held: float) -> String:
 	if c.health<=0: return "任务失败 · F5 重试"
 	if c.action=="wait": return "插地等待 %ds · 按 Ctrl 迎击" % ceili(maxf(0,30-c.elapsed))
 	if c.action=="counter_window": return "迎击架势 · 接住来袭攻击"
-	if c.guard_reward>0: return "格挡成功 · 左键枪尾反击"
-	if c.flash_window>0: return "追击机会 · Ctrl+左键闪刺"
-	if c.action=="reply": return "枪尾反击中 · 可预输入 Ctrl+左键，命中后闪刺"
+	if c.guard_reward>0: return "格挡成功 · 按 Ctrl 右手横扫"
+	if c.action=="reply": return "右手横扫中 · 命中获得一层枪意"
 	if held>=0:
 		if held<c.THROW_HOLD_TIME: return "松开右键横扫 · 继续按住准备投枪"
 		return "投枪就绪 · 松开右键" if can_release_throw(c) else "蓄力完成 · 等待收势再松开"
 	if c.action=="guard":
-		return "耐力不足 · 收势后走位恢复" if c.stamina<15 else "架势中不恢复耐力 · 格挡后左键反击"
+		return "耐力不足 · 收势后走位恢复" if c.stamina<15 else "架势中不恢复耐力 · 格挡成功后按 Ctrl 横扫"
 	if not c.drawn: return "背负待机 · 左键或右键拔枪出招"
 	if not c.shadow_lifetimes.is_empty(): return "枪意就绪 · Ctrl+左键四连刺 / Ctrl+右键旋枪"
-	return "Q 架势 → 左键反击 → Ctrl+左键闪刺获得枪影"
+	return "Q 格挡成功 → Ctrl 右手横扫命中获得枪意"
 func update_state(fighter, defeated: int) -> void:
 	var c = fighter.combat
 	var phase: Dictionary = Feedback.phase(c)
@@ -183,7 +182,7 @@ func update_state(fighter, defeated: int) -> void:
 	stamina.value = c.stamina
 	health_text.text = "生命 %d / 240" % ceili(c.health)
 	stamina_text.text = "耐力 %d / 100" % floori(c.stamina)
-	shadows.text = "枪影 %d / 5" % c.shadow_lifetimes.size()
+	shadows.text = "枪意 %d / 5" % c.shadow_lifetimes.size()
 	if not c.shadow_lifetimes.is_empty(): shadows.text += "  攻击 +%d%%" % (c.shadow_lifetimes.size()*10)
 	for i in 5:
 		var remaining: float = c.shadow_lifetimes[i] if i<c.shadow_lifetimes.size() else 0

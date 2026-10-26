@@ -196,7 +196,7 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 	var drop := 0.09 if armed else 0.015
 	if walking: drop = 0.12
 	if action=="guard": drop += 0.04*smoothstep(0,0.18,elapsed)
-	if action=="reply": drop = 0.13+0.035*smoothstep(0,0.12,elapsed)*(1-smoothstep(0.12,0.26,elapsed))
+	if action=="reply": drop = 0.13+0.035*smoothstep(0,0.10,elapsed)*(1-smoothstep(0.10,0.36,elapsed))-0.04*smoothstep(0.54,0.82,elapsed)
 	if action=="plant": drop = Motion.interpolate(Motion.PLANT_STANCE,elapsed).y
 	if action in ["wait","counter_window"]: drop = 0.18
 	if action=="dodge":
@@ -244,7 +244,7 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 		if not armed: stance = 0
 		if action=="finisher": stance *= lerpf(0.5,1.0,smoothstep(0.43,0.55,elapsed))
 		if action=="guard": stance *= lerpf(1.0,1.4,smoothstep(0,0.18,elapsed))
-		if action=="reply": stance *= 1.4
+		if action=="reply": stance *= 1.4-0.4*smoothstep(0.54,0.82,elapsed)
 		var lift := 0.0
 		if speed>0.1 and action not in ["dodge","flash"]:
 			stance = sin(gait)*side*minf(0.28,speed*0.055)

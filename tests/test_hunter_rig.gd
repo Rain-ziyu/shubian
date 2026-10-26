@@ -31,7 +31,9 @@ func run() -> void:
 			for side in [-1,1]:
 				var arm: Dictionary = p.rig.arms[side]
 				var grip: Vector3 = p.rig.weapon.transform*Vector3(0,0.18 if side==-1 else -0.28,0)
-				check(arm.hand.position.distance_to(grip)<0.001,"hand follows grip "+action)
+				if action=="reply" and side==-1 and p.combat.elapsed>0:
+					if p.combat.elapsed>=0.12 and p.combat.elapsed<=0.54: check(arm.hand.position.distance_to(grip)>0.10,"counter sweep releases the left hand for balance")
+				else: check(arm.hand.position.distance_to(grip)<0.001,"hand follows grip "+action)
 				check(arm.shoulder.position.distance_to(grip)<0.80,"grip reachable "+action)
 	p.combat.set_action("guard")
 	p.combat.elapsed = 0
@@ -49,24 +51,26 @@ func run() -> void:
 	var reply_head: Vector3 = p.rig.weapon.transform*Vector3(0,1.1,0)
 	var reply_butt: Vector3 = p.rig.weapon.transform*Vector3(0,-0.93,0)
 	check(reply_head.z>0 and reply_butt.z<0,"reply begins from braced butt-forward guard rather than rewinding")
-	var braced_butt: Vector3 = p.rig.weapon.get_node("ButtContact").global_position
-	var butt_positions: Array[Vector3] = []
-	for time in [0.12,0.26,0.34,0.42,0.67]:
+	var pivot: Vector3 = p.rig.weapon.transform*Vector3(0,-0.28,0)
+	for time in [0.10,0.26,0.36,0.52]:
 		p.combat.elapsed = time
 		p.animate(0,0)
-		butt_positions.append(p.rig.weapon.get_node("ButtContact").global_position)
-	check(butt_positions[0].z>braced_butt.z,"reply draws back before driving the butt")
-	check(butt_positions[1].z<butt_positions[0].z-0.15,"reply drives forward at the damage beat")
-	check(butt_positions[2].z>butt_positions[1].z and butt_positions[3].z>butt_positions[2].z,"reply recoils immediately after contact rather than extending late")
-	check(absf(butt_positions[4].z-braced_butt.z)<0.001,"reply settles back into its braced position")
+		check((p.rig.weapon.transform*Vector3(0,-0.28,0)).distance_to(pivot)<0.001,"counter rotates around the right-hand grip")
+		if time==0.26: check(absf(p.rig.weapon.get_node("TipContact").position.y)>1,"counter retains its physical blade endpoint")
+		if time==0.36:
+			check(p.rig.weapon.get_node("TipContact").global_position.z-p.rig.root.global_position.z< -0.8,"counter sweep brings the blade forward at its actual contact beat")
+			check(p.rig.arms[-1].hand.position.distance_to(p.rig.weapon.transform*Vector3(0,0.18,0))>0.10,"left hand is visibly free at contact")
+	p.combat.elapsed = 0.82
+	p.animate(0,0)
+	for side in [-1,1]: check(p.rig.arms[side].hand.position.distance_to(p.rig.weapon.transform*Vector3(0,0.18 if side==-1 else -0.28,0))<0.001,"counter recovers the two-hand ready grip")
 	for action in ["guard","reply"]:
 		var heights := []
 		for aim in [-0.25,0.25]:
 			p.pitch = aim
 			p.combat.set_action(action)
-			p.combat.elapsed = 0.18 if action=="guard" else 0.26
+			p.combat.elapsed = 0.18 if action=="guard" else 0.36
 			p.animate(0,0)
-			heights.append(p.rig.weapon.get_node("ButtContact").global_position.y)
+			heights.append(p.rig.weapon.get_node("ButtContact" if action=="guard" else "TipContact").global_position.y)
 		check(float(heights[1])-float(heights[0])>0.5,"raising aim elevates the actual butt contact for "+action)
 	p.pitch = 0.25
 	p.combat.set_action("guard")

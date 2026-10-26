@@ -47,6 +47,14 @@ func run() -> void:
 			check(skeleton.get_bone_parent(shin)==thigh and skeleton.get_bone_parent(foot)==shin,"saved thigh shin foot hierarchy")
 	var player := model.get_node("AnimationPreview") as AnimationPlayer
 	check(player.get_animation_list().size()==17,"all seventeen preview clips saved")
+	check(is_equal_approx(player.get_animation("reply").length,0.82),"saved counter sweep has its updated duration")
+	player.play("reply")
+	player.seek(0.40,true)
+	var counter_weapon: Node3D = model.get_node("Trident")
+	var main_hand: Transform3D = skeleton.get_bone_global_pose(skeleton.find_bone("RightHand"))
+	var free_hand: Transform3D = skeleton.get_bone_global_pose(skeleton.find_bone("LeftHand"))
+	check(main_hand.origin.distance_to(counter_weapon.transform*Vector3(0,-0.28,0))<0.002,"saved counter sweep keeps the right hand on the shaft")
+	check(free_hand.origin.distance_to(counter_weapon.transform*Vector3(0,0.18,0))>0.10,"saved counter sweep releases the left hand")
 	player.play("heavy")
 	player.advance(0)
 	var before: Quaternion = model.get_node("Trident").quaternion

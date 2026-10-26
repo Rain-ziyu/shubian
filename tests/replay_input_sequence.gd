@@ -5,26 +5,14 @@ var input_commands := {}
 var key_events := 0
 var mouse_events := 0
 var reply_feedback_seen := false
-var flash_feedback_seen := false
-var single_flash := false
-var flash_sent := false
-var flash_presses := 0
+var counter_presses := 0
 func setup() -> void:
-	single_flash = "--single-flash" in OS.get_cmdline_user_args()
 	await super.setup()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	fighter.camera_manual_time = 0
 	fighter.hit_confirmed.connect(func(action: String, _beat: int, _monster: Node, _result: Dictionary):
-		if action=="reply": reply_feedback_seen = reply_feedback_seen or "反击命中" in fighter.feedback.text
-		if action=="flash": flash_feedback_seen = flash_feedback_seen or ("闪刺命中" in fighter.feedback.text and ("%d/5" % fighter.combat.shadow_lifetimes.size()) in fighter.feedback.text)
+		if action=="reply": reply_feedback_seen = reply_feedback_seen or ("反击横扫命中" in fighter.feedback.text and ("%d/5" % fighter.combat.shadow_lifetimes.size()) in fighter.feedback.text)
 	)
-func record_action(action: String) -> void:
-	if action=="reply": flash_sent = false
-	super.record_action(action)
-func control() -> void:
-	super.control()
-	if single_flash and not result_saved and fighter.combat.action=="reply" and fighter.combat.elapsed>=0.08:
-		request_action("flash")
 func key(code: Key, pressed: bool, combo := false) -> void:
 	var event := InputEventKey.new()
 	event.keycode = code
@@ -34,12 +22,9 @@ func key(code: Key, pressed: bool, combo := false) -> void:
 	Input.parse_input_event(event)
 	key_events += 1
 func request_action(action: String) -> void:
-	if single_flash and action=="flash":
-		if flash_sent: return
-		flash_sent = true
-		flash_presses += 1
+	if action=="reply": counter_presses += 1
 	input_commands[action] = int(input_commands.get(action,0))+1
-	if action in ["guard","plant","counter_window"]:
+	if action in ["guard","reply","plant","counter_window"]:
 		var code: Key = KEY_Q if action=="guard" else (KEY_SPACE if action=="plant" else KEY_CTRL)
 		key(code,true,action!="guard")
 		key(code,false)
@@ -61,11 +46,11 @@ func set_movement(local: Vector3) -> void:
 	Input.flush_buffered_events()
 func finish_sequence() -> void:
 	var covered := key_events>0 and mouse_events>0
-	for action in ["guard","reply","flash","fourfold","spin","plant","counter_window"]: covered = covered and input_commands.has(action)
+	for action in ["guard","reply","fourfold","spin","plant","counter_window"]: covered = covered and input_commands.has(action)
 	var checks := sequence_checks()
 	checks["input_coverage"] = covered
-	checks["confirmed_followup_feedback"] = reply_feedback_seen and flash_feedback_seen
-	if single_flash: checks["one_early_flash_press_per_reply"] = flash_presses==int(hit_counts.get("reply",0)) and flash_presses>=3
+	checks["confirmed_followup_feedback"] = reply_feedback_seen
+	checks["one_ctrl_press_per_counter"] = counter_presses==int(hit_counts.get("reply",0)) and counter_presses>=3
 	var passed := true
 	for value in checks.values(): passed = passed and value
 	var report := {"passed":passed,"checks":checks,"key_events":key_events,"mouse_events":mouse_events,"commands":input_commands,"contacts":hit_counts,"scope":"live single monster with state-aware controller; movement and attacks through Input.parse_input_event; no injected health shadows or confirmations; not OS or human difficulty acceptance"}

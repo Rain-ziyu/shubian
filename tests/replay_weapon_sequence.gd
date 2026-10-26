@@ -68,8 +68,6 @@ func control() -> void:
 		guard_count += 1
 		events.append({"time":snappedf(elapsed,0.001),"event":"guard_success","health":c.health})
 		request_action("reply")
-	elif c.flash_window>0:
-		request_action("flash")
 	elif monster.phase=="windup" and monster.clock>float(monster.data.windup)-0.32:
 		request_action("guard")
 
@@ -87,7 +85,7 @@ func sequence_checks() -> Dictionary:
 	return {
 		"natural_guard_chain":guard_count>=3,
 		"reply_contacts":int(hit_counts.get("reply",0))>=3,
-		"flash_contacts":int(hit_counts.get("flash",0))>=3,
+		"no_flash_required":int(hit_counts.get("flash",0))==0,
 		"fourfold_four_contacts":int(hit_counts.get("fourfold",0))==4,
 		"spin_two_hit_beats":spin_beats==2,
 		"spin_contacts":int(hit_counts.get("spin",0))>=1,

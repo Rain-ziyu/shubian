@@ -70,7 +70,7 @@ func run() -> void:
 	p.rig.root.rotation.y = 0
 	for i in 3:
 		var times := {"light":[0.11,0.25,0.34],"heavy":[0.18,0.43,0.60],"pull":[0.22,0.40,0.58],"throw":[0.0,0.20,0.37],"plant":[0.18,0.34,0.60]}
-		times["reply"] = [0.12,0.26,0.42]
+		times["reply"] = [0.10,0.36,0.52]
 		times["guard"] = [0.0,0.09,0.18]
 		times["finisher"] = [0.80,0.95,1.14]
 		times["flash"] = [0.08,0.23,0.39]
