@@ -98,7 +98,7 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 	jaw_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,jaw_arrays)
 	jaw.mesh = jaw_mesh
 	jaw.transform = jaw_pose(data,"idle",0)
-	var mouth_floor := Surface.profile(jaw,"MouthFloor",[Vector4(-0.60,0.075*head_width,0.004,-0.018),Vector4(-0.40,0.12*head_width,0.004,0.012),Vector4(-0.20,0.10*head_width,0.004,0.015),Vector4(-0.12,0.04,0.004,0.012)],s,Color("26352e"))
+	var mouth_floor := Surface.mouth_lining(jaw,hinge,s,head_width)
 	mouth_floor.position = -hinge
 	for side in [-1,1]:
 		var nose_x := 0.075*head_width

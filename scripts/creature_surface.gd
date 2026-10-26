@@ -81,6 +81,47 @@ static func profile(parent: Node3D, label: String, profiles: Array, scale: float
 	for ring: Vector4 in profiles: rings.append(ring*scale)
 	return surface(parent,label,rings,color,start,end,28,caps)
 
+static func mouth_lining(jaw: MeshInstance3D, hinge: Vector3, scale: float, head_width: float) -> MeshInstance3D:
+	# Fit a shallow inner lining to the real mandible, rather than suspending
+	# a flat slab above it. No per-frame projection or new contact geometry.
+	var sections := [Vector2(-0.65,0.006),Vector2(-0.60,0.055*head_width),Vector2(-0.53,0.085*head_width),Vector2(-0.44,0.11*head_width),Vector2(-0.34,0.115*head_width),Vector2(-0.24,0.09*head_width),Vector2(-0.16,0.045*head_width),Vector2(-0.125,0.008)]
+	var surface_mesh := jaw.mesh.generate_triangle_mesh()
+	var rows := []
+	for section: Vector2 in sections:
+		var row := []
+		for column in 9:
+			var across := float(column)/8*2-1
+			var x := across*section.y*scale
+			var z := section.x*scale-hinge.z
+			var contact := surface_mesh.intersect_segment(Vector3(x,scale*0.25,z),Vector3(x,-scale*0.25,z))
+			assert(not contact.is_empty(),"Mouth lining must stay inside its mandible")
+			var central := 1-smoothstep(0.2,0.9,absf(across))
+			var tongue := central*smoothstep(-0.65,-0.53,section.x)*(1-smoothstep(-0.26,-0.125,section.x))
+			var point: Vector3 = contact.position+hinge+Vector3.UP*scale*(0.0015+0.004*tongue)
+			var color := Color("1c2b23").lerp(Color("52614b"),tongue*0.75)
+			row.append({"point":point,"color":color,"uv":Vector2(float(column)/8,(section.x+0.65)/0.525)})
+		rows.append(row)
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(0)
+	for row in range(rows.size()-1):
+		for column in 8:
+			for item in [rows[row][column],rows[row][column+1],rows[row+1][column],rows[row][column+1],rows[row+1][column+1],rows[row+1][column]]:
+				st.set_color(item.color)
+				st.set_uv(item.uv)
+				st.add_vertex(item.point)
+	st.generate_normals()
+	var result := MeshInstance3D.new()
+	result.name = "MouthFloor"
+	result.mesh = st.commit()
+	var material := StandardMaterial3D.new()
+	material.vertex_color_use_as_albedo = true
+	material.roughness = 0.40
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	result.material_override = material
+	jaw.add_child(result)
+	return result
+
 static func seat_orbital_ridge(ridge: MeshInstance3D, skull: TriangleMesh, side: int, scale: float) -> void:
 	# Each longitudinal section follows its own skull cross-section; a single
 	# eye-center offset leaves the upper ridge floating above a curved cranium.
