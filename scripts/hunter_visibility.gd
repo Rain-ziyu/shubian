@@ -3,6 +3,7 @@ extends Node
 var hunter: CharacterBody3D
 var parts: Array[MeshInstance3D] = []
 var sources: Array[MeshInstance3D] = []
+var depth_material: ShaderMaterial
 var material: ShaderMaterial
 var occluded := false
 var visual_bounds := {}
@@ -17,15 +18,19 @@ func _ready() -> void:
 	material = ShaderMaterial.new()
 	material.shader = preload("res://scripts/hunter_occlusion.gdshader")
 	material.render_priority = 10
+	depth_material = ShaderMaterial.new()
+	depth_material.shader = preload("res://scripts/hunter_occlusion_depth.gdshader")
+	depth_material.render_priority = 9
+	depth_material.next_pass = material
 	for binding in hunter.rig.skinning.bindings:
 		parts.append(binding.rendered)
 		sources.append(binding.source)
-		binding.rendered.material_overlay = material
+		binding.rendered.material_overlay = depth_material
 	weapon_start_index = parts.size()
 	for part in hunter.rig.weapon.find_children("*","MeshInstance3D",true,false):
 		parts.append(part)
 		sources.append(part)
-		part.material_overlay = material
+		part.material_overlay = depth_material
 		part.set_instance_shader_parameter("weapon_part",true)
 func _physics_process(_delta: float) -> void:
 	var started := Time.get_ticks_usec() if get_meta("measure_frame_cost",false) else 0
@@ -65,12 +70,14 @@ func update_visibility() -> void:
 	if enabled_state==null or enabled_state!=occluded:
 		enabled_state = occluded
 		material.set_shader_parameter("enabled",occluded)
-		parameter_updates += 1
+		depth_material.set_shader_parameter("enabled",occluded)
+		parameter_updates += 2
 	var hurt: float = hunter.feedback.hurt_flash/0.22 if hunter.combat.health>0 else 0.0
 	if hurt_state!=hurt:
 		hurt_state = hurt
 		material.set_shader_parameter("hurt_flash",hurt)
-		parameter_updates += 1
+		depth_material.set_shader_parameter("hurt_flash",hurt)
+		parameter_updates += 2
 
 func collect_surfaces(ray_bounds: Variant = null) -> Array:
 	# Geometry is static, but articulated transforms change each tick. Share this

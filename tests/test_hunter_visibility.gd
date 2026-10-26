@@ -18,8 +18,10 @@ func without_cue(cue: Node) -> Image:
 	# Baseline capture temporarily disables the effect, then restores its owner state.
 	var previous: Variant = cue.material.get_shader_parameter("enabled")
 	cue.material.set_shader_parameter("enabled",false)
+	cue.depth_material.set_shader_parameter("enabled",false)
 	var result := await capture()
 	cue.material.set_shader_parameter("enabled",previous)
+	cue.depth_material.set_shader_parameter("enabled",previous)
 	return result
 func difference(a: Image, b: Image) -> int:
 	var count := 0
@@ -42,7 +44,7 @@ func run() -> void:
 	check(not cue.parts.is_empty(),"cue targets rendered skin meshes")
 	var part: MeshInstance3D = cue.parts[0]
 	var original = part.material_override
-	check(part.material_overlay==cue.material,"skin receives independent overlay")
+	check(part.material_overlay==cue.depth_material and cue.depth_material.next_pass==cue.material,"skin receives a depth mask followed by the independent color overlay")
 	check(cue.material.shader!=null and cue.material.render_priority==10,"depth shader installed")
 	var hp: float = p.combat.health
 	var camera := Camera3D.new()
@@ -75,6 +77,18 @@ func run() -> void:
 		var highlighted := await capture()
 		var blocked_pixels := difference(hidden,highlighted)
 		check(blocked_pixels>300,"hidden body is visible through rendered non-collidable geometry")
+		var outer: MeshInstance3D
+		for binding in p.rig.skinning.bindings:
+			if binding.source.name=="RainCape1": outer = binding.rendered
+		var buried: MeshInstance3D = outer.duplicate()
+		outer.get_parent().add_child(buried)
+		buried.position.z -= 0.03
+		buried.set_instance_shader_parameter("blocked_part",true)
+		var doubled := await capture()
+		var self_pixels := difference(highlighted,doubled)
+		check(self_pixels<maxi(30,blocked_pixels/100),"a covered inner layer does not stack another colored silhouette")
+		print("OCCLUSION_SELF_LAYER_PIXELS: ",self_pixels," blocked=",blocked_pixels)
+		buried.free()
 		var flags := []
 		for index in cue.parts.size():
 			flags.append(cue.parts[index].get_instance_shader_parameter("blocked_part"))
@@ -156,7 +170,7 @@ func run() -> void:
 		p.feedback.hurt_flash = strength
 		cue._physics_process(0)
 		check(is_equal_approx(float(cue.material.get_shader_parameter("hurt_flash")),strength/0.22),"hurt flash retains each changing fade value")
-	check(cue.parameter_updates==updates+3,"hurt fade only submits the changing material parameter")
+	check(cue.parameter_updates==updates+6,"hurt fade only submits the changing parameter to both passes")
 	# A packet prefilter must match the unfiltered per-part oracle, including
 	# rotated/scaled geometry. Off-ray details should not be tested per ray.
 	wall.show()
@@ -189,7 +203,7 @@ func run() -> void:
 			print("OCCLUSION_PACKET: all=",all_surfaces.size()," candidates=",candidates.size())
 	p.combat.health = 0
 	cue._physics_process(0)
-	check(cue.material.get_shader_parameter("enabled")==false,"death disables cue")
+	check(cue.material.get_shader_parameter("enabled")==false and cue.depth_material.get_shader_parameter("enabled")==false,"death disables both cue passes")
 	print("HUNTER_VISIBILITY_CHECKS: ",checks," FAILURES: ",failures)
 	stage.queue_free()
 	# The camera mount is deliberately parented beside the hunter by player._ready.
