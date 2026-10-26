@@ -19,12 +19,32 @@ func measure_cloth(cloths: Dictionary, arm_meshes: Dictionary, head_mesh: MeshIn
 			max_extent = maxf(max_extent,point.distance_to(center))
 		var rest: PackedVector3Array = soft.get_meta("cloth_rest_vertices")
 		var max_stretch := 1.0
+		var worst_edge := {}
 		for triangle in range(0,indices.size(),3):
 			for edge in 3:
 				var a := indices[triangle+edge]
 				var b := indices[triangle+(edge+1)%3]
 				var length := rest[a].distance_to(rest[b])
-				if length>0.0001: max_stretch = maxf(max_stretch,points[a].distance_to(points[b])/length)
+				if length>0.0001:
+					var ratio := points[a].distance_to(points[b])/length
+					if ratio>max_stretch:
+						max_stretch = ratio
+						worst_edge = {"indices":[a,b],"rest_length":length,"posed_length":points[a].distance_to(points[b]),"rest_a":[rest[a].x,rest[a].y,rest[a].z],"rest_b":[rest[b].x,rest[b].y,rest[b].z],"pinned":[soft.is_point_pinned(a),soft.is_point_pinned(b)],"posed_a":[points[a].x,points[a].y,points[a].z],"posed_b":[points[b].x,points[b].y,points[b].z]}
+		var pinned_overlaps := []
+		var pins: Array = soft.get_meta("cloth_pins")
+		var bodies: Array = soft.get_meta("cloth_colliders")
+		for pin in pins:
+			for body in bodies:
+				if (soft.collision_mask & body.collision_layer)==0: continue
+				var local: Vector3 = body.to_local(points[pin])
+				var shape: Shape3D = body.get_child(0).shape
+				var inside := false
+				if shape is CapsuleShape3D:
+					var segment: float = shape.height*0.5-shape.radius
+					inside = Vector3(local.x,local.y-clampf(local.y,-segment,segment),local.z).length()<shape.radius-0.001
+				elif shape is BoxShape3D:
+					inside = local.abs().x<shape.size.x*0.5-0.001 and local.abs().y<shape.size.y*0.5-0.001 and local.abs().z<shape.size.z*0.5-0.001
+				if inside: pinned_overlaps.append({"index":pin,"collider":str(body.name)})
 		var deformation_invalid := max_extent>1.5 or max_stretch>2.0
 		var faces := PackedVector3Array()
 		for index in indices: faces.append(points[index])
@@ -43,7 +63,7 @@ func measure_cloth(cloths: Dictionary, arm_meshes: Dictionary, head_mesh: MeshIn
 		for ray in 9:
 			var offset := Vector3.ZERO if ray==0 else Vector3(cos((ray-1)*TAU/8)*0.024,0,sin((ray-1)*TAU/8)*0.024)
 			weapon_crossing = weapon_crossing or not cloth.intersect_segment(p.rig.weapon.to_global(Vector3(0,-0.90,0)+offset),p.rig.weapon.to_global(Vector3(0,0.82,0)+offset)).is_empty()
-		measurements.append({"action":action,"time":elapsed,"side":side,"cape_edges":cape_edges,"arm_edges":arm_edges,"cloth_head_edges":cloth_head,"head_cloth_edges":head_cloth,"weapon_crossing":weapon_crossing,"max_extent":max_extent,"max_edge_stretch":max_stretch,"deformation_invalid":deformation_invalid})
+		measurements.append({"action":action,"time":elapsed,"side":side,"cape_edges":cape_edges,"arm_edges":arm_edges,"cloth_head_edges":cloth_head,"head_cloth_edges":head_cloth,"weapon_crossing":weapon_crossing,"max_extent":max_extent,"max_edge_stretch":max_stretch,"deformation_invalid":deformation_invalid,"worst_edge":worst_edge,"pinned_overlaps":pinned_overlaps})
 		if cape_edges+arm_edges+cloth_head+head_cloth>0 or weapon_crossing or deformation_invalid: print("SOFT_CROSSING: action=",action," time=",elapsed," side=",side," cape_edges=",cape_edges," arm_edges=",arm_edges," cloth_head=",cloth_head," head_cloth=",head_cloth," weapon=",weapon_crossing," max_stretch=",max_stretch," max_extent=",max_extent)
 	return true
 
@@ -147,6 +167,7 @@ func run() -> void:
 	var colliders := {}
 	for side in [-1,1]:
 		var body := AnimatableBody3D.new()
+		body.name = "ArmCollider"+str(side)
 		body.collision_layer = 1<<20
 		body.collision_mask = 0
 		body.sync_to_physics = false
@@ -159,6 +180,7 @@ func run() -> void:
 		colliders[side] = body
 		body.global_transform = p.rig.arms[side].upper.global_transform.orthonormalized()
 	var torso := AnimatableBody3D.new()
+	torso.name = "TorsoCollider"
 	torso.collision_layer = 1<<20
 	torso.collision_mask = 0
 	torso.sync_to_physics = false
@@ -180,6 +202,7 @@ func run() -> void:
 	head.global_transform = head_source.global_transform
 	var head_mesh: MeshInstance3D
 	var weapon_body := AnimatableBody3D.new()
+	weapon_body.name = "WeaponCollider"
 	weapon_body.collision_layer = (1<<20) if weapon_collision else 0
 	weapon_body.collision_mask = 0
 	weapon_body.sync_to_physics = false
@@ -223,16 +246,26 @@ func run() -> void:
 		soft.total_mass = 0.25
 		soft.simulation_precision = precision
 		stage.add_child(soft)
+		soft.global_transform = p.rig.root.global_transform
+		soft.force_update_transform()
 		var points: PackedVector3Array = soft.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
 		soft.set_meta("cloth_rest_vertices",points.duplicate())
+		var pin_uv: PackedVector2Array = soft.mesh.surface_get_arrays(0)[Mesh.ARRAY_TEX_UV]
+		var pin_height := 1.525 if neck_only else 1.49
 		for i in points.size():
-			if points[i].y>((1.525-collar_drop*smoothstep(1.49,1.53,1.525)) if neck_only else 1.49): soft.set_point_pinned(i,true,soft.get_path_to(p.rig.torso))
+			# Select the authored collar by material coordinates, never by a fitted/colliding position.
+			if pin_uv[i].y>(pin_height-1.14)/0.39: soft.set_point_pinned(i,true,soft.get_path_to(p.rig.torso))
 		if back_ties:
 			var tie := 0
 			var target := Vector3(-0.17 if label.ends_with("-1") else 0.17,1.11,0.24)
 			for i in points.size():
 				if points[i].distance_squared_to(target)<points[tie].distance_squared_to(target): tie = i
 			soft.set_point_pinned(tie,true,soft.get_path_to(p.rig.torso))
+		var pins := []
+		for i in points.size():
+			if soft.is_point_pinned(i): pins.append(i)
+		soft.set_meta("cloth_pins",pins)
+		soft.set_meta("cloth_colliders",[colliders[-1],colliders[1],torso,weapon_body])
 		cloths[-1 if label.ends_with("-1") else 1] = soft
 		print("SOFT_CLOTH_VERTICES: ",points.size())
 	print("SOFT_PHYSICS: ",ProjectSettings.get_setting("physics/3d/physics_engine"))
@@ -291,7 +324,7 @@ func run() -> void:
 		return
 	var affected := 0
 	for result in measurements:
-		if result.cape_edges+result.arm_edges+result.cloth_head_edges+result.head_cloth_edges>0 or result.weapon_crossing or result.deformation_invalid: affected += 1
+		if result.cape_edges+result.arm_edges+result.cloth_head_edges+result.head_cloth_edges>0 or result.weapon_crossing or result.deformation_invalid or not result.pinned_overlaps.is_empty(): affected += 1
 	var report := {
 		"prototype_only":true,"regular_mesh":regular_mesh,"weapon_collision":weapon_collision,
 		"arm_margin":arm_margin,"precision":precision,"start_unarmed":start_unarmed,"collar_drop":collar_drop,
@@ -300,6 +333,7 @@ func run() -> void:
 		"scope":"Continuous authored motion at120Hz after3s cloth settling; measurements every6 frames plus three snapshot times per action. Independent prototype, no game integration, saved clips, whole-map cost or human art acceptance. Cape hems omitted. Head excludes hair and face accessories; shaft uses nine radius0.024 rays from localY -0.90 to0.82.",
 		"all_actions":all_actions,"actions":specs,"simulation_hz":120,"settle_seconds":3,
 		"physics_setting":ProjectSettings.get_setting("physics/3d/physics_engine"),
+		"pin_check_scope":"Active capsule and box colliders for both arms, torso and weapon; excludes convex head collider.",
 		"deformation_limits":{"max_extent_from_torso":1.5,"max_edge_stretch":2.0,"note":"Broad diagnostic failure limits, not final art approval."},
 		"pairs":measurements.size(),"affected_pairs":affected,"measurements":measurements
 	}
