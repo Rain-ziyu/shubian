@@ -356,6 +356,7 @@ func animate(delta: float, speed: float) -> void:
 		# Let the far-side sweep return through the light thrust's anticipation.
 		# Finish before its0.25s contact; guard/dodge and draw routes stay responsive.
 		if not equipment_route and pose_action=="heavy" and combat.action=="light": pose_duration = 0.15
+		if not equipment_route and pose_action=="reply" and combat.action in ["light","heavy","pull","turn"]: pose_duration = 0.12
 		equipment_from = equipment_grip
 		equipment_main_from = equipment_main
 		pose_from = rig.weapon.transform
@@ -455,7 +456,7 @@ func animate(delta: float, speed: float) -> void:
 				var swing := smoothstep(0.10,0.36,t)
 				# Carry the tail grip around the right side; a fixed rear pivot
 				# sends the shaft through the chest as the blade turns forward.
-				pivot.x = lerpf(0.49,0.50,swing)+0.16*sin(PI*swing)
+				pivot.x = lerpf(0.49,0.50,swing)+0.12*sin(PI*swing)
 				pivot.z = lerpf(pivot.z-0.24,-0.40,swing)
 				var follow := 0.22*smoothstep(0.36,0.48,t)*(1-smoothstep(0.54,0.82,t))
 				w.rotation = Vector3(-PI/2+aim*(2*swing-1),PI+PI*swing+follow,-0.15)

@@ -18,7 +18,7 @@ func run() -> void:
 	p.set_process_unhandled_input(false)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	p.combat.drawn = true
-	for pair in [["light",0.37,"heavy"],["heavy",0.61,"light"],["pull",0.55,"light"],["reply",0.42,"flash"]]:
+	for pair in [["light",0.37,"heavy"],["heavy",0.61,"light"],["pull",0.55,"light"],["reply",0.54,"heavy"]]:
 		p.combat.set_action(pair[0])
 		p.combat.elapsed = pair[1]
 		p.animate(0,0)
@@ -33,6 +33,7 @@ func run() -> void:
 		for side in [-1,1]: maximum = maxf(maximum,before[side].distance_to(p.rig.legs[side].ankle.global_position))
 		print("STANCE_FIRST_FRAME: ",pair[0]," -> ",pair[2]," meters=",maximum)
 		check(maximum<0.025,"ordinary chain does not snap stance foot on its first frame")
+		print("STANCE_WEAPON_FIRST_STEP: ",pair[0]," -> ",pair[2]," meters=",p.rig.weapon.global_position.distance_to(grip_before))
 		check(p.rig.weapon.global_position.distance_to(grip_before)<0.08,"ordinary chain carries the weapon grip continuously")
 		check(p.combat.elapsed==0 and p.combat.health==health and p.combat.stamina==stamina,"stance presentation preserves combat time and resources")
 		for frame in 8:
