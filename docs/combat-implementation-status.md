@@ -1269,3 +1269,14 @@ D盘原生渲染检查counter_sweep_arc 7、front_guard 7、skin 250项通过（
 保存模型已导出并归一化254资源ID；原生服装30/支架与装备过渡80/肩甲18/蒙皮250，共378项通过：../verification/regressions-20261026-123914-d8dd09/summary.json。检查证明既有绑骨、支架路径及保存模型结构保持，不覆盖所有布料穿模。
 
 新图 ../Shubian-character-turnaround.png，旧图 ../Shubian-character-before-cape-shoulder.png；近景 ../Shubian-fourfold-keyframes-shoulder.png 与 ../Shubian-reply-motion-shoulder.png。反击近景仍观察到枪杆与前侧布料相交，需要后续处理；不能把支架检查通过写成全衣料无穿模。整体美术和自然动作目标仍未完成。
+
+## 格挡反击绕身路径与衣料相交（2026-10-26）
+
+近景显示反击枪杆从前披肩穿出。新增 test_counter_cloth.gd 对实际蒙皮权重变形后的 RainCape±1/Undercoat 建立三角面，按100个中立瞄准姿态采样9条枪杆截面射线；基线确认内衣及披肩相交。最初探针误用了不可用 TriangleMesh.create，已中止该进程并改为 ArrayMesh.generate_triangle_mesh；索引也显式保留，错误日志保留，不作为结论。
+
+原因是旧右手支点固定在身后，长杆旋向前方时必然经过躯干。现在右手沿身体右侧绕到身前；回收时杆身斜向外侧，左手重新握住。格挡末姿同步移至同一蓄势位置，保持抬高瞄准时格挡→反击的姿态一致。保留右手握尾-0.82m、手到枪尖2.02m、原接触窗口和命中一次一层枪意，不通过缩短武器或忽略衣料实现。多个初次外移布局导致左臂超长或初段碰披肩，校准后100姿态均无采样相交，双臂各0.39m。
+
+最终原生5脚本374项通过：../verification/regressions-20261026-130802-5eff53/summary.json（衣料2、横扫7、支架80、正面格挡7、骨骼278）。旧骨骼断言“水平支点固定”与新绕身要求冲突，改为检查支点沿身体右侧向前运动；仍保留头尾方向、双手恢复、抬高瞄准和格挡衔接检查。17段保存预览重新烘焙，保存蒙皮250项通过：regressions-20261026-130913-8ae20e。引擎键鼠事件回放14.42秒/生命240：3次格挡→Ctrl反击真实命中，四连刺4接触、终结技2接触，无资源注入；../verification/counter-cloth-final-input.log。
+
+新近景 ../Shubian-reply-motion-shoulder.png。射线采样只证明中立瞄准、指定枪杆范围与这三片衣料，不是所有瞄准/全身/三叉刃的精确体积无穿模证明；近景仍有抬臂时皮肤与披肩边缘交叠，整体动作和美术验收继续未完成。初次rig检查4条旧轨迹断言失败记录保留于regressions-20261026-130630-b6cff9。
+五怪全部弱点专项也通过：../verification/forest-hunt-20261026-210916-763f99/summary.json，固定60步长控制器流程，不作为真人难度或实时FPS证据。

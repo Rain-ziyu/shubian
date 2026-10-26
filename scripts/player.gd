@@ -443,6 +443,8 @@ func animate(delta: float, speed: float) -> void:
 				w.rotation.x -= aim
 				w.rotation.y = PI*clampf(t/0.18,0,1)
 				w.position.z += 0.55*brace
+				var guarded_grip: Vector3 = w.transform*Vector3(0,-0.28,0)
+				w.position += Vector3(0.49-guarded_grip.x,0,-0.24)*brace
 			"reply":
 				var aim := clampf(pitch+0.25,-0.4,0.85)
 				var base := Transform3D(Basis.from_euler(Vector3(-PI/2-aim,PI,-0.15)),Vector3(0,1.20+maxf(0,aim)*0.5,0.23))
@@ -451,10 +453,16 @@ func animate(delta: float, speed: float) -> void:
 				# Lift the one-hand sweep to shoulder/chest level before its active arc.
 				pivot.y += 0.22*smoothstep(0.10,0.20,t)*(1-smoothstep(0.54,0.82,t))
 				var swing := smoothstep(0.10,0.36,t)
+				# Carry the tail grip around the right side; a fixed rear pivot
+				# sends the shaft through the chest as the blade turns forward.
+				pivot.x = lerpf(0.49,0.50,swing)+0.16*sin(PI*swing)
+				pivot.z = lerpf(pivot.z-0.24,-0.40,swing)
 				var follow := 0.22*smoothstep(0.36,0.48,t)*(1-smoothstep(0.54,0.82,t))
 				w.rotation = Vector3(-PI/2+aim*(2*swing-1),PI+PI*swing+follow,-0.15)
 				w.position = pivot-w.basis*grip
-				w.position = w.position.lerp(Vector3(0,1.20+maxf(0,aim)*0.5,-0.32),smoothstep(0.54,0.82,t))
+				var recover := smoothstep(0.54,0.82,t)
+				w.quaternion = w.quaternion.slerp(Basis.from_euler(Vector3(-PI/2-aim,0.40,-0.15)).get_rotation_quaternion(),recover)
+				w.position = w.position.lerp(Vector3(0.32,1.20+maxf(0,aim)*0.5,-0.32),recover)
 			"plant","wait","counter_window":
 				var seated := planted_weapon_height()
 				w.position = Vector3(0,seated,-0.35)

@@ -57,7 +57,7 @@ func run() -> void:
 		p.combat.elapsed = time
 		p.animate(0,0)
 		var hand_pivot: Vector3 = p.rig.arms[1].hand.position
-		check(Vector2(hand_pivot.x,hand_pivot.z).distance_to(Vector2(pivot.x,pivot.z))<0.001,"counter raises its right hand while retaining the horizontal sweep pivot")
+		check(hand_pivot.x>=0.48 and hand_pivot.x<=0.67 and hand_pivot.z<=pivot.z+0.001,"counter carries its tail grip around the right side toward the front")
 		if time==0.26: check(absf(p.rig.weapon.get_node("TipContact").position.y)>1,"counter retains its physical blade endpoint")
 		if time==0.36:
 			check(p.rig.weapon.get_node("TipContact").global_position.z-p.rig.root.global_position.z< -0.8,"counter sweep brings the blade forward at its actual contact beat")
