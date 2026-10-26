@@ -112,14 +112,30 @@ func run() -> void:
 		check(arm_lengths,"neutral "+action+" keeps both anatomical arm lengths")
 	var sweep_clear := true
 	var sweep_arms := true
-	for frame in 61:
+	for frame in 181:
 		p.combat.set_action("heavy")
-		p.combat.elapsed = lerpf(0.18,0.70,frame/60.0)
+		p.combat.elapsed = 0.92*frame/180.0
 		p.animate(0,0)
-		sweep_clear = sweep_clear and shaft_hits(p).is_empty()
+		var sweep_hits := shaft_hits(p)
+		if not sweep_hits.is_empty(): print("HEAVY_CLOTH_CROSSING: ",p.combat.elapsed," ",sweep_hits)
+		sweep_clear = sweep_clear and sweep_hits.is_empty()
 		for side in [-1,1]: sweep_arms = sweep_arms and absf(p.rig.arms[side].upper.scale.y-0.39)<0.002 and absf(p.rig.arms[side].lower.scale.y-0.39)<0.002
-	check(sweep_clear,"61 loaded and active heavy poses keep shaft outside actual upper clothing")
-	check(sweep_arms,"loaded and active heavy keeps anatomical arm lengths")
+	check(sweep_clear,"181 full-duration neutral heavy poses keep shaft outside actual upper clothing")
+	check(sweep_arms,"full-duration neutral heavy keeps anatomical arm lengths")
+	p.combat.set_action("idle")
+	p.animate(0,0)
+	p.combat.set_action("heavy")
+	var runtime_clear := true
+	var runtime_arms := true
+	for frame in 112:
+		p.combat.elapsed = minf(0.92,frame/120.0)
+		p.animate(1.0/120,0)
+		var hits := shaft_hits(p)
+		if not hits.is_empty(): print("HEAVY_RUNTIME_CLOTH: ",p.combat.elapsed," ",hits)
+		runtime_clear = runtime_clear and hits.is_empty()
+		for side in [-1,1]: runtime_arms = runtime_arms and absf(p.rig.arms[side].upper.scale.y-0.39)<0.002 and absf(p.rig.arms[side].lower.scale.y-0.39)<0.002
+	check(runtime_clear,"120Hz idle-to-heavy presentation keeps shaft outside actual upper clothing")
+	check(runtime_arms,"120Hz idle-to-heavy presentation keeps anatomical arm lengths")
 	print("COUNTER_CLOTH_CHECKS: ",checks," FAILURES: ",failures)
 	stage.queue_free()
 	await process_frame

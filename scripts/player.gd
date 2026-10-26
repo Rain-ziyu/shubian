@@ -506,6 +506,7 @@ func animate(delta: float, speed: float) -> void:
 				w.rotation.x += clampf(pitch+0.25,-0.4,0.85)*smoothstep(0.20,0.38,t)
 				w.rotation.z *= 1-smoothstep(0.20,0.38,t)
 				w.visible = t<0.38 or throw_recalled
+	var authored_weapon := w.transform
 	if combat.drawn:
 		var carry := 1.0 if combat.action in ["idle","dodge"] else 0.0
 		if READY_CARRY_WINDOWS.has(combat.action):
@@ -520,6 +521,21 @@ func animate(delta: float, speed: float) -> void:
 				# Keep the recovered shaft beside the chest through the remaining throw follow-through.
 				var torso_motion: Transform3D = rig.torso.transform*Transform3D(Basis.IDENTITY,Vector3(0,-1.08,0))
 				w.transform = torso_motion*w.transform
+	if combat.drawn and combat.action=="heavy":
+		# Turn the long shaft upright in front before changing carrying sides.
+		var ready := Transform3D(Basis.from_euler(Vector3(-PI/2,0.40,-0.15)),Vector3(0.32,1.20,-0.32))
+		var upright := Transform3D(Basis.IDENTITY,Vector3(0.20,1.30,-0.50))
+		if combat.elapsed<0.09: w.transform = ready.interpolate_with(upright,smoothstep(0,0.09,combat.elapsed))
+		elif combat.elapsed<0.18:
+			w.transform = upright.interpolate_with(authored_weapon,smoothstep(0.09,0.18,combat.elapsed))
+			w.position.z -= 0.09*sin(PI*smoothstep(0.09,0.18,combat.elapsed))
+		elif combat.elapsed<0.70: w.transform = authored_weapon
+		elif combat.elapsed<0.81:
+			w.transform = authored_weapon.interpolate_with(upright,smoothstep(0.70,0.81,combat.elapsed))
+			w.position.x = lerpf(authored_weapon.origin.x,upright.origin.x,smoothstep(0.77,0.81,combat.elapsed))-0.06*sin(PI*smoothstep(0.70,0.77,combat.elapsed))
+			w.position.z = lerpf(authored_weapon.origin.z,upright.origin.z,smoothstep(0.70,0.77,combat.elapsed))
+			w.position.y -= 0.08*sin(PI*smoothstep(0.70,0.77,combat.elapsed))
+		else: w.transform = upright.interpolate_with(ready,smoothstep(0.81,0.92,combat.elapsed))
 	if delta>0:
 		pose_blend = minf(1,pose_blend+delta/pose_duration)
 		var goal := w.transform
