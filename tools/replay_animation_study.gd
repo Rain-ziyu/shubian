@@ -8,7 +8,7 @@ var elapsed := 0.0
 var finished := false
 var captured := false
 const MOVES := ["light","heavy","pull","guard","reply","finisher"]
-const NAMES := ["斜刺：预摆与前送","横扫：转腰与跟随","回拉：后坐收杆","格挡：架杆蓄势","反击：枪尾前送","终结：支撑移步与踢击"]
+const NAMES := ["斜刺：预摆与前送","横扫：转腰与跟随","回拉：后坐收杆","格挡：架杆蓄势","反击：滑握戟尾横扫","终结：支撑移步与踢击"]
 func _initialize() -> void: call_deferred("setup")
 func setup() -> void:
 	world = load("res://scenes/main/main.tscn").instantiate()

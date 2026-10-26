@@ -21,6 +21,11 @@ func run() -> void:
 		alignment += Vector3(point.x,0,point.z).normalized().dot(normal)
 	check(alignment/(28*6)>0.9,"profile mesh normals face outward")
 	var rig := Model.create(holder)
+	check_collars(rig.torso,"runtime")
+	var collar_saved: Node3D = load("res://assets/models/hunter-forest-v1.tscn").instantiate()
+	root.add_child(collar_saved)
+	check_collars(collar_saved.get_node("Torso"),"saved")
+	collar_saved.queue_free()
 	for label in ["KneePlate","ShinPlate"]:
 		var plate: MeshInstance3D = rig.legs[1].knee.get_node(label)
 		var points: PackedVector3Array = plate.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
@@ -102,3 +107,26 @@ func run() -> void:
 	holder.queue_free()
 	await process_frame
 	quit(1 if failures else 0)
+
+func check_collars(torso: Node3D, context: String) -> void:
+	var coat: MeshInstance3D = torso.get_node("Undercoat")
+	var coat_triangles := coat.mesh.generate_triangle_mesh()
+	for collar_label in ["CrossedCollar","InnerCollar"]:
+		var collar: MeshInstance3D = torso.get_node(collar_label)
+		var supported := true
+		var minimum := INF
+		var maximum := -INF
+		var positions: PackedVector3Array = collar.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+		var samples := positions.duplicate()
+		for triangle in range(0,positions.size(),3): samples.append((positions[triangle]+positions[triangle+1]+positions[triangle+2])/3)
+		for vertex: Vector3 in samples:
+			var point := coat.to_local(collar.to_global(vertex))
+			var hit := coat_triangles.intersect_segment(Vector3(point.x,point.y,-1),Vector3(point.x,point.y,1))
+			if hit.is_empty():
+				supported = false
+				continue
+			var gap: float = hit.position.z-point.z
+			minimum = minf(minimum,gap)
+			maximum = maxf(maximum,gap)
+		check(supported and minimum>=0.0015 and maximum<=0.010,"continuous collar stays outside the actual undercoat surface: "+context+" / "+collar_label)
+		print("COLLAR_CLEARANCE: ",collar_label," min=",minimum," max=",maximum)

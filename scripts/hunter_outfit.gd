@@ -140,7 +140,47 @@ static func cloth_panel(parent: Node3D, label: String, points: Array, color: Col
 	parent.add_child(result)
 	return result
 
+static func fitted_collar(parent: Node3D, label: String, points: Array, width: float, color: Color) -> MeshInstance3D:
+	var coat: MeshInstance3D = parent.get_node("Undercoat")
+	var triangles := coat.mesh.generate_triangle_mesh()
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(0)
+	var rows: Array[PackedVector3Array] = []
+	for segment in range(points.size()-1):
+		for step in 13:
+			if segment>0 and step==0: continue
+			var t := float(step)/12
+			var center: Vector3 = points[segment].lerp(points[segment+1],t)
+			var before: Vector3 = points[maxi(segment-1,0)]
+			var after: Vector3 = points[mini(segment+2,points.size()-1)]
+			var tangent: Vector3 = (points[segment+1]-before).lerp(after-points[segment],t).normalized()
+			var across := Vector3(-tangent.y,tangent.x,0).normalized()
+			var row := PackedVector3Array()
+			for column in 5:
+				var point := center+across*width*(float(column)/4-0.5)
+				var local := coat.transform.affine_inverse()*point
+				var hit := triangles.intersect_segment(Vector3(local.x,local.y,-1),Vector3(local.x,local.y,1))
+				if not hit.is_empty(): point = coat.transform*hit.position-Vector3(0,0,0.004 if label=="CrossedCollar" else 0.007)
+				row.append(point)
+			rows.append(row)
+	for row in range(rows.size()-1):
+		for column in 4:
+			for corner in [Vector2i(0,0),Vector2i(0,1),Vector2i(1,0),Vector2i(1,0),Vector2i(0,1),Vector2i(1,1)]:
+				st.set_uv(Vector2(float(column+corner.y)/4,float(row+corner.x)/(rows.size()-1)))
+				st.add_vertex(rows[row+corner.x][column+corner.y])
+	st.generate_normals()
+	var result := MeshInstance3D.new()
+	result.name = label
+	result.mesh = st.commit()
+	result.material_override = V.mat(color)
+	result.material_override.cull_mode = BaseMaterial3D.CULL_DISABLED
+	parent.add_child(result)
+	return result
+
 static func ribbon(parent: Node3D, label: String, points: Array, width: float, color: Color) -> MeshInstance3D:
+	if label in ["CrossedCollar","InnerCollar"]:
+		return fitted_collar(parent,label,points,width,color)
 	var outline := []
 	var reverse := []
 	for index in points.size():
@@ -306,8 +346,8 @@ static func create(root: Node3D) -> Dictionary:
 	],dark)
 	loft(root,"Neck",[Vector4(1.46,0.055,0.052,0),Vector4(1.58,0.054,0.052,0)],skin)
 	loft(root,"Collar",[Vector4(1.43,0.10,0.076,0),Vector4(1.52,0.076,0.065,0)],Color("3b463a"))
-	ribbon(root,"CrossedCollar",[Vector3(-0.07,1.50,-0.067),Vector3(0.02,1.40,-0.13),Vector3(0.17,1.27,-0.094)],0.045,hem)
-	ribbon(root,"InnerCollar",[Vector3(0.07,1.49,-0.075),Vector3(-0.01,1.39,-0.139),Vector3(-0.15,1.30,-0.106)],0.026,Color("656b59"))
+	ribbon(root,"CrossedCollar",[Vector3(-0.07,1.47,-0.067),Vector3(0.02,1.40,-0.13),Vector3(0.17,1.27,-0.094)],0.045,hem)
+	ribbon(root,"InnerCollar",[Vector3(0.07,1.47,-0.075),Vector3(-0.01,1.39,-0.139),Vector3(-0.15,1.30,-0.106)],0.026,Color("656b59"))
 	loft(root,"WaistSash",[Vector4(0.94,0.181,0.123,0),Vector4(1.025,0.177,0.12,0)],red)
 	loft(root,"Belt",[Vector4(0.982,0.188,0.131,0),Vector4(1.012,0.184,0.127,0)],Color("34322b"))
 	V.piece(root,Vector3(0.055,0.997,-0.133),Vector3(0.07,0.044,0.013),Color("928d74"))
