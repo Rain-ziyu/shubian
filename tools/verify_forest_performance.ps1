@@ -1,6 +1,7 @@
 param(
     [string]$GodotPath = 'D:/Godot/Godot_v4.7.2-stable_win64_console.exe',
-    [ValidateSet('gl_compatibility','mobile')][string]$RenderingMethod = 'gl_compatibility'
+    [ValidateSet('gl_compatibility','mobile')][string]$RenderingMethod = 'gl_compatibility',
+    [switch]$PreparedEntry
 )
 $ErrorActionPreference = 'Stop'
 $projectPath = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
@@ -13,7 +14,8 @@ $benchmark = Join-Path $projectPath 'tools/benchmark_forest_hunt.gd'
 $controller = Join-Path $projectPath 'tests/replay_forest_hunt.gd'
 $engineLog = Join-Path $reportPath 'engine.log'
 $requestedRenderDriver = if ($RenderingMethod -eq 'mobile') { 'vulkan' } else { 'opengl3' }
-$lines = @(& $GodotPath --path $projectPath --rendering-method $RenderingMethod --rendering-driver $requestedRenderDriver --script $benchmark --log-file $engineLog 2>&1 | ForEach-Object {
+$entryArgs = if ($PreparedEntry) { @('--','--prepared-entry') } else { @() }
+$lines = @(& $GodotPath --path $projectPath --rendering-method $RenderingMethod --rendering-driver $requestedRenderDriver --script $benchmark --log-file $engineLog @entryArgs 2>&1 | ForEach-Object {
     $line = "$_"
     if ($line -match '^FOREST_HUNT_TARGET:|^FOREST_HUNT_DAMAGE:') { Write-Host $line }
     $line
@@ -51,6 +53,8 @@ $summary = [pscustomobject]@{
     local_frame_budget_met = $budgetMet
     source_revision = $revision
     tracked_changes_present = $dirty
+    prepared_entry = [bool]$PreparedEntry
+    startup_sha256 = (Get-FileHash -LiteralPath (Join-Path $projectPath 'scripts/startup.gd') -Algorithm SHA256).Hash
     controller_sha256 = (Get-FileHash -LiteralPath $controller -Algorithm SHA256).Hash
     benchmark_sha256 = (Get-FileHash -LiteralPath $benchmark -Algorithm SHA256).Hash
     harness_sha256 = (Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash

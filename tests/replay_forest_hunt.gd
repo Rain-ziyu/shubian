@@ -23,6 +23,10 @@ var control_sample_frame := 0
 var weakness_tactics := false
 var weakpoint_events := {}
 func _initialize() -> void: call_deferred("setup")
+func create_world() -> Node3D:
+	var instance: Node3D = load("res://scenes/main/main.tscn").instantiate()
+	root.add_child(instance)
+	return instance
 func setup() -> void:
 	weakness_tactics = "--weakness-tactics" in OS.get_cmdline_user_args()
 	if "--capture-victory" in OS.get_cmdline_user_args():
@@ -33,8 +37,7 @@ func setup() -> void:
 		root.size = Vector2i(1280,720)
 		root.content_scale_size = root.size
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	world = load("res://scenes/main/main.tscn").instantiate()
-	root.add_child(world)
+	world = await create_world()
 	fighter = world.hunter
 	fighter.set_process_unhandled_input(false)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE

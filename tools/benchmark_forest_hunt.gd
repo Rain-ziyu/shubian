@@ -17,6 +17,26 @@ var last_draw_ms := 0.0
 var recent_events: Array[Dictionary] = []
 var previous_pipelines := {}
 var compilation_events: Array[Dictionary] = []
+var prepared_entry := false
+var entry_frames: Array[float] = []
+var entry_previous_us := 0
+var entry_wall_ms := 0.0
+func create_world() -> Node3D:
+	prepared_entry = "--prepared-entry" in OS.get_cmdline_user_args()
+	if not prepared_entry: return await super.create_world()
+	var begin := Time.get_ticks_usec()
+	entry_previous_us = begin
+	var capture := func():
+		var now := Time.get_ticks_usec()
+		entry_frames.append((now-entry_previous_us)/1000.0)
+		entry_previous_us = now
+	process_frame.connect(capture)
+	var entry: Node = load("res://scenes/main/startup.tscn").instantiate()
+	root.add_child(entry)
+	while not entry.complete: await process_frame
+	entry_wall_ms = (Time.get_ticks_usec()-begin)/1000.0
+	process_frame.disconnect(capture)
+	return entry.world
 func setup() -> void:
 	if DisplayServer.get_name()=="headless":
 		printerr("Forest benchmark requires native rendering")
@@ -127,6 +147,11 @@ func finish() -> void:
 	report["player_stage_scope"] = "player_simulation, player_animation and player_contacts are nested within player total; wall-clock time includes scheduling, and these are not additional independent costs"
 	report["hazard_stage_scope"] = "species_hazard_spawn is nested inside species physics total; species_hazard_ground measures deferred terrain fitting outside that physics total; timings include scheduling"
 	report["peak_script_cost_ms"] = profile_peaks
+	report["prepared_entry"] = prepared_entry
+	if prepared_entry:
+		report["entry_wall_ms"] = entry_wall_ms
+		report["entry_frame_times_ms"] = entry_frames
+		report["entry_scope"] = "All preparation-entry process frames retained separately, including synchronous construction and pre-draw stalls; combat timing begins after readiness and controller setup. Not an end-to-end 60 FPS loading claim."
 	report["pipeline_compilations"] = pipeline_counts()
 	report["pipeline_compilation_events"] = compilation_events
 	report["sample_limit_seconds"] = sample_limit
