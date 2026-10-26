@@ -10,6 +10,7 @@ const Combat = preload("res://scripts/combat/trident_combat.gd")
 const Visuals = preload("res://scripts/visuals.gd")
 const Projectile = preload("res://scripts/trident_projectile.gd")
 const HunterModel = preload("res://scripts/hunter_model.gd")
+const READY_CARRY_WINDOWS := {"light":Vector2(0.11,0.48),"heavy":Vector2(0.18,0.70),"pull":Vector2(0.22,0.58),"turn":Vector2(0.10,0.60),"fourfold":Vector2(0.08,1.08),"spin":Vector2(0.18,1.08),"throw":Vector2(0.20,0.60)}
 var melee_contact = preload("res://scripts/monster_projectile_contact.gd").new()
 const HitFeedback = preload("res://scripts/hit_feedback.gd")
 const WeaponTrail = preload("res://scripts/weapon_trail.gd")
@@ -496,6 +497,15 @@ func animate(delta: float, speed: float) -> void:
 				w.rotation.x += clampf(pitch+0.25,-0.4,0.85)*smoothstep(0.20,0.38,t)
 				w.rotation.z *= 1-smoothstep(0.20,0.38,t)
 				w.visible = t<0.38 or throw_recalled
+	if combat.drawn:
+		var carry := 1.0 if combat.action in ["idle","dodge"] else 0.0
+		if READY_CARRY_WINDOWS.has(combat.action):
+			var window: Vector2 = READY_CARRY_WINDOWS[combat.action]
+			carry = 1-smoothstep(0,window.x,combat.elapsed)+smoothstep(window.y,float(Combat.MOVES[combat.action].duration),combat.elapsed)
+		elif combat.action=="guard": carry = 1-smoothstep(0,0.18,combat.elapsed)
+		if carry>0:
+			w.position = w.position.lerp(Vector3(0.32,1.20,-0.32),carry)
+			w.quaternion = w.quaternion.slerp(Basis.from_euler(Vector3(-PI/2,0.40,-0.15)).get_rotation_quaternion(),carry)
 	if delta>0:
 		pose_blend = minf(1,pose_blend+delta/pose_duration)
 		var goal := w.transform
@@ -506,10 +516,11 @@ func animate(delta: float, speed: float) -> void:
 			var rotation_weight := smoothstep(0.20,1.0,travel) if combat.drawn else smoothstep(0.0,0.80,travel)
 			w.quaternion = pose_from.basis.get_rotation_quaternion().slerp(goal.basis.get_rotation_quaternion(),rotation_weight)
 			var arc := Vector3(maxf(0,0.40-absf(pose_from.origin.x)),maxf(0,1.65-maxf(pose_from.origin.y,goal.origin.y)),0)
+			if not combat.drawn: arc.x = 0.40
 			w.position += arc*sin(travel*PI)
 
-		equipment_grip = lerpf(equipment_from,1.0 if combat.drawn else 0.0,smoothstep(0,0.7,pose_blend))
-		equipment_main = lerpf(equipment_main_from,1.0,smoothstep(0,0.7,pose_blend)) if combat.drawn else lerpf(equipment_main_from,0.0,smoothstep(0.82,1,pose_blend))
+		equipment_grip = lerpf(equipment_from,1.0 if combat.drawn else 0.0,smoothstep(0,1.0 if combat.drawn else 0.7,pose_blend))
+		equipment_main = lerpf(equipment_main_from,1.0,smoothstep(0,1,pose_blend)) if combat.drawn else lerpf(equipment_main_from,0.0,smoothstep(0.82,1,pose_blend))
 	else:
 		equipment_grip = 1.0 if combat.drawn else 0.0
 		equipment_main = equipment_grip

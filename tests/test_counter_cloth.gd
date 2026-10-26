@@ -30,6 +30,20 @@ func surface(part: MeshInstance3D, skeleton: Skeleton3D) -> TriangleMesh:
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,triangle_arrays)
 	return mesh.generate_triangle_mesh()
+func shaft_hits(p: CharacterBody3D) -> Array[String]:
+	var skeleton: Skeleton3D = p.rig.skinning.skeleton
+	var hits: Array[String] = []
+	for part in skeleton.get_children():
+		if not part is MeshInstance3D: continue
+		var label: String = part.get_meta("source_part","")
+		if label!="Undercoat" and not label.begins_with("RainCape"): continue
+		var triangles := surface(part,skeleton)
+		for ray in 9:
+			var offset := Vector3.ZERO if ray==0 else Vector3(cos((ray-1)*TAU/8)*0.024,0,sin((ray-1)*TAU/8)*0.024)
+			if not triangles.intersect_segment(p.rig.weapon.to_global(Vector3(0,-0.90,0)+offset),p.rig.weapon.to_global(Vector3(0,0.82,0)+offset)).is_empty():
+				hits.append(label)
+				break
+	return hits
 func run() -> void:
 	var stage := Node3D.new()
 	root.add_child(stage)
@@ -43,7 +57,6 @@ func run() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	p.combat.drawn = true
 	p.combat.set_action("reply")
-	var skeleton: Skeleton3D = p.rig.skinning.skeleton
 	var crossings := {}
 	var lengths_valid := true
 	var longest := 0.0
@@ -56,21 +69,16 @@ func run() -> void:
 			if p.rig.arms[side].upper.scale.y>longest:
 				longest = p.rig.arms[side].upper.scale.y
 				longest_time = p.combat.elapsed
-		for part in skeleton.get_children():
-			if not part is MeshInstance3D: continue
-			var label: String = part.get_meta("source_part","")
-			if label!="Undercoat" and not label.begins_with("RainCape"): continue
-			var triangles := surface(part,skeleton)
-			for ray in 9:
-				var offset := Vector3.ZERO if ray==0 else Vector3(cos((ray-1)*TAU/8)*0.024,0,sin((ray-1)*TAU/8)*0.024)
-				if not triangles.intersect_segment(p.rig.weapon.to_global(Vector3(0,-0.90,0)+offset),p.rig.weapon.to_global(Vector3(0,0.82,0)+offset)).is_empty():
-					if not crossings.has(label): crossings[label] = []
-					crossings[label].append(snappedf(p.combat.elapsed,0.001))
-					break
+		for label in shaft_hits(p):
+			if not crossings.has(label): crossings[label] = []
+			crossings[label].append(snappedf(p.combat.elapsed,0.001))
 	print("COUNTER_CLOTH_CROSSINGS: ",JSON.stringify(crossings))
 	print("COUNTER_CLOTH_ARM: longest=",longest," time=",longest_time)
 	check(crossings.is_empty(),"100 neutral-aim counter poses clear actual skinned cape and undercoat along nine shaft rays")
 	check(lengths_valid,"counter route keeps both anatomical arm lengths")
+	p.combat.set_action("idle")
+	p.animate(0,0)
+	check(shaft_hits(p).is_empty(),"armed idle carries the shaft outside the actual cape and undercoat")
 	print("COUNTER_CLOTH_CHECKS: ",checks," FAILURES: ",failures)
 	stage.queue_free()
 	await process_frame
