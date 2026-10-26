@@ -61,7 +61,7 @@ static func create(parent: Node3D) -> Dictionary:
 		var boot := Outfit.boot(ankle)
 		legs[side] = {"hip":leg,"knee":knee,"ankle":ankle,"thigh":thigh,"shin":shin,"boot":boot}
 		joints["leg"+str(side)] = leg
-	var rig := {"root":root,"torso":torso,"pelvis":pelvis,"joints":joints,"arms":arms,"legs":legs,"skirts":costume.skirts,"shoulders":costume.shoulders,"weapon":V.trident(root)}
+	var rig := {"root":root,"torso":torso,"pelvis":pelvis,"joints":joints,"arms":arms,"legs":legs,"skirts":costume.skirts,"shoulders":costume.shoulders,"fasteners":costume.fasteners,"weapon":V.trident(root)}
 	rig.head_parts = []
 	for part in torso.get_children():
 		if part is Node3D and part.get_meta("head_assembly",false):
@@ -124,6 +124,8 @@ static func pose_arms(rig: Dictionary, armed: bool, gait: float, grip_weight := 
 		shoulder_plate.position = shoulder
 		var shoulder_turn: Basis = arm.upper.basis.orthonormalized()*arm.rest_upper_basis.inverse()
 		shoulder_plate.basis = shoulder_turn
+		var fastener: MeshInstance3D = rig.fasteners[side]
+		fastener.transform = rig.torso.transform.affine_inverse()*shoulder_plate.transform*fastener.get_meta("shoulder_bind")
 		arm.hand.position = target
 		Hand.orient(arm.hand,elbow,rig.weapon.basis.y,clampf(main_grip if side==1 and main_grip>=0 else grip_weight,0,1) if armed else 0.0,finger_release)
 		arm.elbow.position = elbow

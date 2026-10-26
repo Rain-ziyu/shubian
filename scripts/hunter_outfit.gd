@@ -226,6 +226,32 @@ static func blob(parent: Node3D, label: String, center: Vector3, size: Vector3, 
 	result.mesh.rings = 12
 	return result
 
+static func shoulder_plate(root: Node3D, side: int) -> MeshInstance3D:
+	# A folded shield with a rolled crown, rather than a round joint cover.
+	# The symmetric outline keeps front/back registration on both mirrored arms.
+	var plate := armor_plate(root,"ShoulderPlate"+str(side),[
+		Vector3(-0.085,-0.065,0),Vector3(-0.085,0.015,0.008),
+		Vector3(-0.045,0.060,0.025),Vector3(0,0.075,0.030),
+		Vector3(0.045,0.060,0.025),Vector3(0.085,0.015,0.008),
+		Vector3(0.085,-0.065,0),Vector3(0,-0.095,-0.005)
+	],Color("626d61"))
+	var arrays: Array = plate.mesh.surface_get_arrays(0)
+	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+	var turn := Basis(Vector3.UP,-side*PI/2)
+	for index in vertices.size():
+		vertices[index] = turn*vertices[index]+Vector3(side*0.08,0,0)
+		normals[index] = turn*normals[index]
+	arrays[Mesh.ARRAY_VERTEX] = vertices
+	arrays[Mesh.ARRAY_NORMAL] = normals
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+	plate.mesh = mesh
+	plate.position = Vector3(side*0.27,1.43,0)
+	plate.material_override.metallic = 0.35
+	plate.material_override.roughness = 0.65
+	return plate
+
 static func boot(parent: Node3D) -> MeshInstance3D:
 	# Normalized shoe coordinates retain the existing ankle/sole anchor and dimensions.
 	# Closed bottom cap is a real planar sole, not the tangent point of an ellipsoid.
@@ -271,6 +297,7 @@ static func create(root: Node3D) -> Dictionary:
 	V.piece(root,Vector3(0.055,0.997,-0.133),Vector3(0.07,0.044,0.013),Color("928d74"))
 	V.piece(root,Vector3(0.055,0.997,-0.141),Vector3(0.046,0.025,0.008),dark)
 	var shoulders := {}
+	var fasteners := {}
 	for side in [-1,1]:
 		var begin := 0.22 if side==1 else -PI+0.22
 		var finish := PI-0.22 if side==1 else -0.22
@@ -282,18 +309,12 @@ static func create(root: Node3D) -> Dictionary:
 		cape.material_override.cull_mode = BaseMaterial3D.CULL_DISABLED
 		cape.material_override.roughness = 0.92
 		loft(root,"CapeHem"+str(side),[Vector4(1.141,0.431,0.246,0.018),Vector4(1.154,0.426,0.244,0.018)],hem,begin,finish,24,false).material_override.cull_mode = BaseMaterial3D.CULL_DISABLED
-		var shoulder := loft(root,"ShoulderPlate"+str(side),[
-			Vector4(-0.08,0.065,0.060,0),Vector4(-0.05,0.095,0.085,0),
-			Vector4(0,0.110,0.095,0),Vector4(0.025,0.095,0.085,0),
-			Vector4(0.045,0.070,0.065,0),Vector4(0.055,0.035,0.032,0),
-			Vector4(0.058,0.008,0.008,0)
-		],Color("626d61"),0 if side==1 else -PI,PI if side==1 else 0,24,false)
-		shoulder.position = Vector3(side*0.27,1.43,0)
-		shoulder.mesh = thicken_plate(shoulder.mesh,0.004)
-		shoulder.material_override.metallic = 0.35
-		shoulder.material_override.roughness = 0.65
+		var shoulder := shoulder_plate(root,side)
 		shoulders[side] = shoulder
-		V.piece(root,Vector3(side*0.25,1.425,-0.085),Vector3(0.028,0.055,0.018),red)
+		var fastener := V.piece(root,shoulder.position+Vector3(side*0.093,-0.025,0),Vector3(0.006,0.055,0.022),red)
+		fastener.name = "ShoulderFastener"+str(side)
+		fastener.set_meta("shoulder_bind",shoulder.transform.affine_inverse()*fastener.transform)
+		fasteners[side] = fastener
 	# Separate front panels allow the legs to swing and leave a central split.
 	var skirts := {}
 	for side in [-1,1]:
@@ -312,7 +333,7 @@ static func create(root: Node3D) -> Dictionary:
 	for child in root.get_children():
 		if child is MeshInstance3D and (child.transform*child.get_aabb().get_center()).y>1.1: upper_parts.append(child)
 		elif child is MeshInstance3D or child in skirts.values(): lower_parts.append(child)
-	return {"skirts":skirts,"upper_parts":upper_parts,"lower_parts":lower_parts,"shoulders":shoulders}
+	return {"skirts":skirts,"upper_parts":upper_parts,"lower_parts":lower_parts,"shoulders":shoulders,"fasteners":fasteners}
 
 static func create_head(root: Node3D, skin: Color) -> void:
 	var first_part := root.get_child_count()

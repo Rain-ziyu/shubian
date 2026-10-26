@@ -143,7 +143,19 @@ static func bind(rig: Dictionary) -> Dictionary:
 			var mesh := ArrayMesh.new()
 			mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
 			binding.rendered.mesh = mesh
-	return {"skeleton":skeleton,"skin":skin,"bindings":bindings,"spine":spine,"pelvis":pelvis}
+	# Some authored sources (shoulder armor) precede their later-created arm
+	# parent. Global-pose setters must run parent-first, independent of mesh order.
+	var depths := {}
+	for binding in bindings:
+		var depth := 0
+		var parent := skeleton.get_bone_parent(int(binding.bone))
+		while parent>=0:
+			depth += 1
+			parent = skeleton.get_bone_parent(parent)
+		depths[binding.bone] = depth
+	var pose_order := bindings.duplicate()
+	pose_order.sort_custom(func(a: Dictionary, b: Dictionary): return int(depths[a.bone])<int(depths[b.bone]))
+	return {"skeleton":skeleton,"skin":skin,"bindings":bindings,"pose_order":pose_order,"spine":spine,"pelvis":pelvis}
 
 static func parent_bone(skeleton: Skeleton3D, child: int, parent: int, rests: Dictionary) -> void:
 	var local: Transform3D = rests[parent].affine_inverse()*rests[child]
@@ -172,7 +184,7 @@ static func update(rig: Dictionary) -> void:
 	var skeleton: Skeleton3D = data.skeleton
 	skeleton.set_bone_global_pose(data.pelvis,rig.pelvis.transform)
 	skeleton.set_bone_global_pose(data.spine,rig.torso.transform)
-	for binding in data.bindings:
+	for binding in data.pose_order:
 		var pose := relative_transform(binding.source,rig.root)
 		pose.basis = pose.basis.orthonormalized()
 		skeleton.set_bone_global_pose(binding.bone,pose)
