@@ -30,17 +30,18 @@ func surface(part: MeshInstance3D, skeleton: Skeleton3D) -> TriangleMesh:
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,triangle_arrays)
 	return mesh.generate_triangle_mesh()
-func shaft_hits(p: CharacterBody3D) -> Array[String]:
-	var skeleton: Skeleton3D = p.rig.skinning.skeleton
+func shaft_hits(p: CharacterBody3D, include_head := false) -> Array[String]:
+	return shaft_hits_for(p.rig.skinning.skeleton,p.rig.weapon,include_head)
+func shaft_hits_for(skeleton: Skeleton3D, weapon: Node3D, include_head := false) -> Array[String]:
 	var hits: Array[String] = []
 	for part in skeleton.get_children():
 		if not part is MeshInstance3D: continue
 		var label: String = part.get_meta("source_part","")
-		if label!="Undercoat" and not label.begins_with("RainCape"): continue
+		if label!="Undercoat" and not label.begins_with("RainCape") and not (include_head and label=="Head"): continue
 		var triangles := surface(part,skeleton)
 		for ray in 9:
 			var offset := Vector3.ZERO if ray==0 else Vector3(cos((ray-1)*TAU/8)*0.024,0,sin((ray-1)*TAU/8)*0.024)
-			if not triangles.intersect_segment(p.rig.weapon.to_global(Vector3(0,-0.90,0)+offset),p.rig.weapon.to_global(Vector3(0,0.82,0)+offset)).is_empty():
+			if not triangles.intersect_segment(weapon.to_global(Vector3(0,-0.90,0)+offset),weapon.to_global(Vector3(0,0.82,0)+offset)).is_empty():
 				hits.append(label)
 				break
 	return hits
@@ -136,6 +137,47 @@ func run() -> void:
 		for side in [-1,1]: runtime_arms = runtime_arms and absf(p.rig.arms[side].upper.scale.y-0.39)<0.002 and absf(p.rig.arms[side].lower.scale.y-0.39)<0.002
 	check(runtime_clear,"120Hz idle-to-heavy presentation keeps shaft outside actual upper clothing")
 	check(runtime_arms,"120Hz idle-to-heavy presentation keeps anatomical arm lengths")
+	for continuous in [false,true]:
+		p.combat.set_action("idle")
+		p.animate(0,0)
+		p.combat.set_action("spin")
+		var spin_clear := true
+		var spin_arms := true
+		for frame in 163:
+			p.combat.elapsed = frame/120.0
+			p.animate(1.0/120 if continuous else 0.0,0)
+			spin_clear = spin_clear and shaft_hits(p,true).is_empty()
+			for side in [-1,1]: spin_arms = spin_arms and absf(p.rig.arms[side].upper.scale.y-0.39)<0.002 and absf(p.rig.arms[side].lower.scale.y-0.39)<0.002
+		check(spin_clear,"full spin shaft clears actual upper clothes and head; continuous="+str(continuous))
+		check(spin_arms,"full spin preserves arm lengths; continuous="+str(continuous))
+	for next in ["light","heavy"]:
+		p.combat.set_action("spin")
+		p.combat.elapsed = 1.08
+		p.animate(0,0)
+		p.combat.set_action(next)
+		var chain_clear := true
+		var chain_arms := true
+		for frame in 31:
+			p.combat.elapsed = frame/120.0
+			p.animate(1.0/120,0)
+			chain_clear = chain_clear and shaft_hits(p,true).is_empty()
+			for side in [-1,1]: chain_arms = chain_arms and absf(p.rig.arms[side].upper.scale.y-0.39)<0.002 and absf(p.rig.arms[side].lower.scale.y-0.39)<0.002
+		check(chain_clear,"spin-to-"+next+" clears actual clothes and head throughout handoff")
+		check(chain_arms,"spin-to-"+next+" handoff preserves anatomical arm lengths")
+	var saved: Node3D = load("res://assets/models/hunter-forest-v1.tscn").instantiate()
+	stage.add_child(saved)
+	var preview: AnimationPlayer = saved.get_node("AnimationPreview")
+	preview.play("spin")
+	var saved_clear := true
+	var saved_crossings := {}
+	for frame in 163:
+		preview.seek(frame/120.0,true)
+		for label in shaft_hits_for(saved.get_node("Skeleton3D"),saved.get_node("Trident"),true):
+			saved_clear = false
+			if not saved_crossings.has(label): saved_crossings[label]=frame/120.0
+	check(saved_clear,"saved spin animation also clears clothes and head between its baked keys")
+	print("SAVED_SPIN_CROSSINGS: ",saved_crossings)
+	saved.queue_free()
 	print("COUNTER_CLOTH_CHECKS: ",checks," FAILURES: ",failures)
 	stage.queue_free()
 	await process_frame

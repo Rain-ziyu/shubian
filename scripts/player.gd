@@ -42,6 +42,7 @@ var shadow_gain_left := PackedFloat32Array([0,0,0,0,0])
 var projectile: Projectile
 var throw_recalled := false
 var pose_action := ""
+var pose_source_action := ""
 var pose_from := Transform3D.IDENTITY
 var pose_blend := 1.0
 var pose_drawn := false
@@ -372,6 +373,7 @@ func animate(delta: float, speed: float) -> void:
 		# Let the far-side sweep return through the light thrust's anticipation.
 		# Finish before its0.25s contact; guard/dodge and draw routes stay responsive.
 		if not equipment_route and pose_action=="heavy" and combat.action=="light": pose_duration = 0.18
+		if not equipment_route and pose_action=="spin" and combat.action in ["light","heavy"]: pose_duration = 0.20 if combat.action=="light" else 0.16
 		if not equipment_route and pose_action=="reply" and combat.action in ["light","heavy","pull","turn"]: pose_duration = 0.12
 		if not equipment_route and pose_action=="reply" and combat.action=="heavy": pose_duration = 0.16
 		equipment_from = equipment_grip
@@ -379,6 +381,7 @@ func animate(delta: float, speed: float) -> void:
 		right_grip_from = right_hand_grip
 		offhand_from = presentation_offhand
 		pose_from = rig.weapon.transform
+		pose_source_action = pose_action
 		pose_action = combat.action
 		pose_drawn = combat.drawn
 		pose_blend = 0.0
@@ -457,11 +460,26 @@ func animate(delta: float, speed: float) -> void:
 			"turn","spin","finisher":
 				w.rotation.y = -1.5+p*TAU
 				if combat.action=="finisher": w.rotation.y = HunterModel.Motion.interpolate(HunterModel.Motion.FINISHER_WEAPON,t).y
-				if combat.action=="spin":
-					w.position.z += 0.06*sin(HunterModel.Motion.turn_progress("spin",t)*PI)
 				# Carry the grip center around with the chest instead of leaving
 				# the shaft behind the back halfway through any body turn.
 				w.position = w.position.rotated(Vector3.UP,body_turn_applied)
+				if combat.action=="spin":
+					# A tangent shaft clears the ribs; slide axially into both arms' shared reach interval.
+					var shaft := w.basis.y.normalized()
+					var flat := Vector3(shaft.x,0,shaft.z).normalized()
+					var normal := Vector3(flat.z,0,-flat.x)
+					w.position = normal*0.46+Vector3.UP*1.23
+					var lower := -INF
+					var upper := INF
+					for side in [-1,1]:
+						var shoulder: Vector3 = rig.arms[side].shoulder.position.rotated(Vector3.UP,body_turn_applied)
+						var offset := w.position+shaft*(0.18 if side==-1 else -0.28)-shoulder
+						var axial := offset.dot(shaft)
+						var remaining := 0.778*0.778-maxf(0,offset.length_squared()-axial*axial)
+						var limit := sqrt(maxf(0,remaining))
+						lower = maxf(lower,-axial-limit)
+						upper = minf(upper,-axial+limit)
+					w.position += shaft*(clampf(-0.07,lower,upper) if lower<=upper else (lower+upper)*0.5)
 				if combat.action=="turn":
 					w.rotation.x += clampf(pitch+0.25,-0.4,0.85)*1.22
 					w.position.z += 0.07*sin(smoothstep(0.10,0.58,t)*PI)
@@ -528,6 +546,13 @@ func animate(delta: float, speed: float) -> void:
 				# Keep the recovered shaft beside the chest through the remaining throw follow-through.
 				var torso_motion: Transform3D = rig.torso.transform*Transform3D(Basis.IDENTITY,Vector3(0,-1.08,0))
 				w.transform = torso_motion*w.transform
+	if combat.drawn and combat.action=="spin":
+		# Lift clear before changing the shaft's carrying side at entry and recovery.
+		var ready := Transform3D(Basis.from_euler(Vector3(-PI/2,0.40,-0.15)),Vector3(0.32,1.20,-0.32))
+		if combat.elapsed<0.18:
+			w.transform = HunterModel.Motion.upright_handoff(ready,authored_weapon,combat.elapsed/0.18,Vector3(0.20,1.30,-0.50),Vector3(-0.20,1.30,-0.50))
+		elif combat.elapsed>=1.08:
+			w.transform = HunterModel.Motion.upright_handoff(authored_weapon,ready,(combat.elapsed-1.08)/0.27,Vector3(0.20,1.30,-0.50),Vector3(0.20,1.30,-0.50))
 	if combat.drawn and combat.action=="heavy":
 		# Turn the long shaft upright in front before changing carrying sides.
 		var ready := Transform3D(Basis.from_euler(Vector3(-PI/2,0.40,-0.15)),Vector3(0.32,1.20,-0.32))
@@ -547,6 +572,9 @@ func animate(delta: float, speed: float) -> void:
 		pose_blend = minf(1,pose_blend+delta/pose_duration)
 		var goal := w.transform
 		w.transform = pose_from.interpolate_with(w.transform,smoothstep(0,1,pose_blend))
+		if not equipment_route and pose_source_action=="spin" and combat.action=="light" and pose_blend<1:
+			var waypoint := Vector3(0.20,1.30,-0.50)
+			w.transform = HunterModel.Motion.upright_handoff(pose_from,goal,pose_blend,waypoint,waypoint)
 		if equipment_route:
 			# Leave the open saddles before turning the long shaft; align before seating.
 			var travel := smoothstep(0,1,pose_blend)
@@ -585,7 +613,7 @@ func animate(delta: float, speed: float) -> void:
 		right_hand_grip = lerpf(right_grip_from,right_hand_grip,regrip)
 	presentation_offhand = offhand
 	var main_hand := equipment_main*(1-arm_release)
-	if combat.action in ["light","pull","heavy"]:
+	if combat.action in ["light","pull","heavy","spin"]:
 		# Constrain the actual released/regripping targets, not an immediate full grip.
 		for iteration in 8:
 			for side in [-1,1]:

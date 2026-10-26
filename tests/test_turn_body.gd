@@ -75,11 +75,11 @@ func run() -> void:
 			total += step
 			worst_step = maxf(worst_step,absf(step))
 		previous = angle
-		grip_stays_forward = grip_stays_forward and p.rig.weapon.position.z< -0.25
+		grip_stays_forward = grip_stays_forward and p.rig.weapon.position.z<0.0
 		lifted = maxf(lifted,absf(p.rig.legs[-1].ankle.global_position.y-p.rig.legs[1].ankle.global_position.y))
 	check(absf(total-TAU)<0.002 and worst_step<0.17,"spin turns the full body continuously through one revolution")
 	check(lifted>0.08,"spin steps with alternating feet rather than rotating a fixed stance")
-	check(grip_stays_forward,"spin carries the grip center in front of the turning chest")
+	check(grip_stays_forward,"spin keeps its orbital grip in the forward half-space of the turning chest")
 	check(absf(wrapf(p.rig.root.rotation.y,-PI,PI))<0.002 and is_zero_approx(p.yaw),"spin settles facing forward without changing camera yaw")
 	for pair in [[0.24,0.38,0.055],[0.68,0.85,0.035]]:
 		p.combat.elapsed = pair[0]

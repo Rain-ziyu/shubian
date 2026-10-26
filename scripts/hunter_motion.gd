@@ -70,3 +70,11 @@ static func interpolate(keys: Array, elapsed: float) -> Vector4:
 			var weight := smoothstep(a.x,b.x,elapsed)
 			return a.lerp(b,weight)
 	return keys[-1]
+
+# Keep the long shaft outside the torso while its carrying side changes.
+static func upright_handoff(from: Transform3D, to: Transform3D, weight: float, first_position: Vector3, last_position: Vector3) -> Transform3D:
+	var first := Transform3D(Basis(Quaternion(from.basis.y.normalized(),Vector3.UP))*from.basis,first_position)
+	var last := Transform3D(Basis(Quaternion(to.basis.y.normalized(),Vector3.UP))*to.basis,last_position)
+	if weight<0.35: return from.interpolate_with(first,smoothstep(0,0.35,weight))
+	if weight<0.65: return first.interpolate_with(last,smoothstep(0.35,0.65,weight))
+	return last.interpolate_with(to,smoothstep(0.65,1,weight))

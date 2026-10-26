@@ -130,7 +130,7 @@ func run() -> void:
 	p.motion_epoch += 1
 	p.animate(1.0/60,0)
 	for side in [-1,1]: check(p.rig.legs[side].ankle.global_position.distance_to(p.global_position)<2,"relocation invalidates captured hurt feet and sole orientation")
-	for chain in [["reply",0.54,"heavy"],["heavy",0.60,"light"],["light",0.37,"heavy"],["pull",0.55,"light"]]:
+	for chain in [["reply",0.54,"heavy"],["heavy",0.60,"light"],["light",0.37,"heavy"],["pull",0.55,"light"],["spin",1.08,"light"],["spin",1.08,"heavy"]]:
 		p.combat.drawn = true
 		p.pitch = -0.25
 		p.combat.set_action(chain[0])
