@@ -30,6 +30,7 @@ func run() -> void:
 	check(tips[4].distance_to(neutral)<0.001,"heavy ends at neutral rather than leaving weapon sideways")
 	check(tips[1].x>tips[2].x+0.4,"heavy sweeps from prepared side through contact")
 	check(tips[3].x<tips[2].x-0.4,"heavy follows through to opposite side")
+	check(absf(tips[2].x)<0.20,"physical heavy contact passes near the aimed centerline")
 	print("HEAVY_TRAJECTORY_CHECKS: ",checks," FAILURES: ",failures," TIPS: ",tips)
 	world.queue_free()
 	await process_frame

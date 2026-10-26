@@ -367,7 +367,7 @@ func animate(delta: float, speed: float) -> void:
 		pose_duration = 0.30 if pose_drawn and not combat.drawn else 0.10
 		# Let the far-side sweep return through the light thrust's anticipation.
 		# Finish before its0.25s contact; guard/dodge and draw routes stay responsive.
-		if not equipment_route and pose_action=="heavy" and combat.action=="light": pose_duration = 0.15
+		if not equipment_route and pose_action=="heavy" and combat.action=="light": pose_duration = 0.18
 		if not equipment_route and pose_action=="reply" and combat.action in ["light","heavy","pull","turn"]: pose_duration = 0.12
 		equipment_from = equipment_grip
 		equipment_main_from = equipment_main
@@ -441,8 +441,11 @@ func animate(delta: float, speed: float) -> void:
 				w.position.y += maxf(0,clampf(pitch+0.25,-0.4,0.85))*0.5
 				var path := HunterModel.Motion.interpolate(HunterModel.Motion.HEAVY_WEAPON,t)
 				w.position.y += 0.22*smoothstep(0,0.18,t)*(1-smoothstep(0.30,0.43,t))
-				w.rotation.y = path.y
-				w.position.z += path.z
+				# Orbit the held shaft outside the left ribs; keep its contact near the aim line.
+				var swing := path.y-0.12
+				w.rotation.y = swing
+				w.position.x = -0.40*cos(swing)-0.30*sin(swing)
+				w.position.z = 0.40*sin(swing)-0.30*cos(swing)+path.z
 				w.rotation.x += clampf(pitch+0.25,-0.4,0.85)*1.22
 			"turn","spin","finisher":
 				w.rotation.y = -1.5+p*TAU
@@ -536,7 +539,7 @@ func animate(delta: float, speed: float) -> void:
 		equipment_grip = 1.0 if combat.drawn else 0.0
 		equipment_main = equipment_grip
 	w.transform = Transform3D(Basis(Vector3.UP,-body_turn_applied),Vector3.ZERO)*w.transform
-	if combat.action in ["light","pull"]:
+	if combat.action in ["light","pull","heavy"] and (combat.action!="heavy" or delta<=0 or pose_blend>=1):
 		# Fit the held shaft to both reach spheres, preserving the physical hand grips.
 		for iteration in 8:
 			for side in [-1,1]:

@@ -110,6 +110,16 @@ func run() -> void:
 			for side in [-1,1]: arm_lengths = arm_lengths and absf(p.rig.arms[side].upper.scale.y-0.39)<0.002 and absf(p.rig.arms[side].lower.scale.y-0.39)<0.002
 		check(clear,"neutral "+action+" keeps rear shaft outside actual upper clothing across 61 poses")
 		check(arm_lengths,"neutral "+action+" keeps both anatomical arm lengths")
+	var sweep_clear := true
+	var sweep_arms := true
+	for frame in 61:
+		p.combat.set_action("heavy")
+		p.combat.elapsed = lerpf(0.18,0.70,frame/60.0)
+		p.animate(0,0)
+		sweep_clear = sweep_clear and shaft_hits(p).is_empty()
+		for side in [-1,1]: sweep_arms = sweep_arms and absf(p.rig.arms[side].upper.scale.y-0.39)<0.002 and absf(p.rig.arms[side].lower.scale.y-0.39)<0.002
+	check(sweep_clear,"61 loaded and active heavy poses keep shaft outside actual upper clothing")
+	check(sweep_arms,"loaded and active heavy keeps anatomical arm lengths")
 	print("COUNTER_CLOTH_CHECKS: ",checks," FAILURES: ",failures)
 	stage.queue_free()
 	await process_frame
