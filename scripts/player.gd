@@ -503,9 +503,14 @@ func animate(delta: float, speed: float) -> void:
 			var window: Vector2 = READY_CARRY_WINDOWS[combat.action]
 			carry = 1-smoothstep(0,window.x,combat.elapsed)+smoothstep(window.y,float(Combat.MOVES[combat.action].duration),combat.elapsed)
 		elif combat.action=="guard": carry = 1-smoothstep(0,0.18,combat.elapsed)
+		if combat.action=="throw" and throw_recalled: carry = 1.0
 		if carry>0:
 			w.position = w.position.lerp(Vector3(0.32,1.20,-0.32),carry)
 			w.quaternion = w.quaternion.slerp(Basis.from_euler(Vector3(-PI/2,0.40,-0.15)).get_rotation_quaternion(),carry)
+			if combat.action=="throw" and throw_recalled:
+				# Keep the recovered shaft beside the chest through the remaining throw follow-through.
+				var torso_motion: Transform3D = rig.torso.transform*Transform3D(Basis.IDENTITY,Vector3(0,-1.08,0))
+				w.transform = torso_motion*w.transform
 	if delta>0:
 		pose_blend = minf(1,pose_blend+delta/pose_duration)
 		var goal := w.transform

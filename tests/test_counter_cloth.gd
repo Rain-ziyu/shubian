@@ -79,6 +79,25 @@ func run() -> void:
 	p.combat.set_action("idle")
 	p.animate(0,0)
 	check(shaft_hits(p).is_empty(),"armed idle carries the shaft outside the actual cape and undercoat")
+	var returned_clear := true
+	var returned_lengths := true
+	var returned_samples := 0
+	for aim in [-0.4,0.0,0.4,0.85]:
+		p.pitch = aim-0.25
+		for frame in 61:
+			var time := 0.38+0.42*frame/60
+			p.combat.set_action("throw")
+			p.throw_recalled = true
+			p.combat.elapsed = time
+			p.animate(0,0)
+			var hits := shaft_hits(p)
+			if not hits.is_empty(): print("RETURNED_SHAFT_CROSSINGS: aim=",aim," time=",time," parts=",hits)
+			returned_clear = returned_clear and hits.is_empty()
+			for side in [-1,1]: returned_lengths = returned_lengths and absf(p.rig.arms[side].upper.scale.y-0.39)<0.002 and absf(p.rig.arms[side].lower.scale.y-0.39)<0.002
+			returned_samples += 1
+	print("RETURNED_SHAFT_SAMPLES: ",returned_samples)
+	check(returned_clear,"early returned throw carries its shaft outside actual clothing")
+	check(returned_lengths,"early return keeps both anatomical arm lengths")
 	print("COUNTER_CLOTH_CHECKS: ",checks," FAILURES: ",failures)
 	stage.queue_free()
 	await process_frame

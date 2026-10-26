@@ -39,3 +39,11 @@
 修改武器、关节或姿态后需重新烘焙。技术接口参考：
 https://docs.godotengine.org/en/stable/classes/class_skeleton3d.html
 https://docs.godotengine.org/en/stable/classes/class_skin.html
+
+### 2026-10-26 投枪早期回收持枪姿态
+
+- 武器已回收而投掷动作尚未结束时，立即采用右侧握持，并随胸肩剩余的转动和前倾收势，避免固定待机枪杆与仍在运动的披肩相交。不改变投掷伤害、瞬移条件或操作锁定。
+- 原生检查：`regressions-20261026-152959-4cda19` 的投掷交接、生命周期、瞬移反馈和输入检查通过；扩展后的 `regressions-20261026-153127-95e4be` 披肩检查通过，覆盖四个瞄准角度、回收后 0.38–0.80 秒的 244 组姿态。使用实际蒙皮和形变后的上衣/肩披三角面，沿枪杆九条射线采样；不代表全部身体碰撞均已证明。
+- 实际按键处理与投射物近距回放：`early-return-torso-carry.log` 一次命中、零位移、武器可见；已查看 `Shubian-close-throw-return.png`。固定怪物模型，非真人实战验收。
+- `early-return-input-sequence.log` 引擎输入连携流程通过，包含自然格挡后 Ctrl 反击与枪意消耗；不代表真人难度和手感完成。
+- 为减少重复产物，本轮未另打试玩包；既有 ZIP 不包含本次修正。整体模型美术与自然动作质量仍需继续完善。
