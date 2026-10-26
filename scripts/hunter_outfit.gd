@@ -27,6 +27,7 @@ static func loft(parent: Node3D, label: String, rings: Array, color: Color, star
 			for item in [[a,Vector2(u0,v0)],[c,Vector2(u0,v1)],[b,Vector2(u1,v0)],[b,Vector2(u1,v0)],[c,Vector2(u0,v1)],[d,Vector2(u1,v1)]]:
 				st.set_uv(item[1])
 				var point: Vector3 = item[0]
+				if label=="ForestBoot": point = boot_shape(point)
 				if garment: point = garment_drape(point,label,bottom,span)
 				if label.begins_with("RainCape") or label.begins_with("CapeHem"): point = cape_drape(point)
 				st.add_vertex(point)
@@ -40,6 +41,7 @@ static func loft(parent: Node3D, label: String, rings: Array, color: Color, star
 				var b := profile_point(ring,lerpf(start,end,float(column+1)/segments))
 				for point in ([center,a,b] if row==0 else [center,b,a]):
 					st.set_uv(Vector2(point.x/maxf(ring.y*2,0.0001)+0.5,(point.z-ring.w)/maxf(ring.z*2,0.0001)+0.5))
+					if label=="ForestBoot": point = boot_shape(point)
 					st.add_vertex(point)
 	st.generate_normals()
 	var mesh := MeshInstance3D.new()
@@ -252,22 +254,36 @@ static func shoulder_plate(root: Node3D, side: int) -> MeshInstance3D:
 	plate.material_override.roughness = 0.65
 	return plate
 
+static func boot_shape(point: Vector3) -> Vector3:
+	# A narrower heel and fuller forefoot read as footwear, rather than a tube.
+	# Fade above the welt so the original broad planar sole is unchanged.
+	var heel := smoothstep(0.02,0.35,point.z)*smoothstep(-0.30,0.05,point.y)
+	point.x *= 1-0.22*heel
+	return point
+
 static func boot(parent: Node3D) -> MeshInstance3D:
 	# Normalized shoe coordinates retain the existing ankle/sole anchor and dimensions.
 	# Closed bottom cap is a real planar sole, not the tangent point of an ellipsoid.
 	var result := loft(parent,"ForestBoot",[
-		Vector4(-0.50,0.48,0.49,0),Vector4(-0.34,0.50,0.50,0),
-		Vector4(0.10,0.46,0.46,0.015),Vector4(0.40,0.37,0.35,0.10),
-		Vector4(0.95,0.33,0.25,0.17),Vector4(1.35,0.34,0.25,0.17)
-	],Color.WHITE,0,TAU,20)
+		Vector4(-0.50,0.48,0.49,0),Vector4(-0.43,0.50,0.50,0),
+		Vector4(-0.32,0.50,0.50,0),Vector4(-0.24,0.47,0.48,0),
+		Vector4(0.04,0.46,0.46,0.015),Vector4(0.14,0.45,0.45,0.015),
+		Vector4(0.26,0.41,0.40,0.05),Vector4(0.43,0.35,0.31,0.13),
+		Vector4(0.54,0.33,0.27,0.16),Vector4(0.61,0.34,0.28,0.16),
+		Vector4(0.71,0.34,0.28,0.16),Vector4(0.77,0.32,0.25,0.17),
+		Vector4(1.13,0.32,0.25,0.17),Vector4(1.20,0.35,0.28,0.17),
+		Vector4(1.35,0.35,0.28,0.17)
+	],Color.WHITE,0,TAU,28)
 	var arrays := result.mesh.surface_get_arrays(0)
 	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 	var colors := PackedColorArray()
 	for point in vertices:
 		var color := Color("303834")
-		if point.y< -0.30: color = Color("171e1b")
-		elif point.z< -0.20 and point.y<0.41: color = Color("626d63")
-		elif point.y>0.94: color = Color("576356")
+		if point.y< -0.32: color = Color("171e1b")
+		elif point.y< -0.24: color = Color("665f49")
+		elif point.z< -0.18 and point.y<0.27: color = Color("626d63")
+		elif point.y>=0.61 and point.y<=0.71: color = Color("59473a")
+		elif point.y>=1.20: color = Color("65705e")
 		colors.append(color)
 	arrays[Mesh.ARRAY_COLOR] = colors
 	var mesh := ArrayMesh.new()
