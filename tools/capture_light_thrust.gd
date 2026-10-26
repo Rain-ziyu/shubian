@@ -55,6 +55,11 @@ func run() -> void:
 	var sheet := Image.create(2400,600,false,Image.FORMAT_RGB8)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	p.yaw = 0
+	var aimed := false
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--aim="):
+			p.pitch = float(argument.trim_prefix("--aim="))
+			aimed = true
 	var action := "light"
 	for candidate in ["heavy","pull","throw","plant","guard","reply","finisher","flash"]:
 		if "--"+candidate in OS.get_cmdline_user_args(): action = candidate
@@ -74,6 +79,7 @@ func run() -> void:
 		p.animate(0,0)
 		var labels: Array = {"throw":["01 / READY","02 / WINDUP","03 / RELEASE PREPARATION"],"plant":["01 / RAISE","02 / DRIVE","03 / SETTLE"]}.get(action,["01 / PREPARE","02 / CONTACT","03 / FOLLOW THROUGH"])
 		label.text = labels[i]+" / %.2f s" % t
+		if aimed: label.text += " / AIM %.2f" % p.pitch
 		await process_frame
 		await process_frame
 		await process_frame
@@ -88,6 +94,7 @@ func run() -> void:
 	paths["finisher"] = "Shubian-kick-motion"
 	paths["flash"] = "Shubian-flash-motion"
 	var suffix := "-feet" if feet_detail else ("-shoulder" if shoulder_detail else ("-game-view" if game_view else ""))
+	if aimed: suffix += "-aim"
 	sheet.save_png(ProjectSettings.globalize_path("res://../"+str(paths[action])+suffix+".png"))
 	stage.queue_free()
 	await process_frame

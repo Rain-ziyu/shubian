@@ -52,6 +52,23 @@ func run() -> void:
 	check(butt_positions[1].z<butt_positions[0].z-0.15,"reply drives forward at the damage beat")
 	check(butt_positions[2].z>butt_positions[1].z and butt_positions[3].z>butt_positions[2].z,"reply recoils immediately after contact rather than extending late")
 	check(absf(butt_positions[4].z-braced_butt.z)<0.001,"reply settles back into its braced position")
+	for action in ["guard","reply"]:
+		var heights := []
+		for aim in [-0.25,0.25]:
+			p.pitch = aim
+			p.combat.set_action(action)
+			p.combat.elapsed = 0.18 if action=="guard" else 0.26
+			p.animate(0,0)
+			heights.append(p.rig.weapon.get_node("ButtContact").global_position.y)
+		check(float(heights[1])-float(heights[0])>0.5,"raising aim elevates the actual butt contact for "+action)
+	p.pitch = 0.25
+	p.combat.set_action("guard")
+	p.combat.elapsed = 0.18
+	p.animate(0,0)
+	var raised_guard: Transform3D = p.rig.weapon.transform
+	p.combat.set_action("reply")
+	p.animate(0,0)
+	check(p.rig.weapon.transform.is_equal_approx(raised_guard),"raised reply joins the actual raised guard without a shaft jump")
 	for aim in [-0.9,0.65]:
 		p.pitch = aim
 		p.combat.set_action("light")

@@ -416,6 +416,11 @@ func animate(delta: float, speed: float) -> void:
 					w.position.z += 0.07*sin(smoothstep(0.10,0.58,t)*PI)
 			"guard","reply":
 				var brace := 1.0 if combat.action=="reply" else smoothstep(0,0.18,t)
+				var aim := clampf(pitch+0.25,-0.4,0.85)*brace
+				w.position.y += maxf(0,aim)*0.5
+				# The butt faces forward after rotation, so its elevation has the
+				# opposite pitch sign to the head-first thrusts.
+				w.rotation.x -= aim
 				w.rotation.y = PI if combat.action=="reply" else PI*clampf(t/0.18,0,1)
 				w.position.z += 0.55*brace
 				if combat.action=="reply": w.position.z += HunterModel.Motion.interpolate(HunterModel.Motion.REPLY_WEAPON,t).z
