@@ -55,6 +55,7 @@ func run() -> void:
 		check(leg.has_node("LegSurface") and leg.has_node("Claw0"),"curved limbs and toe claws exist")
 		if data.id=="thornhorn":
 			for instance in [model,saved]:
+				check_horn_roots(instance,float(data.size))
 				var skull: MeshInstance3D = instance.get_node("Neck/HeadSurface")
 				var surface: TriangleMesh = skull.mesh.generate_triangle_mesh()
 				var muzzle_width := 0.0
@@ -150,3 +151,22 @@ func run() -> void:
 	holder.queue_free()
 	await process_frame
 	quit(1 if failures else 0)
+
+func check_horn_roots(model: Node3D, size: float) -> void:
+	var skull: MeshInstance3D = model.get_node("Neck/HeadSurface")
+	var triangles := skull.mesh.generate_triangle_mesh()
+	for side in [-1,1]:
+		var horn: MeshInstance3D = model.get_node("Neck/BrowHorn"+str(side))
+		var base_z := horn.mesh.get_aabb().end.z
+		var embedded := true
+		var sampled := 0
+		for vertex: Vector3 in horn.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+			if absf(vertex.z-base_z)>0.0001: continue
+			var point := skull.to_local(horn.to_global(vertex))
+			var top := triangles.intersect_segment(Vector3(point.x,size*3,point.z),Vector3(point.x,-size*3,point.z))
+			var bottom := triangles.intersect_segment(Vector3(point.x,-size*3,point.z),Vector3(point.x,size*3,point.z))
+			embedded = embedded and not top.is_empty() and not bottom.is_empty()
+			if not top.is_empty() and not bottom.is_empty(): embedded = embedded and point.y<float(top.position.y)-size*0.001 and point.y>float(bottom.position.y)+size*0.001
+			sampled += 1
+		print("HORN_ROOT_EMBEDDED: side=",side," points=",sampled," inside=",embedded)
+		check(sampled>28 and embedded,"whole horn root cap is seated inside the actual skull")

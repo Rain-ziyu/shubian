@@ -201,3 +201,25 @@ static func frill(parent: Node3D, scale: float, color: Color) -> MeshInstance3D:
 	mesh.material_override = material
 	parent.add_child(mesh)
 	return mesh
+
+static func finish_horn(horn: MeshInstance3D, side: int, size: float) -> void:
+	var arrays: Array = horn.mesh.surface_get_arrays(0)
+	var points: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var uv: PackedVector2Array = arrays[Mesh.ARRAY_TEX_UV]
+	var colors: PackedColorArray = arrays[Mesh.ARRAY_COLOR]
+	for i in points.size():
+		var seat := smoothstep(-0.49,-0.34,points[i].z/size)
+		points[i].x -= side*size*0.03*seat
+		points[i].y -= size*0.08*seat
+		var growth := smoothstep(0.04,0.95,uv[i].y)
+		var band := 0.96+0.04*cos(uv[i].y*TAU*5)
+		colors[i] = Color("d6ccb5").lerp(Color("6b624f"),growth)*Color(band,band,band,1)
+	arrays[Mesh.ARRAY_VERTEX] = points
+	arrays[Mesh.ARRAY_COLOR] = colors
+	var fitted := ArrayMesh.new()
+	fitted.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+	var normals := SurfaceTool.new()
+	normals.create_from(fitted,0)
+	normals.generate_normals()
+	horn.mesh = normals.commit()
+	horn.material_override.roughness = 0.82
