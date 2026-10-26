@@ -163,7 +163,59 @@ func run() -> void:
 	p.animate(0,0)
 	check(loaded>0.02 and p.rig.root.position.z< -0.07,"thrust shifts the whole body from back-loaded to forward drive")
 	check(absf(p.to_local(p.rig.legs[-1].ankle.to_global(Vector3(0,-0.1,0))).y)<0.002,"driving stance keeps the leading sole grounded at contact")
+	check_head_transitions(p)
 	print("TORSO_MOTION_CHECKS: ",checks," FAILURES: ",failures)
 	world.queue_free()
 	await process_frame
 	quit(1 if failures else 0)
+
+func check_head_transitions(p: CharacterBody3D) -> void:
+	p.pitch = -0.25
+	p.yaw = 0
+	var head: MeshInstance3D = p.rig.torso.get_node("Head")
+	var head_rest: Transform3D
+	var head_bone := -1
+	for part in p.rig.head_parts:
+		if part.source==head: head_rest=part.rest
+	for binding in p.rig.skinning.bindings:
+		if binding.source==head: head_bone=binding.bone
+	var triangles := head.mesh.generate_triangle_mesh()
+	for chain in [["heavy",0.57,"turn"],["reply",0.54,"heavy"],["light",0.37,"turn"],["heavy",0.57,"light"]]:
+		p.combat.stamina = 100
+		p.combat.set_action(chain[0])
+		p.combat.elapsed = chain[1]
+		p.animate(0,0)
+		var previous := head.global_basis.orthonormalized().get_rotation_quaternion()
+		var entry_step := 0.0
+		var aligned := true
+		var rendered := true
+		var clear := true
+		var clock_preserved := true
+		check(p.request_action(chain[2]),"head transition uses an accepted combat chain: "+str(chain))
+		for frame in 30:
+			var elapsed: float = p.combat.elapsed
+			p.animate(1.0/120,0)
+			clock_preserved = clock_preserved and is_equal_approx(elapsed,p.combat.elapsed)
+			var current := head.global_basis.orthonormalized().get_rotation_quaternion()
+			if frame<6: entry_step=maxf(entry_step,previous.angle_to(current))
+			previous = current
+			var motion := head.transform*head_rest.affine_inverse()
+			for part in p.rig.head_parts:
+				var own: Transform3D = part.source.transform*part.rest.affine_inverse()
+				aligned = aligned and own.is_equal_approx(motion)
+			var expected: Transform3D = p.rig.root.global_transform.affine_inverse()*head.global_transform
+			# Authored head scale is baked into skinned vertices; the bone is rigid.
+			expected.basis = expected.basis.orthonormalized()
+			rendered = rendered and p.rig.skinning.skeleton.get_bone_global_pose(head_bone).is_equal_approx(expected)
+			for ray in 9:
+				var offset := Vector3.ZERO if ray==0 else Vector3(cos((ray-1)*TAU/8)*0.024,0,sin((ray-1)*TAU/8)*0.024)
+				var a := head.to_local(p.rig.weapon.to_global(Vector3(0,-0.90,0)+offset))
+				var b := head.to_local(p.rig.weapon.to_global(Vector3(0,0.82,0)+offset))
+				clear = clear and triangles.intersect_segment(a,b).is_empty()
+			p.combat.elapsed += 1.0/120
+		check(entry_step<deg_to_rad(3.0),"head avoids a single-frame snap during the first 50ms: "+str(chain))
+		check(aligned,"hair and facial parts remain registered through the head transition")
+		check(rendered,"visible head bone follows the transitioned source head")
+		check(clear,"sampled physical shaft clears the moving head during the chain")
+		check(clock_preserved,"head presentation never advances the combat clock")
+		print("HEAD_GAZE_ENTRY_DEGREES: ",chain," = ",rad_to_deg(entry_step))

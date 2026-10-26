@@ -6,6 +6,7 @@ const Hand = preload("res://scripts/hunter_hand.gd")
 const Outfit = preload("res://scripts/hunter_outfit.gd")
 const Motion = preload("res://scripts/hunter_motion.gd")
 const JointCloth = preload("res://scripts/hunter_joint_cloth.gd")
+const HEAD_GAZE_BLEND_SECONDS := 0.12
 const STANCE_BLEND_SECONDS := 0.10
 const BLENDED_STANCES := ["idle","light","heavy","pull","guard","reply","flash","fourfold","throw","hurt"]
 
@@ -157,10 +158,22 @@ static func pose_torso(rig: Dictionary, action: String, elapsed: float, gait: fl
 	rig.torso.position = rig.torso.position.lerp(position,weight)
 	# Keep the gaze near the committed attack heading while the chest winds up.
 	# All facial/hair meshes rotate around the same anatomical neck anchor.
+	# Blend only entry/exit of compensation; settled per-action gaze and
+	# zero-delta authored samples retain their original orientations.
 	var head_pivot := Vector3(0,1.535-1.08,0)
-	var compensation := Vector3.ZERO
-	if action in ["light","heavy","pull","guard","reply","flash","fourfold","throw"]:
-		compensation = Vector3(-rig.torso.rotation.x*0.45,-rig.torso.rotation.y*0.75,0)
+	var target := 1.0 if action in ["light","heavy","pull","guard","reply","flash","fourfold","throw"] else 0.0
+	var gaze: float = rig.get("head_gaze_weight",target)
+	if delta<=0:
+		rig.head_gaze_from = target
+		rig.head_gaze_age = HEAD_GAZE_BLEND_SECONDS
+	elif rig.get("head_gaze_target",target)!=target:
+		rig.head_gaze_from = gaze
+		rig.head_gaze_age = 0.0
+	rig.head_gaze_target = target
+	rig.head_gaze_age = minf(HEAD_GAZE_BLEND_SECONDS,float(rig.get("head_gaze_age",HEAD_GAZE_BLEND_SECONDS))+maxf(delta,0))
+	gaze = lerpf(float(rig.get("head_gaze_from",target)),target,smoothstep(0,HEAD_GAZE_BLEND_SECONDS,rig.head_gaze_age))
+	rig.head_gaze_weight = gaze
+	var compensation := Vector3(-rig.torso.rotation.x*0.45,-rig.torso.rotation.y*0.75,0)*gaze
 	var adjustment := Transform3D(Basis.from_euler(compensation),head_pivot)
 	adjustment.origin -= adjustment.basis*head_pivot
 	for part in rig.head_parts: part.source.transform = adjustment*part.rest
