@@ -137,6 +137,7 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 			var foot_y := -y*0.9+s*0.05
 			var foot := V.piece(leg,Vector3(0,foot_y,-s*0.10),Vector3(s*0.21,s*0.10,s*0.35),c.darkened(0.25),true)
 			foot.name = "Foot"
+			Surface.shape_foot(foot)
 			for toe in [-1,0,1]:
 				var claw := H.tapered(leg,Vector3(toe*s*0.055,foot_y+s*0.015,-s*0.25),s*0.001,s*0.017,s*(0.20 if data.id=="reedclaw" else 0.14),Color("b6ba9b"))
 				claw.rotation.x = -PI/2

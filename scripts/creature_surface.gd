@@ -223,3 +223,30 @@ static func finish_horn(horn: MeshInstance3D, side: int, size: float) -> void:
 	normals.generate_normals()
 	horn.mesh = normals.commit()
 	horn.material_override.roughness = 0.82
+
+static func shape_foot(foot: MeshInstance3D) -> void:
+	# One continuous pad with three toe lobes; keep its sole and ankle frame.
+	var primitive := SphereMesh.new()
+	primitive.radial_segments = 48
+	primitive.rings = 16
+	var arrays: Array = primitive.surface_get_arrays(0)
+	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var colors := PackedColorArray()
+	for index in vertices.size():
+		var point := vertices[index]
+		var front := 1-smoothstep(-0.35,-0.05,point.z)
+		var valley := 0.5-0.5*cos(TAU*point.x/0.262)
+		point.z += 0.20*valley*front
+		point.x *= 1-0.20*smoothstep(0.05,0.40,point.z)
+		vertices[index] = point
+		colors.append(Color.WHITE.darkened(0.18*valley*front*smoothstep(-0.1,0.25,point.y)))
+	arrays[Mesh.ARRAY_VERTEX] = vertices
+	arrays[Mesh.ARRAY_COLOR] = colors
+	var shaped := ArrayMesh.new()
+	shaped.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+	var normals := SurfaceTool.new()
+	normals.create_from(shaped,0)
+	normals.generate_normals()
+	foot.mesh = normals.commit()
+	foot.material_override.vertex_color_use_as_albedo = true
+	foot.material_override.roughness = 0.85
