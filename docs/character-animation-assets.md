@@ -249,3 +249,21 @@ test_torso_motion增加24项断言，由36至60，检查请求接受、入口单
 原生命令：Godot --path . --fixed-fps 120 --script tools/prototype_cape_softbody.gd；追加-- --no-collision为负对照。先让布料静置3模拟秒，再连续播放横扫0–0.92秒，在0.1833/0.4333/0.60秒分别取左右肩，双向实际软布三角边/实际蒙皮上臂检查：六对均为0/0。负对照同六对衣边计数68/25/28/14/54/0，上臂边92/78/80/94/98/20，说明不能把初版的零计数当作检测器没有读取软布。记录cape-softbody-continuous.log、cape-softbody-negative.log，图片与JSON为Shubian-cape-softbody-trial及-no-collision。同样是边计数，不是唯一接触点、深度或全时段证明。
 
 已实际查看连续动作的原生近景：上臂不再从衣面穿出，但布料仍过度翻起/飘动，尚未达到最终美术。尚未验证全动作/全瞄准、跨动作历史、武器与头部、瞬移重定位、衣边同步、保存模型预览、准备启动成本、实时GPU/CPU预算或真人手感；固定120FPS实验不作实时性能证明。原型不接入正式游戏，保持整体目标进行中。后续先调阻尼/垂坠/固定边并重测，再考虑接入。官方SoftBody3D接口参考：https://docs.godotengine.org/en/stable/classes/class_softbody3d.html 。
+
+### 2026-10-27 软布扩大验证与变形失效检查
+
+工具现在支持11种动作连续播放，每6个120Hz模拟帧及每动作三个截图时刻取样，共524个左右肩样本。每样本读取实际SoftBody顶点，对实际上臂/头部作双向三角边检查，并对实际枪杆作九条0.024半径、局部Y -0.90至0.82射线。头部检查不含头发/五官附件，仍不覆盖整身、全角度、自碰撞、瞬移、保存预览或真人验收。快照会等待渲染帧，不能把脚本帧序号当成严格的总真实/模拟耗时；未作实时性能结论。
+
+仅横扫三帧的零相交不足以验收。扩大后原型配置在524组中有176组几何相交；改为从背枪静止姿态生成/静置布料、颈口下移0.025米后为83组；增加枪杆胶囊、上臂碰撞余量0.015米和求解精度24后为37组。对应cape-expanded-motion、cape-unarmed-low-collar、cape-expanded-colliders记录。当前较少相交配置：--start-unarmed --collar-drop=0.025 --head-collision --weapon-collision --arm-margin=0.015 --precision=24 --neck-only --back-ties --damping=0.2 --all-actions。头部采用实际Head网格的clean/simplify凸包，保留源变换；手工输入完整重复顶点的凸包曾构建失败，不使用该失败运行作证据。
+
+提高阻尼0.65、降低刚度0.55、前胸硬固定点、侧开衩及弹性背部牵引均未形成可接受改进；取消背部固定虽减少手臂相交，却增加颈口翻卷。失败的前固定/开衩/弹性牵引分支已从工具移除；保留必要参数供后续对照，不接入游戏。当前工具输出带动作/时刻标签的横扫、格挡、插地近景，JSON保存所有参数及明细，写文件失败退出2；--require-clear在检测到相交或无效变形时退出1。诊断默认退出0只表示完成，必须同时核对完成标记、无ERROR和JSON，不能把解析错误的退出1当作预期几何失败。
+
+新增关键有效性检查：逐条实际网格边对原始边长的拉伸比、顶点相对躯干的最远距离、有限顶点。粗诊断拒绝阈值为边长比2及距躯干1.5米；这不是最终美术门槛。cape-validity-final原型524组仍有37组几何相交，但523组局部拉伸超限，最大边长比16.368、最大范围0.597米，综合523组不合格。由此撤回“仅剩37组就接近可用”的判断：局部网格已被严重拉长，不能凭没有穿插而验收。
+
+另用沿外侧轮廓弧长重采样的17×17网格（--regular-mesh，每侧725降至289顶点）对照，cape-regular-mesh：524组中80组几何相交、502组变形超限，综合503组不合格；最大边长比9.781、范围0.590米。规则网格减少极端比例，但没有解决约束问题，不能断言根因只是网格密度或瘦长三角形。
+
+独立D:/vscode/Shubian/work/cape-jolt-project使用目录连接读取同一套源文件，仅其project.godot指定Jolt Physics，未修改正式project.godot。cape-jolt-validity：同524组中225组几何相交、306组变形超限，综合322组不合格；最大边长比502834.308、范围11796.770米，原生截图也显示飞散。这仅说明本实验网格/约束/参数组合不适用该对照，不支持评价整个后端优劣；不切换正式游戏后端。隔离目录中的scripts/tests/tools/assets/resources/scenes/shaders为原项目的目录连接，没有复制一套源码。
+
+当前源码最终负对照cape-current-negative.log及Shubian-cape-current-negative-no-collision.json正常完成，无ERROR，--require-clear退出1。其与主原型/规则网格/后端对照均检查过实际完成标记；早期解析失败日志不计为有效结果。主要结果在D:/vscode/Shubian/outputs，Jolt隔离图片与JSON在work。正式模型、保存动画、游戏物理配置和战斗逻辑均未更改，未新增试玩包。下一步应先解决网格约束/固定点与动作驱动的一致性，达到变形和相交均有效，再考虑运行时接入及真实帧预算。整体目标保持未完成。
+
+接口实现核对：SoftBody3D::get_point_transform返回物理服务器的全局顶点位置；该原型软体节点变换为单位矩阵。源实现：https://github.com/godotengine/godot/blob/master/scene/3d/physics/soft_body_3d.cpp ，映射实现：https://github.com/godotengine/godot/blob/master/modules/godot_physics_3d/godot_soft_body_3d.cpp 。
