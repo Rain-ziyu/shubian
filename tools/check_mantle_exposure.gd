@@ -10,6 +10,7 @@ func run() -> void:
 	root.size = Vector2i(512,512)
 	root.content_scale_size = Vector2i(512,512)
 	var legacy := "--legacy" in OS.get_cmdline_user_args()
+	var continuous := "--continuous" in OS.get_cmdline_user_args()
 	var stage := Node3D.new()
 	root.add_child(stage)
 	var env := WorldEnvironment.new()
@@ -73,9 +74,20 @@ func run() -> void:
 	var results := []
 	var worst := []
 	for sample in samples:
+		if continuous:
+			p.combat.set_action("idle")
+			p.animate(0,0)
 		p.combat.set_action(sample[0])
-		p.combat.elapsed = sample[1]
-		p.animate(0,0)
+		if continuous:
+			var previous := 0.0
+			for step in ceili(float(sample[1])*120)+1:
+				var elapsed := minf(float(sample[1]),step/120.0)
+				p.combat.elapsed = elapsed
+				p.animate(elapsed-previous,0)
+				previous = elapsed
+		else:
+			p.combat.elapsed = sample[1]
+			p.animate(0,0)
 		for view in 8:
 			camera.position = Vector3(sin(view*TAU/8)*2.2,1.55,cos(view*TAU/8)*2.2)
 			camera.look_at(Vector3(0,1.33,0))
@@ -102,6 +114,7 @@ func run() -> void:
 	var sheet := Image.create(2048,1536,false,Image.FORMAT_RGB8)
 	for i in worst.size(): sheet.blit_rect(worst[i].image,Rect2i(0,0,512,512),Vector2i((i%4)*512,(i/4)*512))
 	var output := ProjectSettings.globalize_path("res://../mantle-exposure-"+("legacy" if legacy else "segmented"))
+	if continuous: output += "-continuous"
 	if sheet.save_png(output+".png")!=OK:
 		printerr("Exposure image write failed")
 		quit(2)
@@ -113,7 +126,7 @@ func run() -> void:
 		total += record.red_pixels
 		boundary_total += record.boundary_pixels
 		if record.red_pixels>0: affected += 1
-	var report := {"legacy":legacy,"scope":"Authored neutral-aim samples, eight horizontal cameras,512px. Red=all JointClothShoulder and original UpperArmSurface localY<=-0.05; orange=-0.05<localY<=0.05 is the intended sleeve opening band. Other body geometry remains present. Both visible target regions are reported; uncovered target skin need not be an interior fabric hole. Not whole-body, arbitrary-view, or continuous-motion approval.","poses":samples.size(),"boundary_pixels":boundary_total,"views":results.size(),"affected_views":affected,"total_red_pixels":total,"results":results,"worst_views":worst.map(func(item: Dictionary): return item.record)}
+	var report := {"legacy":legacy,"continuous_from_idle":continuous,"maximum_simulation_step":1.0/120 if continuous else 0.0,"scope":"Authored neutral-aim samples, eight horizontal cameras,512px. Red=all JointClothShoulder and original UpperArmSurface localY<=-0.05; orange=-0.05<localY<=0.05 is the intended sleeve opening band. Other body geometry remains present. Both visible target regions are reported; uncovered target skin need not be an interior fabric hole. Not whole-body, arbitrary-view, or continuous-motion approval.","poses":samples.size(),"boundary_pixels":boundary_total,"views":results.size(),"affected_views":affected,"total_red_pixels":total,"results":results,"worst_views":worst.map(func(item: Dictionary): return item.record)}
 	var file := FileAccess.open(output+".json",FileAccess.WRITE)
 	if file==null:
 		printerr("Exposure report write failed")
@@ -121,7 +134,7 @@ func run() -> void:
 		return
 	file.store_string(JSON.stringify(report,"  "))
 	file.close()
-	print("MANTLE_EXPOSURE: legacy=",legacy," views=",results.size()," affected=",affected," red_pixels=",total," boundary_pixels=",boundary_total)
+	print("MANTLE_EXPOSURE: legacy=",legacy," continuous_from_idle=",continuous," views=",results.size()," affected=",affected," red_pixels=",total," boundary_pixels=",boundary_total)
 	stage.queue_free()
 	await process_frame
 	quit()
