@@ -81,6 +81,19 @@ static func profile(parent: Node3D, label: String, profiles: Array, scale: float
 	for ring: Vector4 in profiles: rings.append(ring*scale)
 	return surface(parent,label,rings,color,start,end,28,caps)
 
+static func tooth_root(surface_mesh: TriangleMesh, x: float, z: float, radius: float, scale: float, upper: bool) -> Vector3:
+	# Seat the whole circular root cap, including its edge on a curved jaw.
+	var height := -INF if upper else INF
+	for sample in 21:
+		var angle := TAU*float(sample)/20
+		var offset := Vector2.ZERO if sample==20 else Vector2(sin(angle),cos(angle))*radius
+		var start := Vector3(x+offset.x,-scale*0.25 if upper else scale*0.25,z+offset.y)
+		var end := Vector3(start.x,scale*0.40 if upper else -scale*0.25,start.z)
+		var contact := surface_mesh.intersect_segment(start,end)
+		assert(not contact.is_empty(),"Tooth root must remain over its jaw surface")
+		height = maxf(height,contact.position.y) if upper else minf(height,contact.position.y)
+	return Vector3(x,height+scale*(0.003 if upper else -0.003),z)
+
 static func mouth_lining(jaw: MeshInstance3D, hinge: Vector3, scale: float, head_width: float) -> MeshInstance3D:
 	# Fit a shallow inner lining to the real mandible, rather than suspending
 	# a flat slab above it. No per-frame projection or new contact geometry.

@@ -9,6 +9,33 @@ func check(ok: bool, label: String) -> void:
 		failures += 1
 		printerr("FAIL: ",label)
 func _initialize() -> void: call_deferred("run")
+func check_teeth(parent: Node3D, surface_node: MeshInstance3D, scale: float, upper: bool) -> void:
+	var surface_mesh := surface_node.mesh.generate_triangle_mesh()
+	var count := 0
+	var projected := true
+	var seated := true
+	var worst := 0.0
+	for child in parent.get_children():
+		if not child is MeshInstance3D or not child.mesh is CylinderMesh: continue
+		count += 1
+		var arrays: Array = child.mesh.surface_get_arrays(0)
+		var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+		for index in vertices.size():
+			if normals[index].y*(1 if upper else -1)<0.99: continue
+			var point: Vector3 = child.transform*vertices[index]
+			if surface_node!=parent: point = surface_node.transform.affine_inverse()*point
+			var start := Vector3(point.x,-scale*0.25 if upper else scale*0.25,point.z)
+			var end := Vector3(point.x,scale*0.40 if upper else -scale*0.25,point.z)
+			var hit := surface_mesh.intersect_segment(start,end)
+			projected = projected and not hit.is_empty()
+			if hit.is_empty(): continue
+			var embed: float = (point.y-hit.position.y)*(1 if upper else -1)
+			worst = maxf(worst,absf(embed))
+			seated = seated and embed>=scale*0.0005 and embed<=scale*0.025
+	check(count==10 and projected,"all ten tooth roots have real jaw attachment surfaces")
+	check(seated,"entire tooth root caps are seated without floating or excessive burial")
+	print("TOOTH_ROOT_DEVIATION: upper=",upper," max_embed=",worst)
 func run() -> void:
 	var stage := Node3D.new()
 	root.add_child(stage)
@@ -50,7 +77,13 @@ func run() -> void:
 		stage.add_child(saved)
 		var saved_lining: MeshInstance3D = saved.get_node("Neck/Jaw/MouthFloor")
 		check(saved_lining.transform.is_equal_approx(lining.transform) and saved_lining.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]==lining_points,"saved mouth lining matches the fitted runtime mesh")
+		var saved_neck: Node3D = saved.get_node("Neck")
+		var saved_jaw: MeshInstance3D = saved.get_node("Neck/Jaw")
+		check_teeth(saved_neck,saved_neck.get_node("HeadSurface"),float(data.size),true)
+		check_teeth(saved_jaw,saved_jaw,float(data.size),false)
 		saved.queue_free()
+		check_teeth(neck,neck.get_node("HeadSurface"),float(data.size),true)
+		check_teeth(jaw,jaw,float(data.size),false)
 		var loaded := Model.jaw_pose(data,"windup",float(data.windup))
 		check(loaded.is_equal_approx(Model.jaw_pose(data,"active",0)),"jaw joins anticipation to attack without a snap")
 		check(Model.jaw_pose(data,"active",0.65).is_equal_approx(Model.jaw_pose(data,"recover",0)),"jaw joins attack to recovery without a snap")

@@ -100,6 +100,7 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 	jaw.transform = jaw_pose(data,"idle",0)
 	var mouth_floor := Surface.mouth_lining(jaw,hinge,s,head_width)
 	mouth_floor.position = -hinge
+	var dental_jaw := jaw.mesh.generate_triangle_mesh()
 	for side in [-1,1]:
 		var nose_x := 0.075*head_width
 		var eye_x := 0.158*head_width
@@ -122,8 +123,10 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 			brow.position.y = -s*0.025
 		Surface.seat_orbital_ridge(brow,facial_surface,side,s)
 		for tooth in 5:
-			H.tapered(neck,Vector3(side*s*0.10*head_width,-s*0.005,s*(-0.56+tooth*0.045)),s*0.014,s*0.001,s*0.06,Color("c6c5aa"))
-			H.tapered(jaw,Vector3(side*s*0.095*head_width,s*(0.005 if data.id=="stormcrest" else -0.015),s*(-0.5375+tooth*0.045))-hinge,s*0.001,s*0.010,s*0.035,Color("b6b79d"))
+			var upper_root := Surface.tooth_root(facial_surface,side*s*0.10*head_width,s*(-0.56+tooth*0.045),s*0.014,s,true)
+			var lower_root := Surface.tooth_root(dental_jaw,side*s*0.095*head_width,s*(-0.5375+tooth*0.045)-hinge.z,s*0.010,s,false)
+			H.tapered(neck,upper_root-Vector3.UP*s*0.03,s*0.014,s*0.001,s*0.06,Color("c6c5aa"))
+			H.tapered(jaw,lower_root+Vector3.UP*s*0.0175,s*0.001,s*0.010,s*0.035,Color("b6b79d"))
 		for front in ([false,true] if quad else [false]):
 			var leg := V.pivot(root,("Front" if front else "Hind")+str(side),Vector3(side*s*0.29,y*0.9,-s*0.31 if front else s*0.28))
 			var bottom := -y*0.9/s+0.075
