@@ -638,9 +638,10 @@ func update_weapon_contacts() -> void:
 		for m in get_tree().get_nodes_in_group("monsters"):
 			if m.health<=0 or window.victims.has(m.get_instance_id()): continue
 			var contact := {}
+			var contact_batch := {}
 			for index in points.size():
-				var candidate := melee_contact.cast(m,previous[index],points[index],radius)
-				if candidate.is_empty() and index>0: candidate = melee_contact.cast(m,points[index-1],points[index],radius)
+				var candidate := melee_contact.cast(m,previous[index],points[index],radius,contact_batch)
+				if candidate.is_empty() and index>0: candidate = melee_contact.cast(m,points[index-1],points[index],radius,contact_batch)
 				if not candidate.is_empty():
 					contact = candidate
 					break

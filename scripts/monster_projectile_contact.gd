@@ -12,7 +12,7 @@ func tube(volumes: Array[Dictionary], first: Vector3, last: Vector3, radius: flo
 	for step in steps+1:
 		volumes.append({"id":part,"center":first.lerp(last,float(step)/steps),"radius":radius})
 
-func cast(monster: Node3D, start: Vector3, end: Vector3, radius := 0.0) -> Dictionary:
+func cast(monster: Node3D, start: Vector3, end: Vector3, radius := 0.0, batch: Variant = null) -> Dictionary:
 	var result := {}
 	var nearest := start.distance_to(end)+radius+0.0001
 	var axis := (end-start).normalized() if start.distance_to(end)>0.00001 else Vector3.UP
@@ -70,6 +70,24 @@ func cast(monster: Node3D, start: Vector3, end: Vector3, radius := 0.0) -> Dicti
 				break
 			ancestor = ancestor.get_parent()
 		result = {"point":point,"part":part,"distance":nearest,"surface":str(mesh.name)}
+	# Caller-owned batch: one immutable posed-volume snapshot per target/window.
+	# Standalone projectile casts retain their original fresh-query behavior.
+	var fitted: Array[Dictionary]
+	if batch==null:
+		fitted = fitted_volumes(monster)
+	else:
+		if not batch.has("fitted"): batch["fitted"] = fitted_volumes(monster)
+		fitted = batch.fitted
+	var direction := end-start
+	var hit := Parts.cast_volumes(fitted,start,axis,direction.length(),radius)
+	if not hit.is_empty() and float(hit.distance)<nearest:
+		var part: String = "tail" if Parts.at_point(monster,hit.point)=="tail" else "tail_tip"
+		if hit.part!="tail": part = str(hit.part)
+		result = {"point":hit.point,"part":part,"distance":hit.distance,"surface":"posed_skin"}
+	return result
+
+func fitted_volumes(monster: Node3D) -> Array[Dictionary]:
+	var s: float = monster.data.size
 	var fitted: Array[Dictionary] = []
 	var tail: Node3D = monster.mesh.get_node("Tail")
 	var rings: Array[Vector4] = TailSkin.contact_profile(tail,monster.tail_rings)
@@ -87,10 +105,4 @@ func cast(monster: Node3D, start: Vector3, end: Vector3, radius := 0.0) -> Dicti
 		tube(fitted,hip,knee,s*0.14)
 		tube(fitted,knee,ankle,s*0.075)
 		tube(fitted,ankle,ankle+leg.global_basis*Vector3(0,0,-s*0.18),s*0.10)
-	var direction := end-start
-	var hit := Parts.cast_volumes(fitted,start,axis,direction.length(),radius)
-	if not hit.is_empty() and float(hit.distance)<nearest:
-		var part: String = "tail" if Parts.at_point(monster,hit.point)=="tail" else "tail_tip"
-		if hit.part!="tail": part = str(hit.part)
-		result = {"point":hit.point,"part":part,"distance":hit.distance,"surface":"posed_skin"}
-	return result
+	return fitted
