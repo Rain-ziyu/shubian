@@ -182,7 +182,12 @@ static func frill(parent: Node3D, scale: float, color: Color) -> MeshInstance3D:
 				var depth := 0.055-0.005*radius+absf(sin(angle))*0.045*radius+(0.065+0.010*cos(angle*16))*fold
 				var point := Vector3(sin(angle)*0.46*scallop*radius,0.18+cos(angle)*0.36*scallop*radius,depth)*scale
 				var ridge := pow(0.5+0.5*cos(angle*16),6)*fold
-				st.set_color(color.darkened(0.20).lerp(color.lightened(0.10),radius).lightened(ridge*0.055))
+				# Dark structural veins and a continuous rim distinguish membrane
+				# from the spotted hide without copying the yellow sac weak point.
+				var membrane := color.darkened(0.22).lerp(color.lightened(0.18),smoothstep(0.15,0.80,radius))
+				var vein := pow(0.5+0.5*cos(angle*16),10)*smoothstep(0.15,0.45,radius)
+				var rim := smoothstep(0.86,1.0,radius)
+				st.set_color(membrane.lerp(Color("354f57"),maxf(vein*0.65,rim*0.85)))
 				st.set_uv(Vector2(0.5+sin(angle)*radius*0.5,0.5+cos(angle)*radius*0.5))
 				st.add_vertex(point)
 	st.generate_normals()

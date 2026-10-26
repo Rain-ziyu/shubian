@@ -498,7 +498,7 @@ static func charge_visuals(root: Node3D, data: Dictionary, phase: String, clock:
 	var load := smoothstep(0,float(data.windup),clock) if phase=="windup" else 0.0
 	if phase=="active": load = 1-smoothstep(0.08,0.45,clock)
 	var frill := root.get_node("Neck").get_node_or_null("Frill") as MeshInstance3D
-	if frill: frill.scale = Vector3(1+load*0.12,1+load*0.12,1)
+	if frill: frill.scale = Vector3(1+load*0.28,1+load*0.20,1)
 	if data.pattern=="mist":
 		for side in [-1,1]:
 			var sac: MeshInstance3D = root.get_node("Neck/MistSac"+str(side))

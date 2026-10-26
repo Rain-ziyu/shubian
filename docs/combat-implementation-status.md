@@ -1288,3 +1288,11 @@ D盘原生渲染检查counter_sweep_arc 7、front_guard 7、skin 250项通过（
 原生反击/四连刺/插枪近景已查看：反击肩头覆盖改善，大幅举臂仍有局部布面与皮肤交叠，未达到所有姿态无穿模。../Shubian-reply-before-cape-weights.png 为旧反击对照，../Shubian-reply-motion-shoulder.png、Shubian-plant-motion-shoulder.png 为新效果。此为局部改善，不宣称角色整体美术完成。
 
 保存模型重新导出、254资源ID归一化。原生5脚本380项通过：衣料2/服装30/支架80/肩甲18/蒙皮250，../verification/regressions-20261026-131439-6886db/summary.json。通过范围是保存权重/骨骼、既有支架和中立反击杆身采样，不是全身衣料精确碰撞证明。运行时已有后续美术/动作改动，文首3117bf0实时FPS数据明确标为历史基线，不扩展到当前来源。当前90个test_脚本，未声称完整90套当前通过。
+
+## 雾囊冠龙颈冠辨识与蓄势（2026-10-26）
+
+旧颈冠与身体色接近，张冠幅度12%，远处蓄势轮廓变化偏弱。现有膜面加入深蓝灰支撑脉与连续外缘，保持外轮廓、面数、骨骼与两侧黄绿雾囊弱点分离；蓄势横向展开28%、竖向20%，释放后的既有回缩时序保留。伤害、范围、AI冷却和弱点判定未改。保存模型只mistfrill-v1.tscn有2行颜色数据变化，其余四只导出后经ID/生成节点名归一化无差异。
+
+原生模型/材质/毒雾视觉219项通过：../verification/regressions-20261026-133533-092a30/summary.json。实机四阶段图 ../Shubian-mist-frill-states.png（通过capture_head_sweep_states.gd -- --mist-frill）；这是直接姿态演示，不冒充真实战斗。新静态图 ../Shubian-creature-mistfrill.png，旧对照 ../Shubian-creature-mistfrill-before-frill.png。
+
+正常AI毒雾专项18秒通过：4次释放、生命240→231后撤离，在雾仍存在时连续2.75秒不掉血，后续新雾继续承伤，结束150。稳态2940帧/P99 9.117ms/最大13.787ms/0>33.33ms；毒雾spawn峰12.399ms/ground0.662ms。启动0.426s处413.462ms与1.624s处44.84ms均保留，不能宣称启动卡顿解决。日志 ../verification/mist-frill-live-release.log，完整性能 ../verification/forest-performance-1793021794-27876.json。初始近怪放置、无资源重置、五AI活跃；不是整图或真人难度证明。人物/怪物最终美术和自然动作继续未完成。

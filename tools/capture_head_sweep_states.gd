@@ -9,10 +9,11 @@ func run() -> void:
 	await create_timer(0.3).timeout
 	world.hunter.set_physics_process(false)
 	var actor: CharacterBody3D
+	var mist_study := "--mist-frill" in OS.get_cmdline_user_args()
 	for creature in get_nodes_in_group("monsters"):
 		creature.set_physics_process(false)
 		creature.set_process(false)
-		if creature.data.id=="mossback": actor = creature
+		if creature.data.id==("mistfrill" if mist_study else "mossback"): actor = creature
 		else: creature.hide()
 	for child in world.get_children():
 		if child is CanvasLayer: child.hide()
@@ -26,6 +27,9 @@ func run() -> void:
 	actor.global_position = Vector3(0,0.05,-10)
 	camera.position = actor.global_position+Vector3(11,6,-12)
 	camera.look_at(actor.global_position+Vector3(0,1.8,0))
+	if mist_study:
+		camera.position = actor.global_position+Vector3(6.5,4.0,-8.0)
+		camera.look_at(actor.global_position+Vector3(0,1.8,-0.5))
 	var layer := CanvasLayer.new()
 	world.add_child(layer)
 	var title := Label.new()
@@ -40,12 +44,13 @@ func run() -> void:
 		actor.label.hide()
 		for marker in actor.weak_markers: marker.hide()
 		title.text = ["READY","LOAD","FOLLOW THROUGH","RECOVERY START"][state]+"\nPOSE AND MATERIAL STUDY"
+		if mist_study: title.text = ["READY","SAC INFLATION","MIST RELEASE","RECOVERY"][state]+"\nPOSE AND MATERIAL STUDY"
 		for frame in 3: await process_frame
 		await RenderingServer.frame_post_draw
 		var frame := root.get_texture().get_image()
 		frame.convert(Image.FORMAT_RGB8)
 		sheet.blit_rect(frame,Rect2i(0,0,640,480),Vector2i(state*640,0))
-	var error := sheet.save_png(ProjectSettings.globalize_path("res://../Shubian-head-sweep-states.png"))
+	var error := sheet.save_png(ProjectSettings.globalize_path("res://../Shubian-mist-frill-states.png" if mist_study else "res://../Shubian-head-sweep-states.png"))
 	print("HEAD_SWEEP_CAPTURE: ",error)
 	world.queue_free()
 	await process_frame
