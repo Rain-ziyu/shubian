@@ -121,10 +121,8 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 		eye.name = "Eye"+str(side)
 		var pupil := V.piece(neck,Vector3(side*s*(eye_x+0.013),s*0.20,-s*0.436),Vector3(s*0.006,s*0.018,s*0.012),Color("1c2721"),true)
 		pupil.name = "Pupil"+str(side)
-		var brow := Surface.profile(neck,"EyeRidge"+str(side),[Vector4(-0.51,0.001,0.001,0.225),Vector4(-0.46,0.018,0.012,0.245),Vector4(-0.41,0.028,0.014,0.255),Vector4(-0.35,0.020,0.012,0.245),Vector4(-0.30,0.001,0.001,0.22)],s,c.darkened(0.14))
-		if data.id in ["reedclaw","mossback"]:
-			# Seat the ridge against the orbital roof instead of floating above it.
-			brow.position.y = -s*0.025
+		# The orbital roof meets the top of the eye instead of forming a detached eyebrow.
+		var brow := Surface.profile(neck,"EyeRidge"+str(side),[Vector4(-0.485,0.001,0.001,0.202),Vector4(-0.46,0.026,0.009,0.211),Vector4(-0.43,0.040,0.012,0.218),Vector4(-0.40,0.030,0.010,0.214),Vector4(-0.375,0.001,0.001,0.202)],s,c.darkened(0.08))
 		Surface.seat_orbital_ridge(brow,facial_surface,side,s)
 		for tooth in 5:
 			var upper_root := Surface.tooth_root(facial_surface,side*s*0.10*head_width,s*(-0.56+tooth*0.045),s*0.014,s,true)
