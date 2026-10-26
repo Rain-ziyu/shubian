@@ -85,6 +85,12 @@ func sample_frame() -> void:
 		var total: int = profile_nodes[component].get_meta("frame_cost_total_us",0)
 		costs[component] = (total-int(profile_previous.get(component,0)))/1000.0
 		profile_previous[component] = total
+	var player_stages: Dictionary = fighter.get_meta("frame_stage_total_us",{})
+	for stage in player_stages:
+		var key := "player_"+str(stage)
+		var total: int = player_stages[stage]
+		costs[key] = (total-int(profile_previous.get(key,0)))/1000.0
+		profile_previous[key] = total
 	costs["controller"] = (controller_us-int(profile_previous.get("controller",0)))/1000.0
 	profile_previous["controller"] = controller_us
 	for component in costs: profile_peaks[component] = maxf(float(profile_peaks.get(component,0)),float(costs[component]))
@@ -111,6 +117,7 @@ func finish() -> void:
 	var report := {"all_frames":stats(timings),"after_two_seconds":stats(steady),"stalls":stalls,"maximum_physics_ms":maximum_physics_ms,"maximum_process_ms":maximum_process_ms,"viewport":str(root.get_visible_rect().size),"adapter":RenderingServer.get_video_adapter_name(),"wall_seconds":(Time.get_ticks_usec()-started_us)/1000000.0,"simulation_seconds":elapsed,"scope":"native uncapped real-time full forest hunt from normal spawn, five AI active, no resource resets; local hardware only; excludes initial scene loading; privileged controller, not human difficulty acceptance"}
 	report["navigation_slow_paths"] = world.navigation.path_events
 	report["navigation_scope"] = "wall-clock stages for navigation calls >=2ms, last 64 events; includes controller and monster callers; timings do not distinguish CPU work from OS scheduling"
+	report["player_stage_scope"] = "player_simulation, player_animation and player_contacts are nested within player total; wall-clock time includes scheduling, and these are not additional independent costs"
 	report["peak_script_cost_ms"] = profile_peaks
 	report["pipeline_compilations"] = pipeline_counts()
 	report["pipeline_compilation_events"] = compilation_events

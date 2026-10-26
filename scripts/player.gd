@@ -265,10 +265,18 @@ func cycle_lock(reverse := false) -> void:
 
 func _physics_process(delta: float) -> void:
 	var started := Time.get_ticks_usec() if get_meta("measure_frame_cost",false) else 0
-	advance_physics(delta)
+	advance_physics(delta,started>0)
 	if started: set_meta("frame_cost_total_us",int(get_meta("frame_cost_total_us",0))+Time.get_ticks_usec()-started)
 
-func advance_physics(delta: float) -> void:
+func record_frame_stage(stage: String, started: int) -> int:
+	var now := Time.get_ticks_usec()
+	var totals: Dictionary = get_meta("frame_stage_total_us",{})
+	totals[stage] = int(totals.get(stage,0))+now-started
+	set_meta("frame_stage_total_us",totals)
+	return now
+
+func advance_physics(delta: float, profile := false) -> void:
+	var stage_started := Time.get_ticks_usec() if profile else 0
 	feedback.advance(delta)
 	arrival_pose_left = maxf(0,arrival_pose_left-delta)
 	clear_body_turn()
@@ -311,8 +319,11 @@ func advance_physics(delta: float) -> void:
 	# Keep the orbit above the floor while the nearby weapon aims at elevated parts.
 	var orbit_pitch := pitch*0.2 if pitch>0 else pitch
 	mount.rotation = Vector3(orbit_pitch,yaw,0)
+	if profile: stage_started = record_frame_stage("simulation",stage_started)
 	animate(delta,animation_speed)
+	if profile: stage_started = record_frame_stage("animation",stage_started)
 	update_weapon_contacts()
+	if profile: record_frame_stage("contacts",stage_started)
 	if global_position.y < -15:
 		global_position = Vector3(0,2,8)
 		motion_epoch += 1
