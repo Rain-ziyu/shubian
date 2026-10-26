@@ -610,6 +610,10 @@ func animate(delta: float, speed: float) -> void:
 		release = 0.0
 		arm_release = 0.0
 	var offhand := equipment_grip*(1-arm_release)
+	if combat.action=="turn" and rig.get("shaft_clearance",false):
+		# The right hand drives the tail strike. Release the guide hand rather
+		# than dragging its elbow across the chest during the upright handoff.
+		offhand *= 1-smoothstep(0.18,0.28,combat.elapsed)*(1-smoothstep(0.44,0.60,combat.elapsed))
 	if combat.action=="reply": offhand *= 1-smoothstep(0,0.12,combat.elapsed)*(1-smoothstep(0.54,0.82,combat.elapsed))
 	right_hand_grip = HunterModel.counter_grip(combat.elapsed) if combat.action=="reply" else -0.28
 	if delta>0 and not equipment_route:

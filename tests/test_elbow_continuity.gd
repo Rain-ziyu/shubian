@@ -41,12 +41,23 @@ func run() -> void:
 	preload("res://tools/prepare_segmented_mantle.gd").apply(player)
 	player.combat.drawn = true
 	player.pitch = -0.25
-	for action in ["pull","reply","guard"]:
+	for action in ["pull","reply","guard","turn"]:
 		var legacy := peak_step(player,action,false)
 		var continuous := peak_step(player,action,true)
 		print("ELBOW_ACTION_STEP: ",action," legacy=",legacy," continuous=",continuous)
 		check(continuous<0.12,action+" stays below 12 cm per 120Hz sample")
-		check(continuous<=legacy*(1.1 if action=="guard" else 0.3),action+" improves the pole flip without degrading guard")
+		check(continuous<=legacy*(1.1 if action=="guard" else (0.4 if action=="turn" else 0.3)),action+" improves the elbow path without degrading guard")
+	player.combat.set_action("turn")
+	player.combat.elapsed = 0.40
+	player.animate(0,0)
+	var tail_grip: Vector3 = player.rig.weapon.transform*Vector3(0,-0.28,0)
+	var guide_grip: Vector3 = player.rig.weapon.transform*Vector3(0,0.18,0)
+	check(player.rig.arms[1].hand.position.distance_to(tail_grip)<0.001,"Right hand keeps the physical tail grip throughout the turn")
+	check(player.rig.arms[-1].hand.position.distance_to(guide_grip)>0.15,"Guide hand releases during the upright turn")
+	player.combat.elapsed = 0.60
+	player.animate(0,0)
+	guide_grip = player.rig.weapon.transform*Vector3(0,0.18,0)
+	check(player.rig.arms[-1].hand.position.distance_to(guide_grip)<0.001,"Guide hand regains its actual grip at the chain opening")
 	stage.queue_free()
 	await process_frame
 	print("ELBOW_CONTINUITY_CHECKS: ",checks," FAILURES: ",failures)
