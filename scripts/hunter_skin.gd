@@ -111,7 +111,11 @@ static func bind(rig: Dictionary) -> Dictionary:
 		arrays[Mesh.ARRAY_BONES] = bones
 		arrays[Mesh.ARRAY_WEIGHTS] = weights
 		var mesh := ArrayMesh.new()
-		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+		var cape_shapes: Array[Array] = binding.rendered.mesh.surface_get_blend_shape_arrays(0)
+		mesh.blend_shape_mode = Mesh.BLEND_SHAPE_MODE_NORMALIZED
+		for shape_index in binding.rendered.mesh.get_blend_shape_count():
+			mesh.add_blend_shape(binding.rendered.mesh.get_blend_shape_name(shape_index))
+		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays,cape_shapes)
 		binding.rendered.mesh = mesh
 	for source in sources:
 		if rig.torso.is_ancestor_of(source): parent_bone(skeleton,indices[source.get_instance_id()],spine,rests)

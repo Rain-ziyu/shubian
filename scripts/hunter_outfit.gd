@@ -47,9 +47,34 @@ static func loft(parent: Node3D, label: String, rings: Array, color: Color, star
 	var mesh := MeshInstance3D.new()
 	mesh.name = label
 	mesh.mesh = st.commit()
+	if label.begins_with("RainCape"): shoulder_ease(mesh,label)
 	mesh.material_override = V.mat(color)
 	parent.add_child(mesh)
 	return mesh
+
+static func shoulder_ease(part: MeshInstance3D, label: String) -> void:
+	var arrays: Array = part.mesh.surface_get_arrays(0)
+	var points: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX].duplicate()
+	var side := -1.0 if label.ends_with("-1") else 1.0
+	for i in points.size():
+		var weight := smoothstep(0.14,0.27,absf(points[i].x))*smoothstep(1.22,1.40,points[i].y)*(1-smoothstep(1.46,1.53,points[i].y))*(1-smoothstep(-0.08,0.04,points[i].z))
+		points[i] += Vector3(side*0.012,0,-0.06)*weight
+	var expanded: Array = arrays.duplicate(true)
+	expanded[Mesh.ARRAY_VERTEX] = points
+	var temp := ArrayMesh.new()
+	temp.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,expanded)
+	var tool := SurfaceTool.new()
+	tool.create_from(temp,0)
+	tool.generate_normals()
+	var shape := []
+	shape.resize(Mesh.ARRAY_MAX)
+	shape[Mesh.ARRAY_VERTEX] = points
+	shape[Mesh.ARRAY_NORMAL] = tool.commit().surface_get_arrays(0)[Mesh.ARRAY_NORMAL]
+	var result := ArrayMesh.new()
+	result.blend_shape_mode = Mesh.BLEND_SHAPE_MODE_NORMALIZED
+	result.add_blend_shape("ShoulderEase")
+	result.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays,[shape])
+	part.mesh = result
 
 static func profile_point(ring: Vector4, angle: float) -> Vector3:
 	return Vector3(sin(angle)*ring.y,ring.x,cos(angle)*ring.z+ring.w)

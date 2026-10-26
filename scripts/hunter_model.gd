@@ -133,6 +133,10 @@ static func pose_arms(rig: Dictionary, armed: bool, gait: float, grip_weight := 
 		arm.hand.position = target
 		Hand.orient(arm.hand,elbow,rig.weapon.basis.y,clampf(main_grip if side==1 and main_grip>=0 else grip_weight,0,1) if armed else 0.0,finger_release)
 		arm.elbow.position = elbow
+		var cape: MeshInstance3D = rig.torso.get_node("RainCape"+str(side))
+		if cape.get_blend_shape_count()>0:
+			var local_axis: Vector3 = rig.torso.basis.inverse()*upper_axis
+			cape.set_blend_shape_value(0,smoothstep(-0.70,0.05,local_axis.y))
 	Skinning.update(rig)
 
 static func pose_torso(rig: Dictionary, action: String, elapsed: float, gait: float, speed: float, delta: float, travel := Vector3.FORWARD, arrival_weight := 0.0) -> void:

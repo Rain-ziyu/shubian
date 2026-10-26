@@ -11,6 +11,10 @@ func _initialize() -> void: call_deferred("run")
 func surface(part: MeshInstance3D, skeleton: Skeleton3D) -> TriangleMesh:
 	var arrays: Array = part.mesh.surface_get_arrays(0)
 	var points: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var base_points := points.duplicate()
+	for shape_index in part.get_blend_shape_count():
+		var target: PackedVector3Array = part.mesh.surface_get_blend_shape_arrays(0)[shape_index][Mesh.ARRAY_VERTEX]
+		for i in points.size(): points[i] += (target[i]-base_points[i])*part.get_blend_shape_value(shape_index)
 	var bones: PackedInt32Array = arrays[Mesh.ARRAY_BONES]
 	var weights: PackedFloat32Array = arrays[Mesh.ARRAY_WEIGHTS]
 	var poses: Array[Transform3D] = []

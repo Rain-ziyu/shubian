@@ -22,9 +22,11 @@ func run() -> void:
 	check(alignment/(28*6)>0.9,"profile mesh normals face outward")
 	var rig := Model.create(holder)
 	check_collars(rig.torso,"runtime")
+	check_cape(rig.root,"runtime")
 	var collar_saved: Node3D = load("res://assets/models/hunter-forest-v1.tscn").instantiate()
 	root.add_child(collar_saved)
 	check_collars(collar_saved.get_node("Torso"),"saved")
+	check_cape(collar_saved,"saved")
 	collar_saved.queue_free()
 	for label in ["KneePlate","ShinPlate"]:
 		var plate: MeshInstance3D = rig.legs[1].knee.get_node(label)
@@ -107,6 +109,31 @@ func run() -> void:
 	holder.queue_free()
 	await process_frame
 	quit(1 if failures else 0)
+
+func check_cape(model: Node3D, context: String) -> void:
+	for side in [-1,1]:
+		var cape: MeshInstance3D = model.get_node("Torso/RainCape"+str(side))
+		check(cape.get_blend_shape_count()==1 and cape.mesh.blend_shape_mode==Mesh.BLEND_SHAPE_MODE_NORMALIZED,"cape corrective uses absolute targets: "+context)
+		if cape.get_blend_shape_count()!=1: continue
+		var points: PackedVector3Array = cape.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+		var target: PackedVector3Array = cape.mesh.surface_get_blend_shape_arrays(0)[0][Mesh.ARRAY_VERTEX]
+		var neck_fixed := true
+		var maximum := 0.0
+		for i in points.size():
+			maximum = maxf(maximum,points[i].distance_to(target[i]))
+			if absf(points[i].x)<0.13 or points[i].y>1.53: neck_fixed = neck_fixed and points[i].distance_to(target[i])<0.0001
+		check(neck_fixed and maximum>0.03 and maximum<0.062,"cape leaves neck anchored and adds bounded shoulder allowance: "+context)
+		print("CAPE_ALLOWANCE: ",context," side=",side," fixed=",neck_fixed," maximum=",maximum)
+	if context=="saved":
+		var preview: AnimationPlayer = model.get_node("AnimationPreview")
+		preview.play("plant")
+		preview.seek(0.18,true)
+		var driven := 0
+		for part in model.get_node("Skeleton3D").get_children():
+			if part is MeshInstance3D and str(part.get_meta("source_part","")).begins_with("RainCape"):
+				print("CAPE_SAVED_DRIVE: ",part.get_meta("source_part")," ",part.get_blend_shape_value(0))
+				if part.mesh.blend_shape_mode==Mesh.BLEND_SHAPE_MODE_NORMALIZED and part.get_blend_shape_value(0)>0.5: driven += 1
+		check(driven>=1,"saved raised-arm clip actually drives its lifted shoulder corrective")
 
 func check_collars(torso: Node3D, context: String) -> void:
 	var coat: MeshInstance3D = torso.get_node("Undercoat")
