@@ -130,7 +130,7 @@ func run() -> void:
 	p.motion_epoch += 1
 	p.animate(1.0/60,0)
 	for side in [-1,1]: check(p.rig.legs[side].ankle.global_position.distance_to(p.global_position)<2,"relocation invalidates captured hurt feet and sole orientation")
-	for chain in [["reply",0.54,"heavy"],["heavy",0.60,"light"],["light",0.37,"heavy"],["pull",0.55,"light"],["spin",1.08,"light"],["spin",1.08,"heavy"]]:
+	for chain in [["reply",0.54,"heavy"],["heavy",0.60,"light"],["light",0.37,"heavy"],["pull",0.55,"light"],["spin",1.08,"light"],["spin",1.08,"heavy"],["turn",0.60,"light"],["turn",0.60,"heavy"],["turn",0.60,"pull"]]:
 		p.combat.drawn = true
 		p.pitch = -0.25
 		p.combat.set_action(chain[0])
@@ -142,7 +142,7 @@ func run() -> void:
 		var peak_hand_step := 0.0
 		var arm_error := 0.0
 		var right_on_shaft := true
-		for frame in 25:
+		for frame in (31 if chain[0]=="turn" else 25):
 			p.combat.elapsed = frame/120.0
 			p.animate(1.0/120,0)
 			for side in [-1,1]:

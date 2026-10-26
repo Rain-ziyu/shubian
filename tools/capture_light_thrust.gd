@@ -61,7 +61,7 @@ func run() -> void:
 			p.pitch = float(argument.trim_prefix("--aim="))
 			aimed = true
 	var action := "light"
-	for candidate in ["heavy","pull","throw","plant","guard","reply","finisher","flash","fourfold","spin"]:
+	for candidate in ["heavy","pull","throw","plant","guard","reply","finisher","flash","fourfold","spin","turn"]:
 		if "--"+candidate in OS.get_cmdline_user_args(): action = candidate
 	p.combat.set_action(action)
 	if action=="plant":
@@ -75,12 +75,14 @@ func run() -> void:
 		times["finisher"] = [0.80,0.95,1.14]
 		times["flash"] = [0.08,0.23,0.39]
 		times["fourfold"] = [0.18,0.33,0.43]
+		times["turn"] = [0.18,0.40,0.44]
 		times["spin"] = [0.18,0.38,0.85]
 		var t: float = times[action][i]
 		p.combat.elapsed = t
 		p.animate(0,0)
 		var labels: Array = {"throw":["01 / READY","02 / WINDUP","03 / RELEASE PREPARATION"],"plant":["01 / RAISE","02 / DRIVE","03 / SETTLE"]}.get(action,["01 / PREPARE","02 / CONTACT","03 / FOLLOW THROUGH"])
 		if action=="fourfold": labels = ["01 / FIRST THRUST","02 / RETRACT","03 / SECOND THRUST"]
+		if action=="turn": labels = ["01 / WINDUP","02 / UPRIGHT HANDOFF","03 / CONTACT"]
 		if action=="spin": labels = ["01 / WINDUP","02 / FIRST CONTACT","03 / SECOND CONTACT"]
 		label.text = labels[i]+" / %.2f s" % t
 		if aimed: label.text += " / AIM %.2f" % p.pitch
@@ -98,6 +100,7 @@ func run() -> void:
 	paths["finisher"] = "Shubian-kick-motion"
 	paths["flash"] = "Shubian-flash-motion"
 	paths["fourfold"] = "Shubian-fourfold-keyframes"
+	paths["turn"] = "Shubian-turn-keyframes"
 	paths["spin"] = "Shubian-spin-keyframes"
 	var suffix := "-feet" if feet_detail else ("-shoulder" if shoulder_detail else ("-game-view" if game_view else ""))
 	if aimed: suffix += "-aim"

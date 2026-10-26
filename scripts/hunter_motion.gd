@@ -78,3 +78,19 @@ static func upright_handoff(from: Transform3D, to: Transform3D, weight: float, f
 	if weight<0.35: return from.interpolate_with(first,smoothstep(0,0.35,weight))
 	if weight<0.65: return first.interpolate_with(last,smoothstep(0.35,0.65,weight))
 	return last.interpolate_with(to,smoothstep(0.65,1,weight))
+
+static func orbital_grip(shaft: Vector3, left: Vector3, right: Vector3, normal_side := 1.0) -> Vector3:
+	var flat := Vector3(shaft.x,0,shaft.z).normalized()
+	var normal := Vector3(flat.z,0,-flat.x)
+	var position := normal*(0.46*normal_side)+Vector3.UP*1.23
+	var lower := -INF
+	var upper := INF
+	for index in 2:
+		var shoulder := left if index==0 else right
+		var offset := position+shaft*(0.18 if index==0 else -0.28)-shoulder
+		var axial := offset.dot(shaft)
+		var remaining := 0.778*0.778-maxf(0,offset.length_squared()-axial*axial)
+		var limit := sqrt(maxf(0,remaining))
+		lower = maxf(lower,-axial-limit)
+		upper = minf(upper,-axial+limit)
+	return position+shaft*(clampf(-0.07,lower,upper) if lower<=upper else (lower+upper)*0.5)

@@ -90,11 +90,19 @@ func run() -> void:
 	player.advance(0)
 	player.advance(0.30)
 	check(absf(wrapf(model.rotation.y,-PI,PI))>1,"saved turn clip rotates full character")
-	var phase := smoothstep(0.10,0.58,0.30)
-	var weapon_position := Vector3(0,1.20,-0.32).rotated(Vector3.UP,TAU*phase)+Vector3(0,0,0.07*sin(phase*PI))
-	var expected_basis := Basis.from_euler(Vector3(-PI/2,-1.5+0.30/0.95*TAU,-0.15))
-	var expected_tip: Vector3 = model.position+weapon_position+expected_basis*Vector3(0,1.2,0)
-	check(model.get_node("Trident/TipContact").global_position.distance_to(expected_tip)<0.003,"saved root rotation preserves compensated weapon trajectory")
+	var live := preload("res://scripts/player.gd").new()
+	root.add_child(live)
+	live.set_physics_process(false)
+	live.set_process_input(false)
+	live.combat.drawn = true
+	live.pitch = -0.25
+	live.combat.set_action("turn")
+	live.combat.elapsed = 0.30
+	live.animate(0,0)
+	var saved_tip: Vector3 = model.get_node("Trident/TipContact").global_position-model.global_position
+	var live_tip: Vector3 = live.rig.weapon.to_global(Vector3(0,1.2,0))-live.rig.root.global_position
+	check(saved_tip.distance_to(live_tip)<0.003,"saved root rotation preserves runtime compensated weapon trajectory")
+	live.queue_free()
 	check(model.get_node("Trident").position.z< -0.20,"saved ordinary turn carries its grip ahead of the rotating chest")
 	player.seek(0.20,true)
 	var right_foot: int = skeleton.find_bone("RightFoot")

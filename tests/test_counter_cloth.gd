@@ -137,6 +137,25 @@ func run() -> void:
 		for side in [-1,1]: runtime_arms = runtime_arms and absf(p.rig.arms[side].upper.scale.y-0.39)<0.002 and absf(p.rig.arms[side].lower.scale.y-0.39)<0.002
 	check(runtime_clear,"120Hz idle-to-heavy presentation keeps shaft outside actual upper clothing")
 	check(runtime_arms,"120Hz idle-to-heavy presentation keeps anatomical arm lengths")
+	for aim in [-0.90,-0.25,0.65]:
+		p.pitch = aim
+		for continuous in [false,true]:
+			p.combat.set_action("idle")
+			p.animate(0,0)
+			p.combat.set_action("turn")
+			var turn_crossings := {}
+			var turn_deviation := 0.0
+			for frame in 115:
+				p.combat.elapsed = minf(0.95,frame/120.0)
+				p.animate(1.0/120 if continuous else 0.0,0)
+				for label in shaft_hits(p,true):
+					if not turn_crossings.has(label):turn_crossings[label]=p.combat.elapsed
+				for side in [-1,1]:
+					var arm: Dictionary = p.rig.arms[side]
+					turn_deviation = maxf(turn_deviation,maxf(absf(arm.upper.scale.y-0.39),absf(arm.lower.scale.y-0.39)))
+			check(turn_crossings.is_empty(),"turn shaft clears clothes and head at aim="+str(aim)+" continuous="+str(continuous))
+			check(turn_deviation<0.002,"turn preserves anatomical arm lengths at aim="+str(aim)+" continuous="+str(continuous))
+	p.pitch = -0.25
 	for continuous in [false,true]:
 		p.combat.set_action("idle")
 		p.animate(0,0)
@@ -150,9 +169,10 @@ func run() -> void:
 			for side in [-1,1]: spin_arms = spin_arms and absf(p.rig.arms[side].upper.scale.y-0.39)<0.002 and absf(p.rig.arms[side].lower.scale.y-0.39)<0.002
 		check(spin_clear,"full spin shaft clears actual upper clothes and head; continuous="+str(continuous))
 		check(spin_arms,"full spin preserves arm lengths; continuous="+str(continuous))
-	for next in ["light","heavy"]:
-		p.combat.set_action("spin")
-		p.combat.elapsed = 1.08
+	for chain in [["spin",1.08,"light"],["spin",1.08,"heavy"],["turn",0.60,"light"],["turn",0.60,"heavy"],["turn",0.60,"pull"]]:
+		var next: String = chain[2]
+		p.combat.set_action(chain[0])
+		p.combat.elapsed = chain[1]
 		p.animate(0,0)
 		p.combat.set_action(next)
 		var chain_clear := true
@@ -162,8 +182,8 @@ func run() -> void:
 			p.animate(1.0/120,0)
 			chain_clear = chain_clear and shaft_hits(p,true).is_empty()
 			for side in [-1,1]: chain_arms = chain_arms and absf(p.rig.arms[side].upper.scale.y-0.39)<0.002 and absf(p.rig.arms[side].lower.scale.y-0.39)<0.002
-		check(chain_clear,"spin-to-"+next+" clears actual clothes and head throughout handoff")
-		check(chain_arms,"spin-to-"+next+" handoff preserves anatomical arm lengths")
+		check(chain_clear,str(chain[0])+"-to-"+next+" clears actual clothes and head throughout handoff")
+		check(chain_arms,str(chain[0])+"-to-"+next+" handoff preserves anatomical arm lengths")
 	var saved: Node3D = load("res://assets/models/hunter-forest-v1.tscn").instantiate()
 	stage.add_child(saved)
 	var preview: AnimationPlayer = saved.get_node("AnimationPreview")
@@ -177,6 +197,12 @@ func run() -> void:
 			if not saved_crossings.has(label): saved_crossings[label]=frame/120.0
 	check(saved_clear,"saved spin animation also clears clothes and head between its baked keys")
 	print("SAVED_SPIN_CROSSINGS: ",saved_crossings)
+	preview.play("turn")
+	var saved_turn_clear := true
+	for frame in 115:
+		preview.seek(minf(0.95,frame/120.0),true)
+		saved_turn_clear = saved_turn_clear and shaft_hits_for(saved.get_node("Skeleton3D"),saved.get_node("Trident"),true).is_empty()
+	check(saved_turn_clear,"saved turn animation clears actual clothes and head between baked keys")
 	saved.queue_free()
 	print("COUNTER_CLOTH_CHECKS: ",checks," FAILURES: ",failures)
 	stage.queue_free()
