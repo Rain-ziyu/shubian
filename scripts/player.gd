@@ -202,6 +202,12 @@ func combat_forward() -> Vector3:
 func on_action_changed(next: String) -> void:
 	if next=="throw": throw_recalled = false
 	feedback.action_changed(next)
+	# Preserve the displayed stance before clearing an interrupted body turn.
+	rig.hurt_stance_from = {}
+	if next=="hurt":
+		rig.hurt_stance_epoch = motion_epoch
+		for side in [-1,1]:
+			rig.hurt_stance_from[side] = {"point":rig.legs[side].ankle.global_position,"basis":rig.legs[side].boot.global_basis.orthonormalized()}
 	clear_body_turn()
 	if next!="idle": heavy_held = -1
 	strike_windows.clear()

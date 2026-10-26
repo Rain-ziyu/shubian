@@ -101,6 +101,34 @@ func run() -> void:
 	p.motion_epoch += 1
 	p.animate(1.0/60,0)
 	for side in [-1,1]: check(p.rig.legs[side].ankle.global_position.distance_to(p.global_position)<2,"teleport cannot interpolate feet across the old location")
+	for sample in [["heavy",0.43],["turn",0.30],["fourfold",0.43],["finisher",0.95],["dodge",0.40]]:
+		p.combat.set_action(sample[0])
+		p.combat.elapsed = sample[1]
+		p.animate(0,0)
+		var before_hurt := {}
+		var sole_before_hurt := {}
+		for side in [-1,1]:
+			before_hurt[side] = p.rig.legs[side].ankle.global_position
+			sole_before_hurt[side] = p.rig.legs[side].boot.global_basis.orthonormalized().get_rotation_quaternion()
+		var hp_before: float = p.combat.health
+		p.take_damage(1,p.global_position+Vector3.FORWARD,false)
+		check(p.combat.action=="hurt" and p.combat.health==hp_before-1,"controlled damage really interrupts "+sample[0])
+		p.animate(1.0/60,0)
+		var hurt_step := 0.0
+		for side in [-1,1]: hurt_step = maxf(hurt_step,before_hurt[side].distance_to(p.rig.legs[side].ankle.global_position))
+		print("HURT_FIRST_FRAME_STEP: ",sample[0]," meters=",hurt_step)
+		check(hurt_step<0.05,"damage carries actual feet into recoil instead of resetting them: "+sample[0])
+		for side in [-1,1]:
+			check(sole_before_hurt[side].angle_to(p.rig.legs[side].boot.global_basis.orthonormalized().get_rotation_quaternion())<0.20,"damage carries sole heading instead of instantly flattening it")
+
+		for frame in 10:
+			p.combat.advance(1.0/60)
+			p.animate(1.0/60,0)
+		check(is_equal_approx(p.combat.elapsed,10.0/60),"hurt pose blend does not delay recovery clock")
+	p.global_position += Vector3(12,0,0)
+	p.motion_epoch += 1
+	p.animate(1.0/60,0)
+	for side in [-1,1]: check(p.rig.legs[side].ankle.global_position.distance_to(p.global_position)<2,"relocation invalidates captured hurt feet and sole orientation")
 	print("STANCE_TRANSITION_CHECKS: ",checks," FAILURES: ",failures)
 	stage.queue_free()
 	await process_frame

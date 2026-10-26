@@ -42,7 +42,11 @@ func control() -> void:
 	if stage in [0,3] and not c.shadow_lifetimes.is_empty():
 		stage += 1
 	if stage in [1,4]:
-		if c.action=="idle" and monster.phase=="windup" and monster.clock>float(monster.data.windup)-0.25:
+		# Fourfold may start in windup because it cannot stop the attack.
+		# Spin must start later: otherwise its launch prevents any incoming hit,
+		# and the harness accidentally measures the next attack after spin ends.
+		var exposed: bool = monster.phase=="windup" and monster.clock>float(monster.data.windup)-0.25 if stage==1 else monster.phase=="active" and monster.clock>=0.20
+		if c.action=="idle" and exposed:
 			var before: int = c.shadow_lifetimes.size()
 			if c.request("fourfold" if stage==1 else "spin"):
 				spend_checks.append(before-c.shadow_lifetimes.size()==1)

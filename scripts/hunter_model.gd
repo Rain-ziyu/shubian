@@ -7,7 +7,7 @@ const Outfit = preload("res://scripts/hunter_outfit.gd")
 const Motion = preload("res://scripts/hunter_motion.gd")
 const JointCloth = preload("res://scripts/hunter_joint_cloth.gd")
 const STANCE_BLEND_SECONDS := 0.10
-const BLENDED_STANCES := ["idle","light","heavy","pull","guard","reply","flash","fourfold","throw"]
+const BLENDED_STANCES := ["idle","light","heavy","pull","guard","reply","flash","fourfold","throw","hurt"]
 
 static func tapered(parent: Node3D, pos: Vector3, top: float, bottom: float, height: float, color: Color) -> MeshInstance3D:
 	var mesh := MeshInstance3D.new()
@@ -167,24 +167,32 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 	var previous_action: String = rig.get("stance_action","")
 	var previous_walking := bool(rig.get("stance_walking",walking))
 	var locomotion_change := previous_action==action and action=="idle" and walking!=previous_walking
+	var interrupted := action=="hurt" and previous_action!="" and previous_action!="hurt"
+	var blend_seconds := 0.14 if action=="hurt" else STANCE_BLEND_SECONDS
 	var discontinuity: bool = rig.get("stance_epoch",motion_epoch)!=motion_epoch
 	var finisher_reset: bool = previous_action!="finisher" or elapsed<float(rig.get("finisher_last_time",elapsed)) or discontinuity
 	rig.finisher_last_time = elapsed
-	if delta<=0 or discontinuity or action not in BLENDED_STANCES or previous_action not in BLENDED_STANCES:
-		rig.stance_age = STANCE_BLEND_SECONDS
+	if delta<=0 or discontinuity or action not in BLENDED_STANCES or (previous_action not in BLENDED_STANCES and not interrupted):
+		rig.stance_age = blend_seconds
 	elif previous_action!=action or locomotion_change:
-		rig.stance_vertical = locomotion_change or previous_walking or walking
+		rig.stance_vertical = locomotion_change or previous_walking or walking or interrupted
 		rig.stance_from = {}
 		rig.sole_from = {}
+		rig.hurt_sole_from = {}
 		for side in [-1,1]:
 			rig.stance_from[side] = rig.legs[side].ankle.global_position
+			if interrupted: rig.hurt_sole_from[side] = rig.legs[side].boot.global_basis.orthonormalized()
+			if interrupted and rig.get("hurt_stance_epoch",motion_epoch)==motion_epoch and rig.get("hurt_stance_from",{}).has(side):
+				var saved: Dictionary = rig.hurt_stance_from[side]
+				rig.stance_from[side] = saved.point
+				rig.hurt_sole_from[side] = saved.basis
 			rig.sole_from[side] = float(rig.legs[side].get("sole_yaw",0.0))
 		rig.stance_age = 0.0
 	rig.stance_walking = walking
 	rig.stance_action = action
 	rig.stance_epoch = motion_epoch
-	rig.stance_age = minf(STANCE_BLEND_SECONDS,float(rig.get("stance_age",STANCE_BLEND_SECONDS))+maxf(0,delta))
-	var stance_weight := smoothstep(0,STANCE_BLEND_SECONDS,float(rig.stance_age))
+	rig.stance_age = minf(blend_seconds,float(rig.get("stance_age",blend_seconds))+maxf(0,delta))
+	var stance_weight := smoothstep(0,blend_seconds,float(rig.stance_age))
 	var drop := 0.09 if armed else 0.015
 	if walking: drop = 0.12
 	if action=="guard": drop += 0.04*smoothstep(0,0.18,elapsed)
@@ -373,6 +381,13 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 			var extension := smoothstep(0.80,0.95,elapsed)*(1-smoothstep(1.02,1.32,elapsed))
 			normals[side] = Vector3.UP.rotated(Vector3.RIGHT,PI/4*extension)
 		pose_sole(leg,normals[side],float(leg.sole_yaw))
+		if action=="hurt" and stance_weight<1 and rig.get("hurt_sole_from",{}).has(side):
+			var before: Basis = rig.hurt_sole_from[side]
+			var blended := Basis(before.get_rotation_quaternion().slerp(leg.boot.global_basis.orthonormalized().get_rotation_quaternion(),stance_weight))
+			var local_tilt: Basis = leg.ankle.global_basis.inverse()*blended
+			leg.boot.basis = local_tilt.scaled_local(Vector3(0.18,0.15,0.30))
+			leg.boot.position = Vector3(0,-0.10,0)+local_tilt*Vector3(0,0.075,-0.06)
+
 		var anchor_key := "walk_plant_world" if walking else "turn_plant_world"
 		if planting[side] and not leg.hip.has_meta(anchor_key) and (not walking or (target-leg.hip.position).length()<0.78):
 			leg.hip.set_meta(anchor_key,leg.ankle.global_position)
