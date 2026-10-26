@@ -398,6 +398,12 @@ func animate(delta: float, speed: float) -> void:
 	if not combat.drawn:
 		var torso_motion: Transform3D = rig.torso.transform*Transform3D(Basis.IDENTITY,Vector3(0,-1.08,0))
 		w.transform = torso_motion*w.transform
+	if combat.action in ["light","pull"]:
+		# Carry the rear shaft outside the ribs while aiming the head toward the centerline.
+		w.position.x = 0.32
+		if combat.action=="light": w.position.x -= 0.12*smoothstep(0.10,0.50,absf(clampf(pitch+0.25,-0.4,0.85)))
+		else: w.position.x += 0.08*sin(PI*clampf(combat.elapsed/float(Combat.MOVES.pull.duration),0,1))
+		w.rotation.y = 0.55
 	if combat.action!="idle":
 		var t: float = combat.elapsed
 		var p := clampf(t/float(Combat.MOVES[combat.action].duration),0,1)
@@ -530,6 +536,13 @@ func animate(delta: float, speed: float) -> void:
 		equipment_grip = 1.0 if combat.drawn else 0.0
 		equipment_main = equipment_grip
 	w.transform = Transform3D(Basis(Vector3.UP,-body_turn_applied),Vector3.ZERO)*w.transform
+	if combat.action in ["light","pull"]:
+		# Fit the held shaft to both reach spheres, preserving the physical hand grips.
+		for iteration in 8:
+			for side in [-1,1]:
+				var hand_target: Vector3 = w.transform*Vector3(0,0.18 if side==-1 else -0.28,0)
+				var offset: Vector3 = hand_target-rig.arms[side].shoulder.position
+				if offset.length()>0.778: w.position -= offset.normalized()*(offset.length()-0.778)
 	for i in ghosts.size():
 		var earned: bool = combat.health>0 and i<combat.shadow_lifetimes.size()
 		if earned and not ghosts[i].visible: shadow_gain_left[i] = 0.35
