@@ -51,6 +51,10 @@ var equipment_from := 0.0
 var equipment_main := 0.0
 var equipment_main_from := 0.0
 var equipment_route := false
+var right_hand_grip := -0.28
+var right_grip_from := -0.28
+var presentation_offhand := 0.0
+var offhand_from := 0.0
 var strike_windows: Array[Dictionary] = []
 var camera: Camera3D
 var shake_time := 0.0
@@ -369,8 +373,11 @@ func animate(delta: float, speed: float) -> void:
 		# Finish before its0.25s contact; guard/dodge and draw routes stay responsive.
 		if not equipment_route and pose_action=="heavy" and combat.action=="light": pose_duration = 0.18
 		if not equipment_route and pose_action=="reply" and combat.action in ["light","heavy","pull","turn"]: pose_duration = 0.12
+		if not equipment_route and pose_action=="reply" and combat.action=="heavy": pose_duration = 0.16
 		equipment_from = equipment_grip
 		equipment_main_from = equipment_main
+		right_grip_from = right_hand_grip
+		offhand_from = presentation_offhand
 		pose_from = rig.weapon.transform
 		pose_action = combat.action
 		pose_drawn = combat.drawn
@@ -555,13 +562,6 @@ func animate(delta: float, speed: float) -> void:
 		equipment_grip = 1.0 if combat.drawn else 0.0
 		equipment_main = equipment_grip
 	w.transform = Transform3D(Basis(Vector3.UP,-body_turn_applied),Vector3.ZERO)*w.transform
-	if combat.action in ["light","pull","heavy"] and (combat.action!="heavy" or delta<=0 or pose_blend>=1):
-		# Fit the held shaft to both reach spheres, preserving the physical hand grips.
-		for iteration in 8:
-			for side in [-1,1]:
-				var hand_target: Vector3 = w.transform*Vector3(0,0.18 if side==-1 else -0.28,0)
-				var offset: Vector3 = hand_target-rig.arms[side].shoulder.position
-				if offset.length()>0.778: w.position -= offset.normalized()*(offset.length()-0.778)
 	for i in ghosts.size():
 		var earned: bool = combat.health>0 and i<combat.shadow_lifetimes.size()
 		if earned and not ghosts[i].visible: shadow_gain_left[i] = 0.35
@@ -578,7 +578,25 @@ func animate(delta: float, speed: float) -> void:
 		arm_release = 0.0
 	var offhand := equipment_grip*(1-arm_release)
 	if combat.action=="reply": offhand *= 1-smoothstep(0,0.12,combat.elapsed)*(1-smoothstep(0.54,0.82,combat.elapsed))
-	HunterModel.pose_arms(rig,combat.drawn or equipment_grip>0 or equipment_main>0,walk_clock,offhand,equipment_main*(1-arm_release),release,HunterModel.counter_grip(combat.elapsed) if combat.action=="reply" else -0.28)
+	right_hand_grip = HunterModel.counter_grip(combat.elapsed) if combat.action=="reply" else -0.28
+	if delta>0 and not equipment_route:
+		var regrip := smoothstep(0,1,pose_blend)
+		offhand = lerpf(offhand_from,offhand,regrip)
+		right_hand_grip = lerpf(right_grip_from,right_hand_grip,regrip)
+	presentation_offhand = offhand
+	var main_hand := equipment_main*(1-arm_release)
+	if combat.action in ["light","pull","heavy"]:
+		# Constrain the actual released/regripping targets, not an immediate full grip.
+		for iteration in 8:
+			for side in [-1,1]:
+				var weight := offhand if side==-1 else main_hand
+				if weight<=0: continue
+				var shoulder: Vector3 = rig.arms[side].shoulder.position
+				var relaxed := shoulder+Vector3(0,-0.72,-0.015+sin(walk_clock)*side*0.12)
+				var grip: Vector3 = w.transform*Vector3(0,0.18 if side==-1 else right_hand_grip,0)
+				var offset := relaxed.lerp(grip,weight)-shoulder
+				if offset.length()>0.778: w.position -= offset.normalized()*(offset.length()-0.778)/weight
+	HunterModel.pose_arms(rig,combat.drawn or equipment_grip>0 or equipment_main>0,walk_clock,offhand,main_hand,release,right_hand_grip)
 
 func arrival_pose_weight() -> float:
 	if arrival_pose_left<=0 or combat.action not in ["idle","throw"]: return 0.0

@@ -130,6 +130,37 @@ func run() -> void:
 	p.motion_epoch += 1
 	p.animate(1.0/60,0)
 	for side in [-1,1]: check(p.rig.legs[side].ankle.global_position.distance_to(p.global_position)<2,"relocation invalidates captured hurt feet and sole orientation")
+	for chain in [["reply",0.54,"heavy"],["heavy",0.60,"light"],["light",0.37,"heavy"],["pull",0.55,"light"]]:
+		p.combat.drawn = true
+		p.pitch = -0.25
+		p.combat.set_action(chain[0])
+		p.combat.elapsed = chain[1]
+		p.animate(0,0)
+		var hands_before := {}
+		for side in [-1,1]: hands_before[side] = p.rig.arms[side].hand.position
+		p.combat.set_action(chain[2])
+		var peak_hand_step := 0.0
+		var arm_error := 0.0
+		var right_on_shaft := true
+		for frame in 25:
+			p.combat.elapsed = frame/120.0
+			p.animate(1.0/120,0)
+			for side in [-1,1]:
+				var arm: Dictionary = p.rig.arms[side]
+				peak_hand_step = maxf(peak_hand_step,hands_before[side].distance_to(arm.hand.position))
+				arm_error = maxf(arm_error,maxf(absf(arm.upper.scale.y-0.39),absf(arm.lower.scale.y-0.39)))
+				hands_before[side] = arm.hand.position
+			var right_local: Vector3 = p.rig.weapon.transform.affine_inverse()*p.rig.arms[1].hand.position
+			right_on_shaft = right_on_shaft and Vector2(right_local.x,right_local.z).length()<0.001
+		print("CHAIN_REGRIP: ",chain," step=",peak_hand_step," bone_error=",arm_error)
+		check(peak_hand_step<0.12,"chain regrips without a sudden hand teleport: "+str(chain))
+		check(arm_error<0.002,"both arms retain anatomical lengths through handoff: "+str(chain))
+		check(right_on_shaft,"right hand slides on the physical shaft during handoff: "+str(chain))
+		var settled_grips := true
+		for side in [-1,1]:
+			var local: Vector3 = p.rig.weapon.transform.affine_inverse()*p.rig.arms[side].hand.position
+			settled_grips = settled_grips and local.distance_to(Vector3(0,0.18 if side==-1 else -0.28,0))<0.001
+		check(settled_grips,"both ordinary grips settle before the new attack contact: "+str(chain))
 	print("STANCE_TRANSITION_CHECKS: ",checks," FAILURES: ",failures)
 	stage.queue_free()
 	await process_frame
