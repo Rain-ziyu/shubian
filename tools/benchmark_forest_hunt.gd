@@ -85,6 +85,13 @@ func sample_frame() -> void:
 		var total: int = profile_nodes[component].get_meta("frame_cost_total_us",0)
 		costs[component] = (total-int(profile_previous.get(component,0)))/1000.0
 		profile_previous[component] = total
+	for component in profile_nodes:
+		if component in ["player","visibility"]: continue
+		for stage in ["hazard_spawn","hazard_ground"]:
+			var key: String = str(component)+"_"+str(stage)
+			var total: int = profile_nodes[component].get_meta(stage+"_total_us",0)
+			costs[key] = (total-int(profile_previous.get(key,0)))/1000.0
+			profile_previous[key] = total
 	var player_stages: Dictionary = fighter.get_meta("frame_stage_total_us",{})
 	for stage in player_stages:
 		var key := "player_"+str(stage)
@@ -100,7 +107,7 @@ func sample_frame() -> void:
 		maximum_physics_ms = maxf(maximum_physics_ms,Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS)*1000)
 		maximum_process_ms = maxf(maximum_process_ms,Performance.get_monitor(Performance.TIME_PROCESS)*1000)
 	if frame_ms>33.33:
-		stalls.append({"ms":snappedf(frame_ms,0.01),"species":monster.data.id if is_instance_valid(monster) else "travel","phase":monster.phase if is_instance_valid(monster) else "travel","wall_seconds":(now-started_us)/1000000.0,"script_cost_ms":costs,"render_submission_ms":last_draw_ms,"pipeline_compilation_delta":pipeline_delta,"pipeline_compilation_totals":pipeline_totals,"player_action":fighter.combat.action,"process_ms":Performance.get_monitor(Performance.TIME_PROCESS)*1000,"physics_ms":Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS)*1000,"recent_contacts":recent_events.slice(maxi(0,recent_events.size()-6)).duplicate(true)})
+		stalls.append({"ms":snappedf(frame_ms,0.01),"species":monster.data.id if is_instance_valid(monster) else "travel","phase":monster.phase if is_instance_valid(monster) else "travel","wall_seconds":(now-started_us)/1000000.0,"script_cost_ms":costs,"render_submission_ms":last_draw_ms,"pipeline_compilation_delta":pipeline_delta,"pipeline_compilation_totals":pipeline_totals,"player_action":fighter.combat.action,"monster_clock":monster.clock if is_instance_valid(monster) else 0,"process_ms":Performance.get_monitor(Performance.TIME_PROCESS)*1000,"physics_ms":Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS)*1000,"recent_contacts":recent_events.slice(maxi(0,recent_events.size()-6)).duplicate(true)})
 	if sample_limit>0 and elapsed>=sample_limit: finish.call_deferred()
 func stats(values: Array[float]) -> Dictionary:
 	if values.is_empty(): return {}
@@ -118,6 +125,7 @@ func finish() -> void:
 	report["navigation_slow_paths"] = world.navigation.path_events
 	report["navigation_scope"] = "wall-clock stages for navigation calls >=2ms, last 64 events; includes controller and monster callers; timings do not distinguish CPU work from OS scheduling"
 	report["player_stage_scope"] = "player_simulation, player_animation and player_contacts are nested within player total; wall-clock time includes scheduling, and these are not additional independent costs"
+	report["hazard_stage_scope"] = "species_hazard_spawn is nested inside species physics total; species_hazard_ground measures deferred terrain fitting outside that physics total; timings include scheduling"
 	report["peak_script_cost_ms"] = profile_peaks
 	report["pipeline_compilations"] = pipeline_counts()
 	report["pipeline_compilation_events"] = compilation_events

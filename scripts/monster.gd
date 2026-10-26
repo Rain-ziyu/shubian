@@ -59,6 +59,7 @@ var lunge_direction := Vector3.FORWARD
 var mesh: Node3D
 var tell: MeshInstance3D
 var area_warning_center := Vector3.INF
+var area_warning_radius := -1.0
 var label: Label3D
 var attack_done := false
 var rear_attack := false
@@ -445,8 +446,9 @@ func update_area_warning(center: Vector3, radius: float) -> void:
 	# Cache only a stationary world-space disc; actor turning must not rotate its terrain fit.
 	tell.top_level = true
 	tell.global_transform = Transform3D(Basis.IDENTITY,center)
-	if center!=area_warning_center:
+	if center!=area_warning_center or radius!=area_warning_radius:
 		area_warning_center = center
+		area_warning_radius = radius
 		tell.mesh = Hazard.ground_disc(tell,radius)
 	tell.material_override.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	tell.material_override.albedo_color.a = 0.28
@@ -527,6 +529,7 @@ func advance_rear_attack(delta: float) -> void:
 	previous_motion_epoch = target.motion_epoch
 
 func spawn_hazard(point: Vector3, radius: float, duration: float, amount: float, kind: String) -> void:
+	var started := Time.get_ticks_usec() if get_meta("measure_frame_cost",false) else 0
 	var hazard := Hazard.new()
 	hazard.target = target
 	hazard.source_actor = self
@@ -535,8 +538,13 @@ func spawn_hazard(point: Vector3, radius: float, duration: float, amount: float,
 	hazard.damage = amount
 	hazard.kind = kind
 	hazard.interval = 0.8 if kind=="mist" else 2.0
+	if tell.mesh is ArrayMesh and area_warning_radius==radius and Vector2(area_warning_center.x-point.x,area_warning_center.z-point.z).length()<0.00001:
+		hazard.prepared_disc = tell.mesh
+		hazard.prepared_transform = tell.global_transform
+		hazard.prepared_radius = radius
 	get_parent().add_child(hazard)
 	hazard.global_position = Vector3(point.x,preload("res://scripts/forest_terrain.gd").height_at(point.x,point.z)+0.05,point.z)
+	if started: set_meta("hazard_spawn_total_us",int(get_meta("hazard_spawn_total_us",0))+Time.get_ticks_usec()-started)
 
 func clear_line_to(point: Vector3) -> bool:
 	var query := PhysicsRayQueryParameters3D.create(global_position+Vector3.UP,point+Vector3.UP)

@@ -50,6 +50,26 @@ func run() -> void:
 		check(active_vertices.size()==warning_vertices.size() and difference<0.0001,"warning and active fill match within world-transform precision")
 		world.hunter.global_position = center+Vector3(radius*0.8,0,radius*0.8)
 		check(not hazard.contains_target(),"former square corner outside circle is safe")
+		m.update_area_warning(center,radius)
+		var prepared: ArrayMesh = m.tell.mesh
+		var prepared_transform: Transform3D = m.tell.global_transform
+		m.spawn_hazard(center,radius,1.0,9.0,m.data.pattern)
+		var reused = get_nodes_in_group("hazards").back()
+		reused.set_physics_process(false)
+		reused.conform_ground()
+		check(reused.surface.mesh==prepared,"active area reuses the exact prepared warning geometry")
+		var anchor: Vector3 = prepared.surface_get_arrays(0)[Mesh.ARRAY_VERTEX][0]
+		m.update_area_warning(center+Vector3(2,0,0),radius)
+		check(reused.surface.to_global(anchor).distance_to(prepared_transform*anchor)<0.0001,"new warning cannot move the active area's retained world-space geometry")
+		m.update_area_warning(center,radius)
+		m.update_area_warning(center,radius+0.5)
+		check(absf(m.tell.mesh.get_aabb().size.x-2*(radius+0.5))<0.001,"warning cache refreshes when only the radius changes")
+		m.spawn_hazard(center,radius,1.0,9.0,m.data.pattern)
+		var fallback = get_nodes_in_group("hazards").back()
+		fallback.set_physics_process(false)
+		fallback.conform_ground()
+		check(fallback.surface.mesh!=m.tell.mesh and absf(fallback.surface.mesh.get_aabb().size.x-2*radius)<0.001,"mismatched prepared radius falls back to the correct active disc")
+
 	print("AREA_WARNING_CHECKS: ",checks," FAILURES: ",failures)
 	world.queue_free()
 	await process_frame

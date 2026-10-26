@@ -15,6 +15,10 @@ var boundary: MeshInstance3D
 var puffs: Array[MeshInstance3D] = []
 var visual_age := 0.0
 var puff_base_y: Array[float] = []
+# Immutable terrain fit retained from this attack's warning, when compatible.
+var prepared_disc: ArrayMesh
+var prepared_transform := Transform3D.IDENTITY
+var prepared_radius := -1.0
 
 func _ready() -> void:
 	add_to_group("hazards")
@@ -70,6 +74,8 @@ static func disc_point(origin: Node3D, x: float, z: float, lift: float) -> Vecto
 
 func conform_ground() -> void:
 	if is_queued_for_deletion(): return
+	var measured := is_instance_valid(source_actor) and bool(source_actor.get_meta("measure_frame_cost",false))
+	var started := Time.get_ticks_usec() if measured else 0
 	var band := SurfaceTool.new()
 	band.begin(Mesh.PRIMITIVE_TRIANGLES)
 	for index in 64:
@@ -84,13 +90,18 @@ func conform_ground() -> void:
 	boundary.mesh = band.commit()
 	boundary.position = Vector3.ZERO
 	boundary.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	surface.mesh = ground_disc(self,radius)
-	surface.position = Vector3.ZERO
-	surface.scale = Vector3.ONE
+	var same_center := Vector2(global_position.x-prepared_transform.origin.x,global_position.z-prepared_transform.origin.z).length()<0.00001
+	if prepared_disc!=null and prepared_radius==radius and same_center:
+		surface.mesh = prepared_disc
+		surface.transform = global_transform.affine_inverse()*prepared_transform
+	else:
+		surface.mesh = ground_disc(self,radius)
+		surface.transform = Transform3D.IDENTITY
 	surface.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	for index in puffs.size():
 		var puff := puffs[index]
 		puff_base_y[index] = ground_point(puff.position.x,puff.position.z,0.7).y
+	if started: source_actor.set_meta("hazard_ground_total_us",int(source_actor.get_meta("hazard_ground_total_us",0))+Time.get_ticks_usec()-started)
 
 static func ground_disc(origin: Node3D, disc_radius: float) -> ArrayMesh:
 	var fill := SurfaceTool.new()

@@ -1203,3 +1203,15 @@ D盘原生渲染检查counter_sweep_arc 7、front_guard 7、skin 250项通过（
 干净33a83064c1d3b49daa25fe516af39e46696e6c22完整实时复验forest-realtime-20261026-141125-4307bc五怪通过、无运行错误，但帧预算失败：稳态62299帧，均值4.821ms、P95 9.793ms、P99 11.85ms、最长80.074ms、>33.33ms共5次。人物contacts峰值7.064ms、人物总峰值9.325ms；帧间环境差异未排除，不能把前后峰值差全部归因本次修改。最大80ms长帧中人物2.463ms/渲染提交8.424ms，仍有明显未归属耗时；另一个48ms帧stormcrest总耗时34.676ms，需进一步分段观察，未诊断为具体AI/渲染/系统根因。
 
 功能等价边界本轮已验证，局部重复计算减少；当前稳定流畅度、建模艺术质量、自然动作和真人偏难体验仍未验收，目标保持进行中。没有放宽帧预算、降低模型质量或删除慢帧记录。
+
+## 2026-10-26 预警圆盘复用与特效阶段计时
+
+检查上轮forest-realtime-20261026-141125-4307bc的stormcrest长帧处于active阶段，未保存该怪物的当时clock，不能仅凭phase将34.676ms归因创建特效。代码另确认：warning已生成贴地圆盘，active hazard又重建相同地形区域。本轮消除这个重复构建，不声称它就是已证实的长帧根因。
+
+在位置XZ及半径匹配时，hazard保留warning的ArrayMesh及世界变换快照；活动面使用相对变换抵消两个节点的原点高度差，后续warning换网格/移动不影响旧hazard。位置或半径不匹配时仍独立生成。warning缓存同时补足仅半径变化时的失效条件。边界环、迷雾、伤害半径/间隔/寿命/LOS规则不变；没有减少圆盘细分或画面内容。
+
+原生基线area_warning12/hazards9/mist9共30项通过（regressions-20261026-062836-5a5eef）。新增复用与世界位置检查在旧实现失败4项（062952-33047d，20项）；实施后新增同中心半径变化检查及原检查共area20/hazards9/mist9共38项通过（063118-2755ef、063255-8a1990）。本轮只有目标范围复验，不称完整89套重跑。
+
+新增可选hazard_spawn计时（嵌套怪物physics总计）和hazard_ground计时（正常运行的延迟贴地在physics之外），并保存目标怪物clock。最初诊断脚本因Variant拼接的key类型推断失败（hazard-stage-smoke.log）；显式String后3秒原生采样通过（forest-performance-1793013163-23400.json），仅编译/字段证明。原生受控probe_hazard_stages：mist spawn12.014ms/ground0.576ms、pulse spawn0.398ms/ground0.492ms，均确认surface.mesh与warning同一资源。这是受控局部数据，不能解释此前34ms峰值，也不作帧率验收。
+
+五怪及各自弱点固定60FPS headless连续流程通过（forest-hunt-20261026-191355-4ff85d），运行时ce3a5db加本轮WIP；不是原生实时/GPU或真人难度验收。新版本完整实时阶段采样仍待进行，旧完整报告5次长帧/最大80.074ms仍是未解决限制。整体模型、动作自然性、流畅度与真人偏难体验目标保持进行中。
