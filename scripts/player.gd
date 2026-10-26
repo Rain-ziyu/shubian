@@ -25,6 +25,7 @@ var mount: Node3D
 var yaw := 0.0
 var pitch := -0.25
 var camera_manual_time := 0.0
+var camera_pullback := 0.0
 var motion_epoch := 0
 var body_turn_applied := 0.0
 var body_turn_pose := 0.0
@@ -186,6 +187,19 @@ func update_lock_camera(delta: float) -> void:
 	var heading := atan2(-offset.x,-offset.z)
 	yaw = lerp_angle(yaw,heading,1-exp(-5.0*delta))
 
+func update_camera_framing(delta: float) -> void:
+	var desired := 0.0
+	if combat.health>0 and is_instance_valid(lock_target) and lock_target.health>0:
+		var offset: Vector3 = lock_target.global_position-global_position
+		var distance := Vector2(offset.x,offset.z).length()
+		desired = clampf((float(lock_target.data.size)-2.0)*0.8,0,1.8)*(1-smoothstep(5,12,distance))
+	camera_pullback = lerpf(camera_pullback,desired,1-exp(-5.0*maxf(0,delta)))
+	var arm: SpringArm3D = camera.get_parent()
+	arm.spring_length = 5.0+camera_pullback
+	mount.position = global_position+Vector3(0,1.5+camera_pullback*0.14,0)
+	var orbit_pitch := pitch*0.2 if pitch>0 else pitch
+	mount.rotation = Vector3(orbit_pitch-camera_pullback*0.09,yaw,0)
+
 func _notification(what: int) -> void:
 	if what==NOTIFICATION_WM_WINDOW_FOCUS_OUT:
 		heavy_held = -1
@@ -315,10 +329,7 @@ func advance_physics(delta: float, profile := false) -> void:
 		rig.root.rotation.y = lerp_angle(rig.root.rotation.y,atan2(-offset.x,-offset.z),delta*10)
 	elif combat.health>0 and direction.length()>0.1 and combat.action=="idle":
 		rig.root.rotation.y = lerp_angle(rig.root.rotation.y,atan2(-direction.x,-direction.z),delta*12)
-	mount.position = global_position+Vector3(0,1.5,0)
-	# Keep the orbit above the floor while the nearby weapon aims at elevated parts.
-	var orbit_pitch := pitch*0.2 if pitch>0 else pitch
-	mount.rotation = Vector3(orbit_pitch,yaw,0)
+	update_camera_framing(delta)
 	if profile: stage_started = record_frame_stage("simulation",stage_started)
 	animate(delta,animation_speed)
 	if profile: stage_started = record_frame_stage("animation",stage_started)
