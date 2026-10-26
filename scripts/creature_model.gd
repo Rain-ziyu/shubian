@@ -3,6 +3,7 @@ const V = preload("res://scripts/visuals.gd")
 const H = preload("res://scripts/hunter_model.gd")
 const Surface = preload("res://scripts/creature_surface.gd")
 const TailSkin = preload("res://scripts/creature_tail_skin.gd")
+const MouthSkin = preload("res://scripts/creature_mouth_skin.gd")
 const LegSkin = preload("res://scripts/creature_leg_skin.gd")
 const EYE_SHADER = preload("res://shaders/creature_eye.gdshader")
 const IRIS_COLORS := {"sweep":"bc954d","charge":"b77943","mist":"83a497","leap":"c0ad68","pulse":"94a7b5"}
@@ -107,6 +108,7 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 	jaw.transform = jaw_pose(data,"idle",0)
 	var mouth_floor := Surface.mouth_lining(jaw,hinge,s,head_width)
 	mouth_floor.position = -hinge
+	MouthSkin.create(neck,head_surface,jaw,s,head_width)
 	var dental_jaw := jaw.mesh.generate_triangle_mesh()
 	for side in [-1,1]:
 		var nose_x := 0.075*head_width
@@ -394,6 +396,7 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 			var part: Node3D = root.get_node(path)
 			var captured: Vector3 = forelimbs[path]
 			part.rotation = captured.lerp(part.rotation,float(pose_override.get("blend",1.0)))
+	MouthSkin.animate(neck)
 	# Additive recoil never pauses AI. Stagger owns its captured-pose transition.
 	var impact_age: float = root.get_meta("impact_age",0.26)
 	if impact_age<0.26 and phase!="stagger":

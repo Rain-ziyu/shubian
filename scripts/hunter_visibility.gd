@@ -1,4 +1,5 @@
 extends Node
+const MouthSkin = preload("res://scripts/creature_mouth_skin.gd")
 ## Foreign-object gating avoids highlighting the hunter's own overlapping limbs.
 var hunter: CharacterBody3D
 var parts: Array[MeshInstance3D] = []
@@ -91,11 +92,12 @@ func collect_surfaces(ray_bounds: Variant = null) -> Array:
 			if not is_instance_valid(mesh) or not mesh.is_visible_in_tree(): continue
 			var transform: Transform3D = mesh.global_transform
 			var inverse := transform.affine_inverse()
-			var bounds: AABB = mesh.get_aabb()
+			var deforming: bool = mesh.get_meta("mouth_membrane",false)
+			var bounds: AABB = MouthSkin.bounds(mesh) if deforming else mesh.get_aabb()
 			if ray_bounds!=null:
 				var packet: AABB = ray_bounds
 				if not bounds.grow(0.002).intersects(inverse*packet): continue
-			surfaces.append({"bounds":bounds,"transform":transform,"inverse":inverse,"geometry":mesh.mesh,"id":mesh.mesh.get_instance_id()})
+			surfaces.append({"bounds":bounds,"transform":transform,"inverse":inverse,"geometry":mesh.mesh,"id":mesh.mesh.get_instance_id(),"deforming":mesh if deforming else null})
 	return surfaces
 
 func foreign_blocks(camera_position: Vector3, destination: Vector3, surfaces: Variant = null) -> bool:
@@ -110,8 +112,12 @@ func foreign_blocks(camera_position: Vector3, destination: Vector3, surfaces: Va
 		if surface.bounds.intersects_segment(local_start,local_end)==null: continue
 		# Empty space inside a large head/body bounding box is not an obstruction.
 		var geometry_id: int = surface.id
-		if not triangle_meshes.has(geometry_id): triangle_meshes[geometry_id] = surface.geometry.generate_triangle_mesh()
-		var triangles: TriangleMesh = triangle_meshes[geometry_id]
+		var triangles: TriangleMesh
+		if surface.get("deforming")!=null:
+			triangles = MouthSkin.triangles(surface.deforming)
+		else:
+			if not triangle_meshes.has(geometry_id): triangle_meshes[geometry_id] = surface.geometry.generate_triangle_mesh()
+			triangles = triangle_meshes[geometry_id]
 		if triangles==null: continue
 		var contact: Dictionary = triangles.intersect_segment(local_start,local_end)
 		if not contact.is_empty() and (surface.transform*contact.position).distance_to(destination)>0.15: return true
