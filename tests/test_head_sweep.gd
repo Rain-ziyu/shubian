@@ -52,6 +52,16 @@ func run() -> void:
 	check(follow.is_equal_approx(neck.transform),"active joins recovery pose without neck snap")
 	Model.animate(m.mesh,m.data,0,"recover",m.data.recovery,0)
 	check(absf(neck.rotation.y)<0.001,"follow-through returns to neutral")
+	var trunk: Node3D = m.mesh.get_node("BodySurface")
+	var tail: Node3D = m.mesh.get_node("Tail")
+	for sample in [["windup",float(m.data.windup)],["active",0.0],["active",0.40],["active",0.65],["recover",0.0],["recover",float(m.data.recovery)]]:
+		Model.animate(m.mesh,m.data,0,sample[0],sample[1],0)
+		check(absf(trunk.rotation.z-0.12*neck.rotation.y)<0.001,"trunk load follows the visible head sweep "+str(sample))
+		check(absf(tail.rotation.y+0.28*neck.rotation.y)<0.001,"tail counterbalances sweep rather than idling "+str(sample))
+		for plate_index in 5:
+			var plate: Node3D = m.mesh.get_node("ArmorPlate"+str(plate_index))
+			check(plate.transform.is_equal_approx(trunk.transform*plate.get_meta("body_bind")),"armor remains attached during sweep weight transfer")
+
 	check(m.head_rings.size()==2,"head and jaw both supply fitted contact profiles")
 	await prepare(Vector3(0,0,-3.2))
 	for frame in 66: m._physics_process(1.0/60)

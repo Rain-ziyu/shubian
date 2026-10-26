@@ -312,10 +312,13 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 	if data.pattern=="sweep":
 		var load := smoothstep(0,float(data.windup),clock) if phase=="windup" else (1-smoothstep(0,0.08,clock) if phase=="active" else 0.0)
 		root.position.y = -float(data.size)*0.045*load
-		root.get_node("BodySurface").rotation.z = -0.08*load
 		var angles := sweep_angles(phase,clock,float(data.windup),float(data.recovery))
 		neck.rotation.x = angles.x
 		neck.rotation.y = angles.y
+		# Transfer the visible trunk load through follow-through; tail counterbalances.
+		# Head contact trajectory and the planted leg targets remain authoritative.
+		root.get_node("BodySurface").rotation.z = 0.12*angles.y
+		tail.rotation.y -= 0.28*angles.y
 	if data.pattern=="charge":
 		var charge_pitch := CHARGE_NECK_PITCH
 		if ground_normal.is_valid() and phase in ["windup","active","recover"]:
