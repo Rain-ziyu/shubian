@@ -1215,3 +1215,15 @@ D盘原生渲染检查counter_sweep_arc 7、front_guard 7、skin 250项通过（
 新增可选hazard_spawn计时（嵌套怪物physics总计）和hazard_ground计时（正常运行的延迟贴地在physics之外），并保存目标怪物clock。最初诊断脚本因Variant拼接的key类型推断失败（hazard-stage-smoke.log）；显式String后3秒原生采样通过（forest-performance-1793013163-23400.json），仅编译/字段证明。原生受控probe_hazard_stages：mist spawn12.014ms/ground0.576ms、pulse spawn0.398ms/ground0.492ms，均确认surface.mesh与warning同一资源。这是受控局部数据，不能解释此前34ms峰值，也不作帧率验收。
 
 五怪及各自弱点固定60FPS headless连续流程通过（forest-hunt-20261026-191355-4ff85d），运行时ce3a5db加本轮WIP；不是原生实时/GPU或真人难度验收。新版本完整实时阶段采样仍待进行，旧完整报告5次长帧/最大80.074ms仍是未解决限制。整体模型、动作自然性、流畅度与真人偏难体验目标保持进行中。
+
+## 2026-10-26 苔甲龙楔形头骨造型
+
+用户将“怪物模型与角色模型美观、动作流畅”明确加入最终目标。本轮回到可见模型，不把功能或帧率检查代替美术完成。当前苔甲龙头部较圆，本轮为它单独重塑较低的吻背、楔形前额和眼眶轮廓，增强重甲植食型巨兽方向。保留吻端Z=-0.715的纵向终点、下颌节点/铰链、身体和尾部；实际头部接触剖面从新网格生成，未用旧隐形碰撞体覆盖新造型。
+
+初版改变头骨后，原眉骨较高，原生surface检查检出运行时/保存模型共4处根部悬空（regressions-20261026-115444-5eada3），未放宽检查。将mossback眉骨下移0.025×体型并沿真实头骨重新贴合后，原生5脚本377断言通过（115634-8bab73）：jaw95/surface168/head_sweep57/head_warning_geometry15/skin_material42。包括牙根、口腔、眼眶、护甲显隐时接触面一致及实际横扫/格挡判定。保存模型只更改mossback，136资源ID规范；其他四个模型无差异。
+
+原生模型图D:/vscode/Shubian/outputs/Shubian-creature-mossback.png；旧版留在Shubian-creature-mossback-before-wedge.png。场景姿态图Shubian-head-sweep-states.png展示待机/起手/横扫/收势，均为真实游戏渲染，直接姿态研究不作实战视频证明。
+
+映射输入链mossback-wedge-input-chain.log通过：14.4秒HP240，反击3/四连刺4/旋枪1实际接触与2节拍/终结2；Input.parse_input_event非OS输入。各自弱点五怪headless固定60流程通过（forest-hunt-20261026-195822-37a56b），源码ff1a58d加本轮WIP，非原生实时帧率或真人难度证明。
+
+此为苔甲龙的一次造型迭代，不宣称人物/五怪已美观完成。当前版本整图实时性能仍未复验，先前长帧限制仍保留；角色与其他怪物的整体美术、自然动作、玩家手感和偏难体验继续保持未完成。

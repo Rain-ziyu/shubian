@@ -63,7 +63,11 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 	if data.id=="reedclaw": neck.scale = Vector3.ONE*0.88
 	var head_width := 0.78 if data.id in ["reedclaw","mistfrill"] else 1.0
 	var head_profile := [Vector4(-0.715,0.012*head_width,0.008,0.06),Vector4(-0.707,0.025*head_width,0.016,0.06),Vector4(-0.69,0.035*head_width,0.02,0.06),Vector4(-0.61,0.14*head_width,0.065,0.085),Vector4(-0.42,0.19*head_width,0.14,0.14),Vector4(-0.28,0.16*head_width,0.145,0.12),Vector4(-0.09,0.135,0.17,0.08),Vector4(0.12,0.10,0.15,0)]
-	if data.id=="thornhorn":
+	if data.id=="mossback":
+		# Low nasal wedge and a stronger orbital roof for the armored grazer.
+		# Keep the authored snout endpoint; contacts are fitted to this mesh.
+		head_profile = [Vector4(-0.715,0.010,0.007,0.055),Vector4(-0.70,0.035,0.018,0.055),Vector4(-0.67,0.085,0.035,0.065),Vector4(-0.60,0.14,0.055,0.080),Vector4(-0.49,0.175,0.10,0.125),Vector4(-0.40,0.185,0.115,0.145),Vector4(-0.28,0.165,0.130,0.130),Vector4(-0.09,0.135,0.17,0.08),Vector4(0.12,0.10,0.15,0)]
+	elif data.id=="thornhorn":
 		head_profile = [Vector4(-0.715,0.006,0.004,0.10),Vector4(-0.71,0.065,0.035,0.10),Vector4(-0.69,0.12,0.065,0.10),Vector4(-0.61,0.155,0.09,0.11),Vector4(-0.42,0.22,0.17,0.17),Vector4(-0.28,0.19,0.18,0.14),Vector4(-0.09,0.135,0.17,0.08),Vector4(0.12,0.10,0.15,0)]
 	elif data.id=="stormcrest":
 		# Broad cropped muzzle and tall orbital vault distinguish the heavy caster
@@ -118,7 +122,7 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 		var pupil := V.piece(neck,Vector3(side*s*(eye_x+0.013),s*0.20,-s*0.436),Vector3(s*0.006,s*0.018,s*0.012),Color("1c2721"),true)
 		pupil.name = "Pupil"+str(side)
 		var brow := Surface.profile(neck,"EyeRidge"+str(side),[Vector4(-0.51,0.001,0.001,0.225),Vector4(-0.46,0.018,0.012,0.245),Vector4(-0.41,0.028,0.014,0.255),Vector4(-0.35,0.020,0.012,0.245),Vector4(-0.30,0.001,0.001,0.22)],s,c.darkened(0.14))
-		if data.id=="reedclaw":
+		if data.id in ["reedclaw","mossback"]:
 			# Seat the ridge against the orbital roof instead of floating above it.
 			brow.position.y = -s*0.025
 		Surface.seat_orbital_ridge(brow,facial_surface,side,s)
