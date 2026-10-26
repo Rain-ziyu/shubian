@@ -1345,3 +1345,11 @@ ff63485完整原生90脚本首跑87通过/3失败，原始证据 regressions-202
 峰值脚本：玩家3.963ms（接触3.209/动画0.979/模拟0.704为不同帧嵌套峰，不相加）、可见性2.308、棘角11.022、雷脊4.276；雷圈spawn0.331/ground0.580。毒雾spawn/ground=0，控制器打断了雾囊蓄势，本轮不能声称成功毒雾性能。以往启动及历史长帧证据保留，本次通过不证明所有原因或所有设备已解决。
 
 默认非准备入口的固定60步长五怪全弱点流程也通过：../verification/forest-hunt-20261026-223046-492bc5/summary.json。它证明原控制器路径和弱点对战仍能完成，不是实时FPS或真人难度。最新试玩包80b3745与0efd54e之间仅3个诊断文件差异（tests/replay_forest_hunt.gd、tools/benchmark_forest_hunt.gd、tools/verify_forest_performance.ps1），实际游戏运行代码相同；无需重新打包。短3秒入口编译/统计烟测 prepared-benchmark-smoke.log 保留为工具验证，未冒充完整对战。
+
+## 连续动作回放与提示遮挡（2026-10-26）
+
+用当前模型和真实单怪AI录制四连刺/旋枪承伤演示，无注入伤害、生命、枪意或命中确认。4.700秒四连刺受到42伤害进入hurt，11.283秒旋枪受到42伤害仍保持spin；两次均消耗自然获得的一层枪意，结束生命156，模拟12.55秒。电影756帧/60FPS/12.60秒；录制耗时约21秒，明确不是实时FPS证据或物理OS/真人操作。../verification/live-interruptions-9647d44.log 与 live-interruptions-clear-view.log 保留。
+
+实机检查发现状态大字原在腰胸区域，与角色动作重叠。仅将动作事件/阶段/进度统一移至下方（分别底部-172/-126/-92），事件字25→23；保留原提示优先级、文字颜色和动作时钟。新图 ../Shubian-action-feedback-interrupted.png 已查看，角色躯干与持枪手清楚露出。前后回放事件/伤害完全一致；反馈22/战斗HUD27共49项原生通过：../verification/regressions-20261026-143814-88273c/summary.json。
+
+可观看新演示 ../Shubian-live-interruptions-clear-view.mp4（8,541,164字节），旧位置对照 Shubian-live-interruptions-9647d44.mp4。两份转码均通过756帧解码与3处截图检查后，仅删除本轮创建的对应AVI中间文件，释放约146.6MiB的D盘空间；未重试此前被拒绝的C盘原目录清理。整体美术、衣料交叠、真人手感仍未完成，本轮只确认提示不再压住此回放中的躯干动作。

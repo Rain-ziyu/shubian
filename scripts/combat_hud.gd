@@ -115,21 +115,21 @@ func _ready() -> void:
 	action_phase.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
 	action_phase.offset_left = -220
 	action_phase.offset_right = 220
-	action_phase.offset_top = -185
-	action_phase.offset_bottom = -150
+	action_phase.offset_top = -126
+	action_phase.offset_bottom = -96
 	action_phase.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	action_progress = bar_at(Vector2.ZERO,Vector2(300,6),1,Color("8bbbad"))
 	action_progress.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
 	action_progress.offset_left = -150
 	action_progress.offset_right = 150
-	action_progress.offset_top = -146
-	action_progress.offset_bottom = -140
-	action_event = text_at(Vector2.ZERO,25)
-	action_event.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	action_progress.offset_top = -92
+	action_progress.offset_bottom = -86
+	action_event = text_at(Vector2.ZERO,23)
+	action_event.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
 	action_event.offset_left = -260
 	action_event.offset_right = 260
-	action_event.offset_top = 115
-	action_event.offset_bottom = 155
+	action_event.offset_top = -172
+	action_event.offset_bottom = -135
 	action_event.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 func _unhandled_key_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and InputKeys.code(event)==KEY_F1:
