@@ -36,6 +36,32 @@ func run() -> void:
 		m.CreatureModel.animate(m.mesh,m.data,0,"idle",0,0)
 		check(m.mesh.get_node("Neck").rotation.length()<0.001 and m.mesh.get_node("BodySurface").rotation.length()<0.001,"repeated recoil fully returns to authored pose")
 		check(absf(m.mesh.get_node("Tail").rotation.y)<0.001,"tail recoil returns without accumulating over repeated hits")
+	# Read the rendered mass response and support feet, not just metadata.
+	for creature in monsters:
+		creature.stagger = 0
+		creature.phase = "idle"
+		var origin: Vector3 = creature.global_position+creature.global_basis*Vector3(3,0,0)
+		creature.mesh.set_meta("impact_age",0.26)
+		creature.CreatureModel.animate(creature.mesh,creature.data,0,"idle",0,0)
+		var neutral_y: float = creature.mesh.position.y
+		var leg: Node3D = creature.mesh.get_node("Hind1")
+		var bones: Skeleton3D = leg.get_node("LegSkeleton")
+		var ankle: Vector3 = leg.to_global(bones.get_bone_global_pose(2).origin)
+		creature.receive_strike(1,origin,"light","body")
+		creature.mesh.set_meta("impact_age",0.045)
+		creature.CreatureModel.animate(creature.mesh,creature.data,0,"idle",0,0)
+		var light_y: float = creature.mesh.position.y
+		var light_yaw: float = creature.mesh.get_node("Neck").rotation.y
+		creature.receive_strike(1,origin,"heavy","body")
+		creature.mesh.set_meta("impact_age",0.045)
+		creature.CreatureModel.animate(creature.mesh,creature.data,0,"idle",0,0)
+		check(neutral_y-creature.mesh.position.y>float(creature.data.size)*0.018,"heavy impact visibly compresses weight: "+str(creature.data.id))
+		check(creature.mesh.position.y<light_y and creature.mesh.get_node("Neck").rotation.y>light_yaw*1.5,"heavy reaction exceeds light in both weight and head recoil")
+		check(leg.to_global(bones.get_bone_global_pose(2).origin).distance_to(ankle)<0.003,"impact compression retains planted ankle: "+str(creature.data.id))
+		check(creature.stagger==0 and creature.phase=="idle","visual weight response does not grant mechanical stagger")
+		creature.mesh.set_meta("impact_age",0.26)
+		creature.CreatureModel.animate(creature.mesh,creature.data,0,"idle",0,0)
+		check(absf(creature.mesh.position.y-neutral_y)<0.0001,"impact weight fully recovers without accumulated sinking")
 	m.phase = "idle"
 	m.clock = 0
 	var ui = world.combat_hud

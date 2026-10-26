@@ -380,6 +380,11 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 	if impact_age<0.26 and phase!="stagger":
 		var weight := smoothstep(0,0.045,impact_age)*(1-smoothstep(0.045,0.26,impact_age))
 		var impulse: Vector3 = root.get_meta("impact_rotation",Vector3.ZERO)
+		# Brief load through the torso gives a large animal visible weight. The
+		# existing leg solver compensates at the ankle instead of sliding feet.
+		# A leaper already in flight retains its authored aerial silhouette.
+		if not (data.pattern=="leap" and phase=="active"):
+			root.position.y -= float(root.get_meta("impact_compression",0.0))*weight
 		neck.rotation += Vector3(impulse.x,impulse.y,0)*weight
 		root.get_node("BodySurface").rotation.z += impulse.z*weight
 		# A delayed counter-swing balances the head without moving planted feet.
