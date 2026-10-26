@@ -40,6 +40,7 @@ func setup() -> void:
 	Engine.max_fps = 0
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 	await super.setup()
+	world.navigation.profile_paths = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	fighter.camera_manual_time = 0
 	profile_nodes = {"player":fighter,"visibility":fighter.get_node("OcclusionVisibility")}
@@ -108,6 +109,8 @@ func stats(values: Array[float]) -> Dictionary:
 func finish() -> void:
 	if finished: return
 	var report := {"all_frames":stats(timings),"after_two_seconds":stats(steady),"stalls":stalls,"maximum_physics_ms":maximum_physics_ms,"maximum_process_ms":maximum_process_ms,"viewport":str(root.get_visible_rect().size),"adapter":RenderingServer.get_video_adapter_name(),"wall_seconds":(Time.get_ticks_usec()-started_us)/1000000.0,"simulation_seconds":elapsed,"scope":"native uncapped real-time full forest hunt from normal spawn, five AI active, no resource resets; local hardware only; excludes initial scene loading; privileged controller, not human difficulty acceptance"}
+	report["navigation_slow_paths"] = world.navigation.path_events
+	report["navigation_scope"] = "wall-clock stages for navigation calls >=2ms, last 64 events; includes controller and monster callers; timings do not distinguish CPU work from OS scheduling"
 	report["peak_script_cost_ms"] = profile_peaks
 	report["pipeline_compilations"] = pipeline_counts()
 	report["pipeline_compilation_events"] = compilation_events
