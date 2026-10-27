@@ -57,8 +57,9 @@ static func create(parent: Node3D) -> Dictionary:
 		var knee := V.pivot(leg,"Knee",Vector3(0,-0.43,0))
 		Outfit.armor_plate(knee,"KneePlate",[Vector3(-0.065,0.065,-0.09),Vector3(0.065,0.065,-0.09),Vector3(0.085,-0.03,-0.105),Vector3(0,-0.12,-0.115),Vector3(-0.085,-0.03,-0.105)],armor)
 		var shin := Outfit.loft(knee,"TrouserShin",[Vector4(-0.36,0.061,0.058,0),Vector4(-0.23,0.077,0.071,0),Vector4(-0.10,0.087,0.078,0),Vector4(0,0.078,0.072,0)],dark)
-		Outfit.armor_plate(knee,"ShinPlate",[Vector3(-0.065,-0.10,-0.09),Vector3(0.065,-0.10,-0.09),Vector3(0.055,-0.27,-0.085),Vector3(0,-0.33,-0.10),Vector3(-0.055,-0.27,-0.085)],armor)
+		var shin_plate := Outfit.armor_plate(knee,"ShinPlate",[Vector3(-0.065,-0.10,-0.09),Vector3(0.065,-0.10,-0.09),Vector3(0.055,-0.27,-0.085),Vector3(0,-0.33,-0.10),Vector3(-0.055,-0.27,-0.085)],armor)
 		var ankle := V.pivot(knee,"Ankle",Vector3(0,-0.36,0))
+		Outfit.shin_straps(shin_plate,shin)
 		var boot := Outfit.boot(ankle)
 		legs[side] = {"hip":leg,"knee":knee,"ankle":ankle,"thigh":thigh,"shin":shin,"boot":boot}
 		joints["leg"+str(side)] = leg

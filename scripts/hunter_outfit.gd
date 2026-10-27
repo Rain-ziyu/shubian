@@ -370,7 +370,19 @@ static func armor_plate(parent: Node3D, label: String, points: Array, color: Col
 		var inner_a := a.lerp(center,0.15)+Vector3(0,0,-0.006)
 		var inner_b := b.lerp(center,0.15)+Vector3(0,0,-0.006)
 		st.set_color(Color("c4cec6"))
-		MetalMesh.bevel_triangle(st,center+Vector3(0,0,-0.018),inner_a,inner_b,Vector3.FORWARD)
+		st.set_smooth_group(0)
+		# Four curved rings replace a single broad triangular face. Keep the
+		# same solid rim and maximum rise so the armor retains its clearance.
+		for row in 4:
+			var t0 := float(row)/4
+			var t1 := float(row+1)/4
+			var a0 := center.lerp(inner_a,t0)+Vector3(0,0,-0.018*(1-t0*t0))
+			var b0 := center.lerp(inner_b,t0)+Vector3(0,0,-0.018*(1-t0*t0))
+			var a1 := center.lerp(inner_a,t1)+Vector3(0,0,-0.018*(1-t1*t1))
+			var b1 := center.lerp(inner_b,t1)+Vector3(0,0,-0.018*(1-t1*t1))
+			MetalMesh.bevel_triangle(st,a0,a1,b1,Vector3.FORWARD)
+			if row>0: MetalMesh.bevel_triangle(st,a0,b1,b0,Vector3.FORWARD)
+		st.set_smooth_group(-1)
 		st.set_color(Color.WHITE)
 		MetalMesh.bevel_triangle(st,a,b,inner_a,Vector3.FORWARD)
 		MetalMesh.bevel_triangle(st,b,inner_b,inner_a,Vector3.FORWARD)
@@ -389,6 +401,44 @@ static func armor_plate(parent: Node3D, label: String, points: Array, color: Col
 	result.material_override.roughness = 0.62
 	parent.add_child(result)
 	return result
+
+static func shin_straps(plate: MeshInstance3D, cloth: MeshInstance3D) -> void:
+	var surface := cloth.mesh.generate_triangle_mesh()
+	var arrays: Array = plate.mesh.surface_get_arrays(0)
+	var tool := SurfaceTool.new()
+	tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for index in arrays[Mesh.ARRAY_VERTEX].size():
+		tool.set_color(arrays[Mesh.ARRAY_COLOR][index])
+		tool.set_normal(arrays[Mesh.ARRAY_NORMAL][index])
+		tool.add_vertex(arrays[Mesh.ARRAY_VERTEX][index])
+	var base: Color = plate.material_override.albedo_color
+	var leather := Color("624532")
+	tool.set_color(Color(leather.r/base.r,leather.g/base.g,leather.b/base.b))
+	tool.set_smooth_group(0)
+	for height in [-0.16,-0.27]:
+		for segment in 32:
+			var corners: Array[Vector3] = []
+			for end in 2:
+				var angle := TAU*float(segment+end)/32
+				var radial := Vector3(sin(angle),0,cos(angle))
+				for edge in 2:
+					var y: float = height+(-0.011 if edge==0 else 0.011)
+					var hit: Dictionary = surface.intersect_segment(Vector3(0,y,0)+radial*0.15,Vector3(0,y,0))
+					assert(not hit.is_empty(),"Shin straps must seat on the trouser surface")
+					corners.append(hit.position+radial*0.0028)
+					corners.append(hit.position+radial*0.0006)
+			# Two radial walls and two narrow bound edges make each strip closed.
+			for face in [[0,4,2,6],[1,3,5,7],[0,1,4,5],[2,6,3,7]]:
+				var a: Vector3 = corners[face[0]]
+				var b: Vector3 = corners[face[1]]
+				var c: Vector3 = corners[face[2]]
+				var d: Vector3 = corners[face[3]]
+				var normal := (b-a).cross(c-a).normalized()
+				MetalMesh.bevel_triangle(tool,a,b,c,normal)
+				MetalMesh.bevel_triangle(tool,b,d,c,normal)
+	# Preserve the already generated plate normals; only the new strips need
+	# explicit flat normals, emitted by bevel_triangle.
+	plate.mesh = tool.commit()
 
 static func blob(parent: Node3D, label: String, center: Vector3, size: Vector3, color: Color) -> MeshInstance3D:
 	var result := V.piece(parent,center,size,color,true)

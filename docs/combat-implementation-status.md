@@ -1545,3 +1545,11 @@ EyeRidge从单独眉脊改成同一网格内的上下眼缘：各纵向剖面的
 - 首次回归发现玩家前进后与新下颌有约 8 mm 相交（探针碰撞点差），恢复下颌既有厚度/高度并保留窄口鼻轮廓后修复；未放宽阻挡检查或修改通用玩家物理。早期失败报告 `regressions-20261027-105213-411196` 和 `reedclaw-leaper-blocker-probe.log` 保留。
 - 最终原生十组 1055 项全部通过：扑跃承诺 54、脚锁定 40、头阻挡 28、下颌 200、腿部 304、表面 332、扑跃表面 5、近战部位 28、投射物部位 18、迅龙肩部 46。报告 `D:/vscode/Shubian/outputs/verification/regressions-20261027-105851-596af1/summary.json`。
 - `capture_creature_models.gd -- --no-export --leap` 新增四阶段姿态研究，输出 `D:/vscode/Shubian/outputs/Shubian-reedclaw-leap-study.png`；已查看侧轮廓和四姿态。此为直接姿态、固定根位置的美术研究，不是 live AI 或实际根位移录像。旧轮廓 `D:/vscode/Shubian/outputs/verification/reedclaw-leaper-before.png`。仍未达到整体最终精细化目标，本次未重测长时间性能。
+
+
+### 2026-10-27 玩家护甲曲面与胫甲固定带
+
+- 共享护甲主体由单一大三角扇改为四圈连续曲面及平滑主体法线，倒角和背部维持独立法线；保留原边界、中心最大凸起和闭合厚度。膝/胫/肩护甲应用同一处理，减少大块三角折面。
+- 两侧胫甲各加入两道按实际裤腿射线贴合的褐色固定带，带体为闭合薄环并并入原胫甲网格，不增加骨骼或节点。带体沿用护甲材质，尚未单独配置皮革反射材质，不作为最终材质完成证明。导出仍为 254 个内嵌资源，原 ID 保持稳定。
+- 原生五组 468 项检查通过：靴蒙皮 33、服装/护甲闭合 59、脚锁定 20、腿部 106、蒙皮 250。报告 `D:/vscode/Shubian/outputs/verification/regressions-20261027-110825-02b9ab/summary.json`。
+- 已查看实际近景 `D:/vscode/Shubian/outputs/Shubian-boots-detail.png` 和人物三视图；旧近景 `D:/vscode/Shubian/outputs/verification/leg-armor-before.png`。本次未做新的长时间性能测试或人工战斗验收，整体人物/怪物精细化目标仍保留。
