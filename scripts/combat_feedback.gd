@@ -1,6 +1,6 @@
 extends RefCounted
 ## Presentation follows the authoritative clock; it never changes combat timing.
-const NAMES := {"light":"斜刺","heavy":"横扫","pull":"钩齿回拉","turn":"转身甩枪","guard":"枪尾架势","reply":"右手反击横扫","flash":"闪刺","throw":"投枪","fourfold":"枪意 · 四连刺","spin":"枪意 · 旋枪","plant":"插地蓄势","wait":"插地等待","counter_window":"迎击架势","finisher":"旋枪踢击","dodge":"闪避","hurt":"受击"}
+const NAMES := {"rising":"挑斩","advance_thrust":"进步直刺","cleave":"下劈","evade_thrust":"侧身突刺","light":"斜刺","heavy":"横扫","pull":"钩齿回拉","turn":"转身甩枪","guard":"枪尾架势","reply":"右手反击横扫","flash":"闪刺","throw":"投枪","fourfold":"枪意 · 四连刺","spin":"枪意 · 旋枪","plant":"插地蓄势","wait":"插地等待","counter_window":"迎击架势","finisher":"旋枪踢击","dodge":"闪避","hurt":"受击"}
 const PART_NAMES := {"head":"头部","body":"躯干","limb":"四肢","flank":"侧腹","tail":"尾部","spine":"背棘"}
 var current := "idle"
 var text := ""
@@ -44,7 +44,7 @@ func strike_outcome(action: String, landed: bool, shadows := 0) -> void:
 	if landed:
 		if action=="reply": show_event("反击横扫命中 · 枪意 %d/5" % shadows,Color("f3d58b"),0.8,2)
 		elif action=="flash": show_event("闪刺命中 · 枪影 %d/5" % shadows,Color("f3d58b"),0.9,2)
-	elif action in ["light","heavy","pull","turn","reply","flash"]:
+	elif action in ["light","heavy","pull","turn","reply","flash","rising","advance_thrust","cleave","evade_thrust"]:
 		var value: String = str(NAMES.get(action,action))+"落空"
 		if action=="reply": value += " · 未获得枪意"
 		elif action=="flash": value += " · 未获得枪影"

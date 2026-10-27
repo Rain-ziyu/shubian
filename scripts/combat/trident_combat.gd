@@ -5,7 +5,12 @@ signal strike(beat: int)
 signal buffer_rejected(action: String)
 const THROW_HOLD_TIME := 0.45
 
+const FOLLOWUP_SOURCES := {"rising":"light","advance_thrust":"heavy","cleave":"pull","evade_thrust":"dodge"}
 const MOVES := {
+	"rising": {"duration":0.78,"hits":[0.30],"chain":0.48,"damage":34.0,"reach":3.3},
+	"advance_thrust": {"duration":0.72,"hits":[0.26],"chain":0.43,"damage":32.0,"reach":3.6},
+	"cleave": {"duration":0.92,"hits":[0.38],"chain":0.57,"damage":46.0,"reach":3.3},
+	"evade_thrust": {"duration":0.70,"hits":[0.24],"chain":0.42,"damage":30.0,"reach":3.4},
 	"light": {"duration": 0.66, "hits": [0.25], "chain": 0.37, "damage": 26.0, "reach": 3.1},
 	"heavy": {"duration": 0.92, "hits": [0.43], "chain": 0.57, "damage": 42.0, "reach": 3.3},
 	"pull": {"duration": 0.86, "hits": [0.40], "chain": 0.55, "damage": 20.0, "reach": 3.5},
@@ -57,6 +62,7 @@ func request(next: String) -> bool:
 		drawn = false
 		return true
 	if not MOVES.has(next): return false
+	if FOLLOWUP_SOURCES.has(next) and action!=FOLLOWUP_SOURCES[next]: return false
 	if next == "plant" and not drawn: return false
 	if next == "reply" and guard_reward <= 0: return false
 	# Flash is retained only as a historical pose clip, not a playable follow-up.
@@ -66,6 +72,12 @@ func request(next: String) -> bool:
 		if next == action and next not in ["fourfold", "spin"]: return false
 		if action == "guard" and next == "reply" and guard_reward > 0:
 			pass
+		elif action=="dodge" and next=="evade_thrust":
+			if elapsed<0.38:
+				if elapsed>=0.20:
+					buffered = next
+					buffer_life = 0.20
+				return false
 		elif action in ["wait", "plant", "counter_window", "hurt", "dodge", "finisher"]:
 			return false
 		elif elapsed < float(MOVES[action].chain):
@@ -105,7 +117,7 @@ func advance(delta: float) -> void:
 	if buffered != "":
 		buffer_life -= delta
 		var next := buffered
-		if elapsed >= float(data.chain):
+		if elapsed >= (0.38 if current=="dodge" and next=="evade_thrust" else float(data.chain)):
 			buffered = ""
 			if request(next): return
 			buffer_rejected.emit(next)

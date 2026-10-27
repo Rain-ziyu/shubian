@@ -70,7 +70,8 @@ func _ready() -> void:
 			var binding := InputEventKey.new()
 			binding.physical_keycode = keys[label]
 			InputMap.action_add_event(label,binding)
-	collision_mask = 3
+	# Actor capsules, terrain, and the visible creature head/jaw obstruction.
+	collision_mask = 7
 	var col := CollisionShape3D.new()
 	var shape := CapsuleShape3D.new()
 	shape.radius = 0.32
@@ -158,14 +159,18 @@ func _unhandled_input(event: InputEvent) -> void:
 			var next := "light"
 			if event.alt_pressed: next = "turn"
 			elif event.ctrl_pressed: next = "fourfold"
-			request_action(next)
-		if event.button_index==MOUSE_BUTTON_RIGHT:
-			if event.pressed:
-				if event.ctrl_pressed: request_action("spin")
-				else: heavy_held = 0
-			elif heavy_held>=0:
-				request_action("throw" if heavy_held>=Combat.THROW_HOLD_TIME else "heavy")
-				heavy_held = -1
+			request_basic_action(next)
+		if event.button_index==MOUSE_BUTTON_RIGHT and event.pressed:
+			request_basic_action("spin" if event.ctrl_pressed else "heavy")
+
+func request_basic_action(next: String) -> bool:
+	if next=="heavy":
+		if combat.action=="light": next = "rising"
+		elif combat.action=="pull": next = "cleave"
+	elif next=="light":
+		if combat.action=="heavy": next = "advance_thrust"
+		elif combat.action=="dodge": next = "evade_thrust"
+	return request_action(next)
 
 func request_action(next: String) -> bool:
 	var accepted: bool = combat.request(next)
@@ -320,6 +325,11 @@ func advance_physics(delta: float, profile := false) -> void:
 	if combat.health>0 and combat.action=="flash" and combat.elapsed<0.23:
 		velocity.x = combat_forward().x*13
 		velocity.z = combat_forward().z*13
+	if combat.action in ["advance_thrust","evade_thrust"]:
+		var drive := smoothstep(0.04,0.12,combat.elapsed)*(1-smoothstep(0.26,0.38,combat.elapsed))
+		var forward := combat_forward()
+		velocity.x += forward.x*2.8*drive
+		velocity.z += forward.z*2.8*drive
 	if not is_on_floor(): velocity.y -= 24*delta
 	var movement_start := global_position
 	move_and_slide()
@@ -353,7 +363,7 @@ func update_action_audio() -> void:
 		if action_audio_beats.has(beat) or combat.elapsed<time-0.07: continue
 		action_audio_beats[beat] = true
 		if combat.elapsed>time+0.10: continue
-		var kind := "thrust" if combat.action in ["light","flash","fourfold"] else "sweep"
+		var kind := "thrust" if combat.action in ["light","flash","fourfold","advance_thrust","evade_thrust"] else "sweep"
 		if combat.action=="throw": kind = "throw"
 		elif combat.action=="finisher" and beat==1: kind = "kick"
 		CombatAudio.emit_at(get_parent(),kind,global_position+Vector3.UP*1.1)
@@ -420,6 +430,10 @@ func animate(delta: float, speed: float) -> void:
 		var t: float = combat.elapsed
 		var p := clampf(t/float(Combat.MOVES[combat.action].duration),0,1)
 		match combat.action:
+			"rising","advance_thrust","cleave","evade_thrust":
+				var path := HunterModel.Motion.followup_weapon(combat.action,t)
+				w.position = Vector3(0.32,path.z,path.w)
+				w.rotation = Vector3(path.x+clampf(pitch+0.25,-0.4,0.85),path.y,-0.15)
 			"hurt":
 				var recoil := smoothstep(0,0.08,t)*(1-smoothstep(0.16,0.55,t))
 				w.position.y -= 0.18*recoil
@@ -623,7 +637,7 @@ func animate(delta: float, speed: float) -> void:
 		right_hand_grip = lerpf(right_grip_from,right_hand_grip,regrip)
 	presentation_offhand = offhand
 	var main_hand := equipment_main*(1-arm_release)
-	if combat.action in ["light","pull","heavy","spin","turn"]:
+	if combat.action in ["light","pull","heavy","spin","turn","rising","advance_thrust","cleave","evade_thrust"]:
 		# Constrain the actual released/regripping targets, not an immediate full grip.
 		for iteration in 8:
 			for side in [-1,1]:
@@ -776,6 +790,7 @@ func update_weapon_contacts() -> void:
 			if contact.is_empty(): continue
 			var query := PhysicsRayQueryParameters3D.create(global_position+Vector3(0,1.15,0),contact.point)
 			query.exclude = [get_rid(),m.get_rid()]
+			query.collision_mask = 3
 			if not get_world_3d().direct_space_state.intersect_ray(query).is_empty(): continue
 			window.victims[m.get_instance_id()] = true
 			var result: Dictionary = m.receive_strike(combat.damage(),global_position,window.action,contact.part,window.beat)

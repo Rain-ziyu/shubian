@@ -6,16 +6,12 @@ func check(ok: bool, label: String) -> void:
 	if not ok:
 		failures += 1
 		printerr("FAIL: ",label)
-func mouse(p: Node, pressed: bool) -> void:
+func button(pressed: bool, ctrl := false) -> InputEventMouseButton:
 	var event := InputEventMouseButton.new()
 	event.button_index = MOUSE_BUTTON_RIGHT
 	event.pressed = pressed
-	p._unhandled_input(event)
-func key(p: Node, code: Key) -> void:
-	var event := InputEventKey.new()
-	event.physical_keycode = code
-	event.pressed = true
-	p._unhandled_input(event)
+	event.ctrl_pressed = ctrl
+	return event
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	var world = load("res://scenes/main/main.tscn").instantiate()
@@ -25,66 +21,25 @@ func run() -> void:
 	var p = world.hunter
 	p.set_physics_process(false)
 	for m in get_nodes_in_group("monsters"): m.set_physics_process(false)
-	p.combat.set_action("guard")
-	p.combat.advance(0.18)
-	key(p,KEY_CTRL)
-	check(p.combat.action=="guard","Ctrl does not counter before a successful block")
-	p.combat.receive_damage(10)
-	key(p,KEY_CTRL)
-	check(p.combat.action=="reply","Ctrl alone starts the earned right-hand sweep")
-	p.combat.confirm_hit()
-	check(p.combat.shadow_lifetimes.size()==1,"confirmed counter sweep directly earns one intent")
-	p.combat.shadow_lifetimes.clear()
-	p.combat.set_action("idle")
-	mouse(p,true)
-	p.heavy_held = 0.2
-	mouse(p,false)
-	check(p.combat.action=="heavy","short right release performs sweep")
-	p.combat.set_action("idle")
-	mouse(p,true)
-	p.heavy_held = 0.5
-	mouse(p,false)
-	check(p.combat.action=="throw","long right release performs throw")
-	for next in ["hurt","dodge","guard","light"]:
-		p.combat.set_action("idle")
-		mouse(p,true)
-		p.heavy_held = 0.6
-		p.combat.set_action(next)
-		check(p.heavy_held<0,"new action cancels held charge: "+next)
-		p.combat.advance(2)
-		mouse(p,false)
-		check(p.combat.action=="idle","release after recovery does not throw: "+next)
-	p.combat.set_action("idle")
-	mouse(p,true)
-	p.heavy_held = 0.6
-	key(p,KEY_R)
-	mouse(p,false)
-	check(not p.combat.drawn and p.combat.action=="idle","sheathe cancels old charged release")
-	mouse(p,true)
-	p.heavy_held = 0.6
-	key(p,KEY_ESCAPE)
-	mouse(p,false)
-	check(p.combat.action=="idle","mouse release cancels old charged release")
-	mouse(p,true)
-	p.heavy_held = 0.6
-	p._notification(Node.NOTIFICATION_WM_WINDOW_FOCUS_OUT)
-	mouse(p,false)
-	check(p.combat.action=="idle","window focus loss cancels old charged release")
-	p.combat.set_action("light")
-	mouse(p,true)
-	p.heavy_held = 0.5
-	p.combat.advance(0.7)
-	mouse(p,false)
-	check(p.combat.action=="throw","charge begun during prior move survives its normal recovery")
-	p.combat.set_action("throw")
-	p.combat.elapsed = 0.38
-	p.animate(0,0)
-	mouse(p,true)
-	p.heavy_held = 0.6
-	p.on_strike(0)
-	check(p.heavy_held<0,"weapon departure clears a second right-button hold begun during throw preparation")
-	mouse(p,false)
-	check(p.heavy_held<0,"release ignored during flight cannot preserve stale charge")
+	var c = p.combat
+	var start: Vector3 = p.global_position
+	p._unhandled_input(button(true))
+	check(c.action=="heavy","right press immediately starts sweep")
+	c.advance(1.2)
+	p._unhandled_input(button(false))
+	check(c.action=="idle" and not is_instance_valid(p.projectile),"long hold release cannot throw or repeat sweep")
+	check(p.global_position==start,"long right hold never teleports")
+	p._unhandled_input(button(true))
+	c.advance(0.05)
+	p._unhandled_input(button(false))
+	check(c.action=="heavy" and c.elapsed>0,"short release does not restart sweep")
+	c.set_action("idle")
+	c.shadow_lifetimes.assign([180.0])
+	p._unhandled_input(button(true,true))
+	check(c.action=="spin" and c.shadow_lifetimes.is_empty(),"Ctrl right retains intent spin")
+	c.advance(1.5)
+	p._unhandled_input(button(false,true))
+	check(c.action=="idle" and not is_instance_valid(p.projectile),"modified release cannot trigger throw")
 	print("THROW_INPUT_CHECKS: ",checks," FAILURES: ",failures)
 	world.queue_free()
 	await process_frame

@@ -94,6 +94,10 @@ func _ready() -> void:
 		trunk_collider.position = Vector3(0,shape.height/2,end*float(data.size)*(0.28 if end<0 else 0.32))
 		add_child(trunk_collider)
 	mesh = CreatureModel.create(self,data)
+	var head_blocker := preload("res://scripts/creature_head_blocker.gd").new()
+	head_blocker.name = "HeadBlocker"
+	head_blocker.actor = self
+	add_child(head_blocker)
 	if data.pattern in ["charge","leap"]: lunge_contact.configure(self)
 	tail_rings = TailContact.profile(mesh.get_node("Tail/TailSurface").mesh)
 	if data.id=="mossback": tail_marker_anchor = CreatureModel.TailSkin.top_anchor(mesh.get_node("Tail/TailSurface").mesh,float(data.size)*0.18)
@@ -564,6 +568,8 @@ func spawn_hazard(point: Vector3, radius: float, duration: float, amount: float,
 func clear_line_to(point: Vector3) -> bool:
 	var query := PhysicsRayQueryParameters3D.create(global_position+Vector3.UP,point+Vector3.UP)
 	query.exclude = [get_rid(),target.get_rid()]
+	# Head blockers only obstruct player movement, never AI sight or damage rays.
+	query.collision_mask = 3
 	return get_world_3d().direct_space_state.intersect_ray(query).is_empty()
 
 func receive_strike(amount: float, origin: Vector3, action: String, part := "", beat := 1) -> Dictionary:
@@ -608,7 +614,7 @@ func receive_strike(amount: float, origin: Vector3, action: String, part := "", 
 		stagger = maxf(stagger,0.45)
 	if health>0 and stagger<=0:
 		var local_source := global_basis.inverse()*toward
-		var strength := (1.4 if weak else 1.0)*(2.0 if action in ["heavy","turn","throw"] else 0.65 if action=="fourfold" else 1.0)
+		var strength := (1.4 if weak else 1.0)*(2.0 if action in ["heavy","turn","throw","cleave"] else 0.65 if action=="fourfold" else 1.0)
 		mesh.set_meta("impact_rotation",Vector3(-local_source.z*0.105,local_source.x*0.095,local_source.x*0.045)*strength)
 		mesh.set_meta("impact_compression",float(data.size)*0.012*strength)
 		mesh.set_meta("impact_age",0.0)

@@ -8,7 +8,7 @@ const Motion = preload("res://scripts/hunter_motion.gd")
 const JointCloth = preload("res://scripts/hunter_joint_cloth.gd")
 const HEAD_GAZE_BLEND_SECONDS := 0.12
 const STANCE_BLEND_SECONDS := 0.10
-const BLENDED_STANCES := ["idle","light","heavy","pull","guard","reply","flash","fourfold","throw","hurt"]
+const BLENDED_STANCES := ["idle","light","heavy","pull","guard","reply","flash","fourfold","throw","hurt","rising","advance_thrust","cleave","evade_thrust"]
 
 static func tapered(parent: Node3D, pos: Vector3, top: float, bottom: float, height: float, color: Color) -> MeshInstance3D:
 	var mesh := MeshInstance3D.new()
@@ -151,6 +151,11 @@ static func pose_torso(rig: Dictionary, action: String, elapsed: float, gait: fl
 	var value := Motion.sample(action,elapsed,gait,speed)
 	var rotation := Vector3(value.y,value.z,-value.z*0.08)
 	var position := Vector3(value.z*0.018,1.08,value.w)
+	if action=="evade_thrust":
+		var side := smoothstep(0,0.09,elapsed)*(1-smoothstep(0.32,0.70,elapsed))
+		rotation.z -= 0.18*side
+		rotation.y -= 0.25*side
+		position.x += 0.065*side
 	if action=="dodge":
 		var direction := Vector3(travel.x,0,travel.z).normalized()
 		if direction.is_zero_approx(): direction = Vector3.FORWARD
@@ -168,7 +173,7 @@ static func pose_torso(rig: Dictionary, action: String, elapsed: float, gait: fl
 	# Blend only entry/exit of compensation; settled per-action gaze and
 	# zero-delta authored samples retain their original orientations.
 	var head_pivot := Vector3(0,1.535-1.08,0)
-	var target := 1.0 if action in ["light","heavy","pull","guard","reply","flash","fourfold","throw"] else 0.0
+	var target := 1.0 if action in ["light","heavy","pull","guard","reply","flash","fourfold","throw","rising","advance_thrust","cleave","evade_thrust"] else 0.0
 	var gaze: float = rig.get("head_gaze_weight",target)
 	if delta<=0:
 		rig.head_gaze_from = target
@@ -238,6 +243,7 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 	if action=="pull": drop += 0.04*smoothstep(0.22,0.56,elapsed)*(1-smoothstep(0.56,0.86,elapsed))
 	if action=="fourfold": drop += -Motion.sample(action,elapsed,gait,speed).y*0.25
 	drop += 0.08*arrival_weight
+	if Motion.FOLLOWUP_TIMES.has(action): drop += 0.06*sin(PI*clampf(elapsed/float(Motion.FOLLOWUP_TIMES[action][-1]),0,1))
 	if action=="hurt": drop = 0.16
 	if action=="spin":
 		drop += 0.05*sin(Motion.turn_progress(action,elapsed)*PI)
@@ -251,11 +257,11 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 		# The sweep loads into the rear support leg before transferring forward.
 		drop += (0.10 if action=="heavy" else 0.075)*smoothstep(0,ready,elapsed)*(1-smoothstep(release_from,release,elapsed))
 	var body: Node3D = rig.root
-	var shift := Motion.sample(action,elapsed,gait,speed).w*1.6 if action in ["light","heavy","pull","fourfold","hurt","guard","reply","finisher","throw","flash"] else 0.0
+	var shift := Motion.sample(action,elapsed,gait,speed).w*1.6 if action in ["light","heavy","pull","fourfold","hurt","guard","reply","finisher","throw","flash","rising","advance_thrust","cleave","evade_thrust"] else 0.0
 	body.position.z = lerpf(body.position.z,shift,1-exp(-delta*18)) if delta>0 else shift
 	var previous_height := body.position.y
 	body.position.y = -drop
-	var hip_turn := Motion.sample(action,elapsed,gait,speed).z*0.45 if action in ["light","heavy","pull","fourfold","throw","flash","guard","reply"] else 0.0
+	var hip_turn := Motion.sample(action,elapsed,gait,speed).z*0.45 if action in ["light","heavy","pull","fourfold","throw","flash","guard","reply","rising","advance_thrust","cleave","evade_thrust"] else 0.0
 	rig.pelvis.rotation.y = lerp_angle(rig.pelvis.rotation.y,hip_turn,1-exp(-delta*18)) if delta>0 else hip_turn
 	for side in [-1,1]: rig.legs[side].hip.position = rig.pelvis.transform*Vector3(side*0.14,0,0)
 	var targets := {}
@@ -330,6 +336,15 @@ static func pose_legs(rig: Dictionary, action: String, elapsed: float, armed: bo
 			var swing := smoothstep(0.03,0.18,elapsed)
 			var closing := smoothstep(0.42,0.66,elapsed)
 			target.y += sin(swing*PI)*0.065+sin(closing*PI)*0.045
+		if Motion.FOLLOWUP_TIMES.has(action):
+			var times: Array = Motion.FOLLOWUP_TIMES[action]
+			var opening := smoothstep(0,float(times[1]),elapsed)
+			var closing := smoothstep(float(times[3]),float(times[4]),elapsed)
+			var step := opening*(1-closing)
+			if side==-1:
+				target.z -= step*(0.15 if action in ["advance_thrust","evade_thrust"] else 0.08)
+				target.x -= step*(0.07 if action=="evade_thrust" else 0.025)
+				target.y += sin(opening*PI)*0.07+sin(closing*PI)*0.045
 		if action=="heavy":
 			# Stagger opening and closing steps: one foot supports each transfer.
 			var opening := smoothstep(0.06 if side==-1 else 0.0,0.18 if side==-1 else 0.06,elapsed)

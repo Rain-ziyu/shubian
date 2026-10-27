@@ -56,7 +56,7 @@ func _ready() -> void:
 static func impact_force(move: String, is_weak: bool) -> float:
 	var amount := 1.0
 	match move:
-		"heavy","turn","spin": amount = 1.35
+		"heavy","turn","spin","rising","cleave": amount = 1.35
 		"fourfold": amount = 0.8
 		"finisher": amount = 1.5
 		"flash","throw","reply": amount = 1.15

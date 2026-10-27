@@ -33,11 +33,14 @@ func run() -> void:
 		var result: Dictionary = m.receive_strike(250,p.global_position,"heavy","body")
 		p.show_hit_feedback(m.mesh.get_node("Neck").global_position,result,"heavy")
 	for frame in 120: p.update_camera_framing(1.0/60)
-	var sweep := "--sweep" in OS.get_cmdline_user_args()
+	var captured_action := "heavy"
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--action="): captured_action = argument.trim_prefix("--action=")
+	var sweep: bool = "--sweep" in OS.get_cmdline_user_args() or p.Combat.FOLLOWUP_SOURCES.has(captured_action)
 	if sweep:
 		p.weapon_trail.set_process(false)
-		p.combat.set_action("heavy")
-		var impact_time: float = p.Combat.MOVES.heavy.hits[0]
+		p.combat.set_action(captured_action)
+		var impact_time: float = p.Combat.MOVES[captured_action].hits[0]
 		var emitted := false
 		for frame in range(ceili((impact_time+0.07)*120)+1):
 			p.combat.elapsed = float(frame)/120
@@ -56,7 +59,7 @@ func run() -> void:
 	await process_frame
 	await RenderingServer.frame_post_draw
 	var destination := "res://../Shubian-combat-readable-armor-broken.png" if broken else "res://../Shubian-combat-readable.png"
-	if sweep: destination = "res://../Shubian-combat-sweep-trail.png"
+	if sweep: destination = "res://../Shubian-combat-"+captured_action+"-trail.png"
 	var saved := root.get_texture().get_image().save_png(ProjectSettings.globalize_path(destination))
 	print("COMBAT_READABILITY_CAPTURE: ",saved," locked_nameplate_hidden=",not m.label.visible," player_camera=",root.get_camera_3d()==p.camera," msaa_3d=",root.msaa_3d," / frozen windup versus ","sweep" if sweep else "guard","; not live input")
 	world.queue_free()

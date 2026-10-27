@@ -26,7 +26,28 @@ const KEYS := {
 	"throw":[Vector4(0,0,0,0),Vector4(0.20,0.09,-0.23,0.06),Vector4(0.38,-0.15,0.20,-0.07),Vector4(0.80,0,0,0)],
 	"hurt":[Vector4(0,0,0,0),Vector4(0.08,0.30,-0.12,0.045),Vector4(0.22,0.20,-0.08,0.03),Vector4(0.55,0,0,0)]
 }
+# Pitch, yaw, grip height and depth. Separate vertical arcs and thrust extensions.
+const FOLLOWUP_WEAPON := {
+	"rising":[Vector4(-1.57,0.40,1.20,-0.32),Vector4(-2.05,0.24,1.10,-0.28),Vector4(-1.57,0.10,1.16,-0.40),Vector4(-0.74,-0.08,1.30,-0.40),Vector4(-1.57,0.40,1.20,-0.32)],
+	"advance_thrust":[Vector4(-1.57,0.40,1.20,-0.32),Vector4(-1.70,0.32,1.15,-0.22),Vector4(-1.46,0.05,1.24,-0.56),Vector4(-1.46,0.05,1.24,-0.56),Vector4(-1.57,0.40,1.20,-0.32)],
+	"cleave":[Vector4(-1.57,0.40,1.20,-0.32),Vector4(-0.42,0.20,1.36,-0.32),Vector4(-1.32,0.08,1.30,-0.44),Vector4(-2.02,-0.10,1.08,-0.42),Vector4(-1.57,0.40,1.20,-0.32)],
+	"evade_thrust":[Vector4(-1.57,0.40,1.20,-0.32),Vector4(-1.78,-0.38,1.06,-0.20),Vector4(-1.46,0.06,1.12,-0.56),Vector4(-1.46,0.06,1.12,-0.56),Vector4(-1.57,0.40,1.20,-0.32)]
+}
+const FOLLOWUP_TIMES := {"rising":[0.0,0.14,0.30,0.42,0.78],"advance_thrust":[0.0,0.10,0.26,0.34,0.72],"cleave":[0.0,0.20,0.38,0.50,0.92],"evade_thrust":[0.0,0.09,0.24,0.32,0.70]}
+static func followup_weapon(action: String, elapsed: float) -> Vector4:
+	var values: Array = FOLLOWUP_WEAPON[action]
+	var times: Array = FOLLOWUP_TIMES[action]
+	for index in range(1,times.size()):
+		if elapsed<=float(times[index]):
+			return values[index-1].lerp(values[index],smoothstep(float(times[index-1]),float(times[index]),elapsed))
+	return values[-1]
+
 static func sample(action: String, elapsed: float, gait: float, speed: float) -> Vector4:
+	if FOLLOWUP_TIMES.has(action):
+		var times: Array = FOLLOWUP_TIMES[action]
+		var drive := smoothstep(0,float(times[1]),elapsed)*(1-smoothstep(float(times[3]),float(times[4]),elapsed))
+		var release := smoothstep(float(times[1]),float(times[3]),elapsed)
+		return Vector4(elapsed,lerpf(0.08,-0.15,release)*drive,lerpf(-0.24,0.30,release)*drive,-0.055*drive)
 	if KEYS.has(action): return interpolate(KEYS[action],elapsed)
 	if action in ["wait","counter_window"]: return Vector4(elapsed,-0.08,0,0)
 	if action=="fourfold":

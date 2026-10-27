@@ -86,7 +86,7 @@ func _ready() -> void:
 	hints.offset_top = -34
 	hints.text = "WASD 移动  ·  空格闪避  ·  中键锁定 / Tab 切换  ·  F1 操作说明  ·  F5 重试"
 	help = text_at(Vector2(22,280),17)
-	help.text = "操作说明 · 不暂停战斗\n左键斜刺 / 右键短按横扫、长按松开投枪瞬移\nE 回拉 / Alt+左键转身 / Q 架势 / R 收枪\n架势内不恢复耐力，每次成功格挡消耗 15\n格挡成功 → 按 Ctrl 右手横扫，命中获得枪意\n有枪意：Ctrl+左键四连刺 / Ctrl+右键旋枪\n拔枪后 Ctrl+空格插地，再按 Ctrl 迎击\nTab 切换目标 / Shift+Tab 反向切换\n锁定跟随 / 鼠标上下调整枪尖高度\nShift 奔跑 / Esc 切换鼠标 / F1 收起说明"
+	help.text = "操作说明 · 不暂停战斗\n左键斜刺 / 右键按下横扫\nE 回拉 / Alt+左键转身 / Q 架势 / R 收枪\n斜刺→右键挑斩 / 横扫→左键进步直刺\n回拉→右键下劈 / 闪避末段→左键侧身突刺\n架势内不恢复耐力，每次成功格挡消耗 15\n格挡成功 → 按 Ctrl 右手横扫，命中获得枪意\n有枪意：Ctrl+左键四连刺 / Ctrl+右键旋枪\n拔枪后 Ctrl+空格插地，再按 Ctrl 迎击\nTab 切换目标 / Shift+Tab 反向切换\n锁定跟随 / 鼠标上下调整枪尖高度\nShift 奔跑 / Esc 切换鼠标 / F1 收起说明"
 	help.hide()
 	target_text = text_at(Vector2.ZERO,17)
 	target_text.anchor_left = 0.5
@@ -144,9 +144,10 @@ static func followup(c, held: float) -> String:
 	if c.action=="counter_window": return "迎击架势 · 接住来袭攻击"
 	if c.guard_reward>0: return "格挡成功 · 按 Ctrl 右手横扫"
 	if c.action=="reply": return "右手横扫中 · 命中获得一层枪意"
-	if held>=0:
-		if held<c.THROW_HOLD_TIME: return "松开右键横扫 · 继续按住准备投枪"
-		return "投枪就绪 · 松开右键" if can_release_throw(c) else "蓄力完成 · 等待收势再松开"
+	if c.action=="light": return "衔接右键 · 挑斩"
+	if c.action=="heavy": return "衔接左键 · 进步直刺"
+	if c.action=="pull": return "衔接右键 · 下劈"
+	if c.action=="dodge": return "闪避末段衔接左键 · 侧身突刺"
 	if c.action=="guard":
 		return "耐力不足 · 收势后走位恢复" if c.stamina<15 else "架势中不恢复耐力 · 格挡成功后按 Ctrl 横扫"
 	if not c.drawn: return "背负待机 · 左键或右键拔枪出招"
@@ -167,17 +168,8 @@ func update_state(fighter, defeated: int) -> void:
 	action_event.text = fighter.feedback.text
 	action_event.add_theme_color_override("font_color",fighter.feedback.color)
 	action_event.visible = c.health>0 and defeated<5 and fighter.feedback.remaining>0
-	var charging: bool = fighter.heavy_held>=0 and c.health>0 and defeated<5 and not is_instance_valid(fighter.projectile)
-	throw_charge.visible = charging
-	throw_charge_text.visible = charging
-	throw_charge.max_value = c.THROW_HOLD_TIME
-	throw_charge.value = maxf(0,fighter.heavy_held)
-	if charging:
-		throw_charge_text.add_theme_color_override("font_color",Color("e6c57c") if fighter.heavy_held>=c.THROW_HOLD_TIME else Color("ede9da"))
-		if fighter.heavy_held<c.THROW_HOLD_TIME:
-			throw_charge_text.text = "投枪蓄力 %d%%" % floori(fighter.heavy_held/c.THROW_HOLD_TIME*100)
-		else:
-			throw_charge_text.text = "投枪蓄力完成"
+	throw_charge.hide()
+	throw_charge_text.hide()
 	health.value = c.health
 	stamina.value = c.stamina
 	health_text.text = "生命 %d / 240" % ceili(c.health)
