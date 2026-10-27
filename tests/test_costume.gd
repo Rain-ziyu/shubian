@@ -40,6 +40,40 @@ func run() -> void:
 			if "Pouch" in path:
 				var bounds := live.mesh.get_aabb()
 				check(bounds.size.x<0.123 and bounds.size.z<0.075 and bounds.size.y<0.136,"rounded pouch stays within the belt attachment envelope")
+	for model in [rig.root,collar_saved]:
+		for side in [-1,1]:
+			var arm: MeshInstance3D = model.get_node("UpperArmSurface"+str(side))
+			var vertices: PackedVector3Array = arm.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+			var end_disks := 0
+			for i in range(0,vertices.size(),3):
+				if absf(vertices[i].y-0.5)<0.0001 and absf(vertices[i+1].y-0.5)<0.0001 and absf(vertices[i+2].y-0.5)<0.0001: end_disks += 1
+			check(end_disks==0,"upper arm has no elbow end disk cutting through flexible skin")
+			var cape: MeshInstance3D = model.get_node("Torso/RainCape"+str(side))
+			var hem: MeshInstance3D = model.get_node("Torso/CapeHem"+str(side))
+			var hem_arrays: Array = hem.mesh.surface_get_arrays(0)
+			var points: PackedVector3Array = hem_arrays[Mesh.ARRAY_VERTEX]
+			var roles: PackedVector2Array = hem_arrays[Mesh.ARRAY_TEX_UV2]
+			var triangles := cape.mesh.generate_triangle_mesh()
+			var clear := true
+			var minimum_gap := INF
+			var maximum_gap := -INF
+			var missing := 0
+			# Probe every face interior: exact outer-edge vertices have no stable ray hit.
+			for i in range(0,points.size(),3):
+				if roles[i].x!=0: continue
+				var center := (points[i]+points[i+1]+points[i+2])/3
+				var point: Vector3 = cape.transform.affine_inverse()*hem.transform*center
+				var outward := Vector3(0,0,sign(point.z))
+				var hit := triangles.intersect_segment(point+outward*0.02,point-outward*0.02)
+				if hit.is_empty(): missing += 1
+				clear = clear and not hit.is_empty()
+				if not hit.is_empty():
+					var gap: float = (point-hit.position).dot(outward)
+					minimum_gap = minf(minimum_gap,gap)
+					maximum_gap = maxf(maximum_gap,gap)
+					clear = clear and gap>0.0005 and gap<0.002
+			print("HEM_CLEARANCE: ",side," min=",minimum_gap," max=",maximum_gap," missing=",missing)
+			check(clear,"torso binding sits just outside cape instead of coplanar triangles")
 	collar_saved.queue_free()
 	for label in ["KneePlate","ShinPlate"]:
 		var plate: MeshInstance3D = rig.legs[1].knee.get_node(label)

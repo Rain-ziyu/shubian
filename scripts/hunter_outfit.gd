@@ -34,6 +34,9 @@ static func loft(parent: Node3D, label: String, rings: Array, color: Color, star
 	if caps:
 		st.set_smooth_group(-1)
 		for row in [0,rings.size()-1]:
+			# The exposed elbow is closed by the deforming joint skin; an upper-arm
+			# end disk cuts across it when the forearm bends. Retain the shoulder cap.
+			if label.begins_with("UpperArmSurface") and row==rings.size()-1: continue
 			var ring: Vector4 = rings[row]
 			var center := Vector3(0,ring.x,ring.w)
 			for column in segments:

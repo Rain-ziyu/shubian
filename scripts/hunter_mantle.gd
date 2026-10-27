@@ -18,7 +18,7 @@ static func panel(tool: SurfaceTool, side: int, back: bool, hem: bool) -> void:
 				var bottom := 1.17+0.035*pow(absf(u*2-1),3)+0.025*u*u
 				var point := Vector3(side*lerpf(lerpf(0.045,0.075,v),lerpf(0.18,0.205,v),u),lerpf(top,bottom,v),(-1 if not back else 1)*lerpf(0.125,0.235,v))
 				var drape := 0.008*sin(u*PI)*sin(v*PI)+0.004*sin(u*PI*3)*sin(v*PI*0.5)
-				point.z += (1 if back else -1)*drape
+				point.z += (1 if back else -1)*(drape+(0.0012 if hem else 0.0))
 				vertex(tool,point,Vector2(u,v),0.0)
 
 static func shoulder(tool: SurfaceTool, arm_rest: Transform3D, hem: bool) -> void:
@@ -29,7 +29,7 @@ static func shoulder(tool: SurfaceTool, arm_rest: Transform3D, hem: bool) -> voi
 			for corner in [Vector2i(column,row),Vector2i(column,row+1),Vector2i(column+1,row),Vector2i(column+1,row),Vector2i(column,row+1),Vector2i(column+1,row+1)]:
 				var ring: Vector4 = rings[corner.y]
 				var angle: float = corner.x*TAU/24.0
-				var point := Vector3(sin(angle)*ring.y,ring.x,cos(angle)*ring.z)
+				var point := Vector3(sin(angle)*(ring.y+(0.0012 if hem else 0.0)),ring.x,cos(angle)*(ring.z+(0.0012 if hem else 0.0)))
 				vertex(tool,arm_rest*point,Vector2(corner.x/24.0,float(corner.y)/(rings.size()-1)),1.0)
 	if not hem:
 		var ring: Vector4 = rings[0]
