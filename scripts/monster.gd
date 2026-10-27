@@ -419,7 +419,7 @@ func advance_physics(delta: float) -> void:
 	else: locomotion_pose = {}
 	was_walking = walking
 	if phase=="windup": preparation.merge(ApproachPose.sample(approach_pose,clock))
-	CreatureModel.animate(mesh,data,gait,phase,clock,Vector2(velocity.x,velocity.z).length(),foot_ground_height if grounded_pose else Callable(),foot_ground_normal if grounded_pose else Callable(),data.pattern=="leap",preparation)
+	CreatureModel.animate(mesh,data,gait,phase,clock,Vector2(velocity.x,velocity.z).length(),foot_ground_height if grounded_pose else Callable(),foot_ground_normal if grounded_pose else Callable(),data.pattern=="leap",preparation,delta)
 	if data.pattern in ["charge","leap"]:
 		var contact := lunge_contact.update(self,phase=="active" and not rear_attack and not attack_done)
 		if not contact.is_empty() and clear_line_to(contact.feet):

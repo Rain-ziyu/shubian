@@ -7,11 +7,13 @@ var frame := 0
 var running := false
 var slope_mode := false
 var travel_mode := false
+var turn_mode := false
 var study_camera: Camera3D
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	slope_mode = "--slope" in OS.get_cmdline_user_args()
 	travel_mode = "--travel" in OS.get_cmdline_user_args()
+	turn_mode = "--turn" in OS.get_cmdline_user_args()
 	stage = Node3D.new()
 	root.add_child(stage)
 	var env := WorldEnvironment.new()
@@ -31,7 +33,7 @@ func run() -> void:
 	if slope_mode:
 		floor_mesh.rotation.z = atan(0.2)
 		floor_mesh.position.y = -0.15/cos(atan(0.2))
-	if travel_mode:
+	if travel_mode or turn_mode:
 		for z in range(-8,10): Model.V.piece(stage,Vector3(0,0.01,z),Vector3(22,0.01,0.08),Color("75857b"))
 	var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://resources/monsters.json"))
 	for side in [-1,1]:
@@ -61,6 +63,7 @@ func run() -> void:
 	title.text = "戍边 · 腿部骨骼步态研究（原地循环，非实战）"
 	if slope_mode: title.text = "戍边 · 支撑脚坡面示意（静态，非实战）"
 	if travel_mode: title.text = "戍边 · 行进支撑脚研究（非实战回放）"
+	if turn_mode: title.text = "戍边 · 蓄势转向换步（动作研究，非实战）"
 	title.position = Vector2(20,18)
 	title.add_theme_font_size_override("font_size",26)
 	root.add_child(title)
@@ -70,7 +73,13 @@ func _process(_delta: float) -> bool:
 	if not running: return false
 	var time := float(frame)/60
 	for i in 2:
-		if travel_mode:
+		if turn_mode:
+			models[i].get_parent().rotation.y = 0.65*minf(time/0.3,1)
+			var ground := func(_point: Vector3) -> float: return 0.0
+			var normal := func(_point: Vector3) -> Vector3: return Vector3.UP
+			var clock := minf(float(species_data[i].windup),0.2+time)
+			Model.animate(models[i],species_data[i],0,"windup",clock,0,ground,normal,false,{},1.0/60)
+		elif travel_mode:
 			models[i].get_parent().position.z = 4-time*2.4
 			var ground := func(_point: Vector3) -> float: return 0.0
 			var normal := func(_point: Vector3) -> Vector3: return Vector3.UP
@@ -85,6 +94,7 @@ func _process(_delta: float) -> bool:
 		study_camera.position = Vector3(8,6,-15)+Vector3(0,0,4-time*2.4)
 		study_camera.look_at(Vector3(0,1.2,4-time*2.4))
 	frame += 1
+	if turn_mode and frame in [6,12,18]: call_deferred("capture_turn",frame)
 	if slope_mode and frame==120: call_deferred("capture_slope")
 	if frame>=240:
 		running = false
@@ -94,8 +104,12 @@ func capture_slope() -> void:
 	await RenderingServer.frame_post_draw
 	var result := root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-creature-slope.png"))
 	print("CREATURE_SLOPE_CAPTURE: ",result)
+func capture_turn(sample: int) -> void:
+	await RenderingServer.frame_post_draw
+	var result := root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-creature-turn-%02d.png" % sample))
+	print("CREATURE_TURN_CAPTURE: sample=",sample," result=",result," / controlled windup fixture")
 func finish() -> void:
-	print("CREATURE_LEG_STUDY: 240 frames; ","travel" if travel_mode else ("slope" if slope_mode else "in-place"),"; visual study only")
+	print("CREATURE_LEG_STUDY: 240 frames; ","turn" if turn_mode else "travel" if travel_mode else ("slope" if slope_mode else "in-place"),"; visual study only")
 	stage.queue_free()
 	await process_frame
 	await RenderingServer.frame_post_draw

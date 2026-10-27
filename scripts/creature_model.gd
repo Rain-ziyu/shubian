@@ -258,7 +258,7 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 			if leg: LegSkin.bind(leg,s)
 	return root
 
-static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, clock: float, speed: float, ground: Callable = Callable(), ground_normal: Callable = Callable(), physical_flight := false, pose_override: Dictionary = {}) -> void:
+static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, clock: float, speed: float, ground: Callable = Callable(), ground_normal: Callable = Callable(), physical_flight := false, pose_override: Dictionary = {}, pose_delta := 0.0) -> void:
 	root.get_node("BodySurface").rotation.z = 0.0
 	# Front limbs articulate at their shoulder attachment, independently of gait.
 	# Carry the loaded silhouette into takeoff, then reach before landing.
@@ -508,7 +508,10 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 				var floor_y: float = actor.global_position.y+ground.call(point)
 				if point.y<floor_y:
 					target += entry.leg.global_basis.inverse()*Vector3.UP*(floor_y-point.y)
-		LegSkin.pose(entry.leg,target,foot_basis)
+		entry.target = target
+		entry.foot_basis = foot_basis
+	preload("res://scripts/creature_turn_support.gd").apply(root,data,phase,clock,pose_delta,targets,ground.is_valid())
+	for entry in targets: LegSkin.pose(entry.leg,entry.target,entry.foot_basis)
 
 static func charge_visuals(root: Node3D, data: Dictionary, phase: String, clock: float, weak_brace := false) -> void:
 	var load := smoothstep(0,float(data.windup),clock) if phase=="windup" else 0.0
