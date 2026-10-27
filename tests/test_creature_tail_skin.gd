@@ -73,7 +73,34 @@ func run() -> void:
 	check(not Contact.contact(old_rings,Transform3D.IDENTITY,Transform3D.IDENTITY,Vector3(0,0,1)).size(),"old deformed tail starts clear")
 	check(not Contact.contact(new_rings,Transform3D.IDENTITY,Transform3D.IDENTITY,Vector3(0,0,1)).size(),"new deformed tail ends clear")
 	check(not Contact.contact(new_rings,Transform3D.IDENTITY,Transform3D.IDENTITY,Vector3(0,0,1),null,old_rings).is_empty(),"sweep includes deformation between frames")
+	# The same physical tail at different rig resolutions keeps its total bend.
+	var turns: Array[float] = []
+	for segments in [4,16,64]:
+		var tail := Node3D.new()
+		holder.add_child(tail)
+		var skeleton := Skeleton3D.new()
+		skeleton.name = "TailSkeleton"
+		tail.add_child(skeleton)
+		for bone in range(segments+1):
+			skeleton.add_bone("Tail"+str(bone))
+			if bone>0:
+				skeleton.set_bone_parent(bone,bone-1)
+				skeleton.set_bone_rest(bone,Transform3D(Basis.IDENTITY,Vector3(0,0,1.0/segments)))
+		Skinning.animate(tail,2,"active",0.325)
+		var turn := total_turn(skeleton)
+		turns.append(turn)
+		check(absf(turn)<0.73,"attack tail stays within a bounded balancing curve")
+		Skinning.animate(tail,2,"idle",0)
+		check(absf(turn-total_turn(skeleton)-0.4)<0.00001,"attack bend is distributed over the full tail length")
+		Skinning.animate(tail,2,"active",0.65)
+		check(absf(total_turn(skeleton)-(turn-0.4))<0.00001,"attack tail rejoins ordinary motion without a phase snap")
+	check(absf(turns.max()-turns.min())<0.00001,"four sixteen and sixty-four segments produce the same total bend")
 	print("CREATURE_TAIL_SKIN_CHECKS: ",checks," FAILURES: ",failures)
 	holder.queue_free()
 	await process_frame
 	quit(1 if failures else 0)
+
+func total_turn(skeleton: Skeleton3D) -> float:
+	var turn := 0.0
+	for bone in range(1,skeleton.get_bone_count()): turn += skeleton.get_bone_pose_rotation(bone).get_euler().y
+	return turn

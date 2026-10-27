@@ -45,9 +45,24 @@ static func bind(tail: Node3D) -> void:
 	source.hide()
 static func animate(tail: Node3D, gait: float, phase: String, clock: float) -> void:
 	var skeleton: Skeleton3D = tail.get_node("TailSkeleton")
+	var spans: PackedVector2Array = skeleton.get_meta("bend_spans",PackedVector2Array())
+	if spans.size()!=skeleton.get_bone_count()-1:
+		spans.clear()
+		var length := 0.0
+		for i in range(1,skeleton.get_bone_count()): length += skeleton.get_bone_rest(i).origin.length()
+		var cursor := 0.0
+		for i in range(1,skeleton.get_bone_count()):
+			var end := cursor+skeleton.get_bone_rest(i).origin.length()/maxf(length,0.00001)
+			spans.append(Vector2(cursor,end))
+			cursor = end
+		skeleton.set_meta("bend_spans",spans)
+	var pulse := sin(clampf(clock/0.65,0,1)*PI) if phase=="active" else 0.0
 	for i in range(1,skeleton.get_bone_count()):
-		var angle := sin(gait*0.65-i*0.8)*0.07
-		if phase=="active": angle += sin(clampf(clock/0.65,0,1)*PI)*0.09
+		var span := spans[i-1]
+		# Integrate curvature over physical length rather than adding a fixed
+		# rotation per bone. Refining the ring mesh must not curl the tail more.
+		var wave := (cos(gait*0.65-4*span.y)-cos(gait*0.65-4*span.x))/4.0
+		var angle := wave*0.32+pulse*0.40*(span.y-span.x)
 		skeleton.set_bone_pose_rotation(i,Quaternion(Vector3.UP,angle))
 	skeleton.force_update_all_bone_transforms()
 static func deform(skeleton: Skeleton3D, point: Vector3, rings: Array[Vector4]) -> Vector3:
