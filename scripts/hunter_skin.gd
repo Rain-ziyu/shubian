@@ -213,13 +213,22 @@ static func fit_elbow_surfaces(rig: Dictionary) -> void:
 		var arrays: Array = arm.upper.mesh.surface_get_arrays(0)
 		var points: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 		var roles := PackedVector2Array()
-		var into_upper: Transform3D = arm.upper.transform.affine_inverse()*arm.lower.transform
+		var to_local: Transform3D = arm.upper.transform.affine_inverse()
+		var upper_frame: Basis = arm.upper.basis.orthonormalized()
+		var lower_frame: Basis = arm.lower.basis.orthonormalized()
+		var transported := Basis(Quaternion(upper_frame.y,lower_frame.y))*upper_frame
+		var first := upper_frame.get_rotation_quaternion()
+		var last := transported.get_rotation_quaternion()
 		for index in points.size():
 			var point := points[index]
-			var weight := smoothstep(0.48,0.68,point.y)
-			# Equal-length arm segments share normalized axial coordinates at the hinge.
-			var seated := into_upper*Vector3(point.x,point.y-1.0,point.z)
-			points[index] = point.lerp(seated,weight)
+			var weight := smoothstep(0.32,0.68,point.y)
+			# Rotate circular sections rather than averaging two differently oriented
+			# sections; linear position blending shrinks the bind skin before animation.
+			var upper_center: Vector3 = arm.upper.transform*Vector3(0,point.y,0)
+			var lower_center: Vector3 = arm.lower.transform*Vector3(0,point.y-1.0,0)
+			var center := upper_center.lerp(lower_center,weight)
+			var radial := first.slerp(last,weight)*Vector3(point.x,0,point.z)
+			points[index] = to_local*(center+radial)
 			roles.append(Vector2(weight,0))
 		arrays[Mesh.ARRAY_VERTEX] = points
 		arrays[Mesh.ARRAY_TEX_UV2] = roles
@@ -228,7 +237,20 @@ static func fit_elbow_surfaces(rig: Dictionary) -> void:
 		var normals := SurfaceTool.new()
 		normals.create_from(fitted,0)
 		normals.generate_normals()
-		arm.upper.mesh = normals.commit()
+		var smoothed: Array = normals.commit().surface_get_arrays(0)
+		var vectors: PackedVector3Array = smoothed[Mesh.ARRAY_NORMAL]
+		var total := {}
+		for index in points.size():
+			var key := Vector3i((points[index]*1000000).round())
+			total[key] = Vector3(total.get(key,Vector3.ZERO))+vectors[index]
+		for index in points.size():
+			if roles[index].x<=0: continue
+			var key := Vector3i((points[index]*1000000).round())
+			vectors[index] = Vector3(total[key]).normalized()
+		smoothed[Mesh.ARRAY_NORMAL] = vectors
+		var continuous := ArrayMesh.new()
+		continuous.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,smoothed)
+		arm.upper.mesh = continuous
 
 static func parent_bone(skeleton: Skeleton3D, child: int, parent: int, rests: Dictionary) -> void:
 	var local: Transform3D = rests[parent].affine_inverse()*rests[child]

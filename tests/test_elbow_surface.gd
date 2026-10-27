@@ -27,6 +27,32 @@ func run() -> void:
 			if role.x>0 and role.x<1: blended += 1
 			if role.x==1: seated += 1
 		check(blended>100 and seated>100,"upper-arm surface has a continuous blended elbow and forearm-bound end")
+		var arrays: Array = source.mesh.surface_get_arrays(0)
+		var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+		var uv: PackedVector2Array = arrays[Mesh.ARRAY_TEX_UV]
+		var shared := {}
+		var rings := {}
+		var smooth := true
+		for index in vertices.size():
+			if roles[index].x<=0: continue
+			var key := Vector3i((vertices[index]*1000000).round())
+			if shared.has(key): smooth = smooth and normals[index].distance_to(shared[key])<0.005
+			else: shared[key] = normals[index]
+			var row := roundi(uv[index].y*1000000)
+			if not rings.has(row): rings[row] = []
+			rings[row].append(source.transform*vertices[index])
+		check(smooth,"shared elbow vertices keep matching normals across the UV seam")
+		var rounded := true
+		for ring: Array in rings.values():
+			var center := Vector3.ZERO
+			for point: Vector3 in ring: center += point
+			center /= ring.size()
+			for point: Vector3 in ring:
+				var radius := point.distance_to(center)
+				rounded = rounded and radius>0.030 and radius<0.070
+		check(rounded,"bind elbow sections retain a rounded cross section without pinching")
+
 	for binding in p.rig.skinning.bindings:
 		var label := str(binding.source.name)
 		if label.begins_with("Elbow") or label.begins_with("JointClothElbow"):
