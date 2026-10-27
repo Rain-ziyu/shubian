@@ -21,8 +21,24 @@ func run() -> void:
 	await physics_frame
 	await physics_frame
 	var library := AnimationLibrary.new()
+	var requested := ""
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--only="): requested = argument.trim_prefix("--only=")
+	if not requested.is_empty():
+		library = load("res://resources/animations/trident_library.tres").duplicate(true)
+		if not library.has_animation(requested):
+			printerr("Unknown existing animation: ",requested)
+			quit(2)
+			return
 	var skeleton: Skeleton3D = p.rig.skinning.skeleton
 	for action in ["idle","light","heavy","pull","turn","guard","reply","flash","throw","fourfold","spin","plant","wait","counter_window","finisher","dodge","hurt"]:
+		if not requested.is_empty() and action!=requested: continue
+		if requested=="reply":
+			# A counter starts from the successful guard, not a previous clip.
+			p.combat.drawn = true
+			p.combat.set_action("guard")
+			p.combat.elapsed = 1.4
+			p.animate(0,0)
 		var clip := Animation.new()
 		clip.length = float(p.Combat.MOVES.get(action,{"duration":1}).duration)
 		if action=="wait": clip.length = 1.0
@@ -47,11 +63,23 @@ func run() -> void:
 				finger_tracks.append({"track":track,"rendered":binding.rendered})
 		p.combat.set_action(action)
 		p.combat.drawn = true
-		var frames := ceili(clip.length*30)
+		var sample_rate := 60.0 if action=="reply" else 30.0
+		var frames := ceili(clip.length*sample_rate)
+		var sampled_time := 0.0
 		for frame in range(frames+1):
-			var t := minf(clip.length,frame/30.0)
-			p.combat.elapsed = t
-			p.animate(0,0)
+			var t := minf(clip.length,frame/sample_rate)
+			if action=="reply" and frame>0:
+				# The counter uses the preceding elbow pose. Preserve its actual
+				# 120Hz transport; 60Hz keys also keep its hand on the fast shaft.
+				while sampled_time<t:
+					var next_time := minf(t,sampled_time+1.0/120)
+					p.combat.elapsed = next_time
+					p.animate(next_time-sampled_time,0)
+					sampled_time = next_time
+			else:
+				p.combat.elapsed = t
+				p.animate(0,0)
+				sampled_time = t
 			for bone in range(1,skeleton.get_bone_count()):
 				clip.position_track_insert_key((bone-1)*2,t,skeleton.get_bone_pose_position(bone))
 				clip.rotation_track_insert_key((bone-1)*2+1,t,skeleton.get_bone_pose_rotation(bone))
@@ -60,6 +88,7 @@ func run() -> void:
 			clip.rotation_track_insert_key(rot_track,t,p.rig.weapon.quaternion)
 			clip.position_track_insert_key(body_track,t,p.rig.root.position)
 			clip.rotation_track_insert_key(body_rotation_track,t,p.rig.root.quaternion)
+		if library.has_animation(action): library.remove_animation(action)
 		library.add_animation(action,clip)
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("res://resources/animations"))
 	var error := ResourceSaver.save(library,"res://resources/animations/trident_library.tres")
