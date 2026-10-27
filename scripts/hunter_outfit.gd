@@ -201,6 +201,10 @@ static func cloth_panel(parent: Node3D, label: String, points: Array, color: Col
 					var bottom: Vector3 = points[3].lerp(points[2],u)
 					var point := top.lerp(bottom,v)
 					var hang := clampf(-point.y/0.29,0,1)
+					# Use panel coordinates for both cloth and trim, keeping their rounded
+					# free edges registered while the waist remains unchanged.
+					var across := clampf((point.x+0.105)/0.225,0,1)
+					point.y += (0.018*pow(absf(across*2-1),4)-0.012*sin(across*PI))*smoothstep(0.70,1,hang)
 					point.z -= sin(hang*PI)*(0.010+0.006*sin(point.x*35+hang*2))
 					point += Vector3(0,0.012,-0.035)*hang*hang*flex
 					st.set_uv(Vector2((point.x+0.105)/0.225,1-hang))

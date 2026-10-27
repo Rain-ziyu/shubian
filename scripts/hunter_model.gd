@@ -144,7 +144,16 @@ static func pose_arms(rig: Dictionary, armed: bool, gait: float, grip_weight := 
 		var cape: MeshInstance3D = rig.torso.get_node("RainCape"+str(side))
 		if cape.get_blend_shape_count()>0:
 			var local_axis: Vector3 = rig.torso.basis.inverse()*upper_axis
-			cape.set_blend_shape_value(0,smoothstep(-0.70,0.05,local_axis.y))
+			var gathering := smoothstep(-0.70,0.05,local_axis.y)
+			if armed and rig.weapon.visible:
+				var cuff: Vector3 = arm.upper.transform*Vector3(0,0.05,0)
+				var first: Vector3 = rig.weapon.transform*Vector3(0,-0.90,0)
+				var last: Vector3 = rig.weapon.transform*Vector3(0,0.82,0)
+				var cuff_distance: float = cuff.distance_to(Geometry3D.get_closest_point_to_segment(cuff,first,last))
+				gathering = maxf(gathering,1-smoothstep(0.18,0.27,cuff_distance))
+			cape.set_blend_shape_value(0,gathering)
+		var hem: MeshInstance3D = rig.torso.get_node("CapeHem"+str(side))
+		if hem.get_blend_shape_count()>0: hem.set_blend_shape_value(0,cape.get_blend_shape_value(0))
 	Skinning.update(rig)
 
 static func pose_torso(rig: Dictionary, action: String, elapsed: float, gait: float, speed: float, delta: float, travel := Vector3.FORWARD, arrival_weight := 0.0) -> void:

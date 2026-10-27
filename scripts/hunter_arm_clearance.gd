@@ -1,6 +1,6 @@
 extends RefCounted
 ## Rotate only the elbow pole around the fixed shoulder-to-hand axis.
-const SECTIONS := [Vector2(-0.19,0.025),Vector2(-0.10,0.070),Vector2(0.02,0.120),Vector2(0.23,0.120),Vector2(0.50,0.095),Vector2(0.55,0.090),Vector2(0.75,0.075),Vector2(1.0,0.060)]
+const SECTIONS := [Vector2(-0.19,0.025),Vector2(-0.10,0.070),Vector2(0.02,0.116),Vector2(0.23,0.130),Vector2(0.50,0.153),Vector2(0.55,0.158),Vector2(0.75,0.075),Vector2(1.0,0.060)]
 const SHAFT_MARGIN := 0.045
 static func gap(shoulder: Vector3, elbow: Vector3, start: Vector3, shaft: Vector3, inverse_length: float) -> float:
 	var result := INF

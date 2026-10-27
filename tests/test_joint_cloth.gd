@@ -25,11 +25,13 @@ func run() -> void:
 		var bones: PackedInt32Array = arrays[Mesh.ARRAY_BONES]
 		var weights: PackedFloat32Array = arrays[Mesh.ARRAY_WEIGHTS]
 		var arm := skeleton.find_bone("LeftUpperArm" if label.ends_with("-1") else "RightUpperArm")
+		var roles: PackedVector2Array = arrays[Mesh.ARRAY_TEX_UV2]
 		var yielding := 0
 		var collar_fixed := true
 		for vertex in positions.size():
 			if bones[vertex*4+1]==arm and weights[vertex*4+1]>0.1: yielding += 1
-			if absf(positions[vertex].x)<0.14: collar_fixed = collar_fixed and weights[vertex*4+1]<0.0001
+			var torso_panel: bool = roles[vertex].x==0 if roles.size()==positions.size() else absf(positions[vertex].x)<0.14
+			if torso_panel: collar_fixed = collar_fixed and weights[vertex*4+1]<0.0001
 		check(yielding>20,"cape edge follows the corresponding upper arm: "+label)
 		check(collar_fixed,"cape collar retains its torso attachment: "+label)
 	for binding in p.rig.skinning.bindings:
@@ -52,6 +54,10 @@ func run() -> void:
 		p.combat.set_action(action)
 		p.combat.elapsed = 0.95 if action=="finisher" else 0.3
 		p.animate(0,0)
+		for side in [-1,1]:
+			var cape: MeshInstance3D = p.rig.torso.get_node("RainCape"+str(side))
+			var hem: MeshInstance3D = p.rig.torso.get_node("CapeHem"+str(side))
+			check(hem.get_blend_shape_count()==1 and is_equal_approx(cape.get_blend_shape_value(0),hem.get_blend_shape_value(0)),"cape and its binding gather together through "+action)
 		for binding in p.rig.skinning.bindings:
 			if not str(binding.source.name).begins_with("JointCloth"): continue
 			var arrays: Array = binding.rendered.mesh.surface_get_arrays(0)

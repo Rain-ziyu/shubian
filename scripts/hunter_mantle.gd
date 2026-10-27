@@ -16,14 +16,14 @@ static func panel(tool: SurfaceTool, side: int, back: bool, hem: bool) -> void:
 				# Keep each flap torso-bound and separate from the moving shoulder cap.
 				var top := lerpf(1.51,1.46,u)
 				var bottom := 1.17+0.035*pow(absf(u*2-1),3)+0.025*u*u
-				var point := Vector3(side*lerpf(lerpf(0.045,0.075,v),lerpf(0.18,0.205,v),u),lerpf(top,bottom,v),(-1 if not back else 1)*lerpf(0.125,0.235,v))
+				var point := Vector3(side*lerpf(lerpf(0.045,0.075,v),lerpf(0.18,0.26,v),u),lerpf(top,bottom,v),(-1 if not back else 1)*lerpf(0.125,0.225,v))
 				var drape := 0.008*sin(u*PI)*sin(v*PI)+0.004*sin(u*PI*3)*sin(v*PI*0.5)
 				point.z += (1 if back else -1)*(drape+(0.0012 if hem else 0.0))
 				vertex(tool,point,Vector2(u,v),0.0)
 
 static func shoulder(tool: SurfaceTool, arm_rest: Transform3D, hem: bool) -> void:
-	var rings := [Vector4(-0.69,0.018,0.018,0),Vector4(-0.61,0.082,0.080,0),Vector4(-0.48,0.118,0.114,0),Vector4(-0.27,0.115,0.108,0),Vector4(0.0,0.087,0.083,0),Vector4(0.05,0.083,0.079,0)]
-	if hem: rings = [Vector4(0.025,0.085,0.081,0),Vector4(0.05,0.083,0.079,0)]
+	var rings := [Vector4(-0.69,0.018,0.018,0),Vector4(-0.61,0.080,0.078,0),Vector4(-0.48,0.108,0.106,0),Vector4(-0.27,0.122,0.118,0),Vector4(0.0,0.145,0.132,0),Vector4(0.05,0.150,0.137,0)]
+	if hem: rings = [Vector4(0.025,0.1475,0.1345,0),Vector4(0.05,0.150,0.137,0)]
 	for row in range(rings.size()-1):
 		for column in 24:
 			for corner in [Vector2i(column,row),Vector2i(column,row+1),Vector2i(column+1,row),Vector2i(column+1,row),Vector2i(column,row+1),Vector2i(column+1,row+1)]:
@@ -48,17 +48,36 @@ static func mesh(rig: Dictionary, side: int, hem := false) -> ArrayMesh:
 
 	tool.generate_normals()
 	var arrays := tool.commit().surface_get_arrays(0)
+	# Loose hems gather toward the arm when it lifts. Torso panels retain
+	# their independent rigid attachment, avoiding stretched connecting sheets.
+	var points: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX].duplicate()
+	var roles: PackedVector2Array = arrays[Mesh.ARRAY_TEX_UV2]
+	var inverse: Transform3D = rig.arms[side].upper.transform.affine_inverse()
+	for index in points.size():
+		if roles[index].x<0.5: continue
+		var local := inverse*points[index]
+		var gathering := smoothstep(-0.35,0.05,local.y)
+		var radius := Vector2(local.x,local.z)
+		var reduced := radius*(1-0.45*gathering)
+		if hem and radius.length()>0.00001: reduced += radius.normalized()*0.0015*gathering
+		local.x = reduced.x
+		local.z = reduced.y
+		points[index] = rig.arms[side].upper.transform*local
+	var folded: Array = arrays.duplicate(true)
+	folded[Mesh.ARRAY_VERTEX] = points
+	var temporary := ArrayMesh.new()
+	temporary.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,folded)
+	var normals := SurfaceTool.new()
+	normals.create_from(temporary,0)
+	normals.generate_normals()
+	var shape := []
+	shape.resize(Mesh.ARRAY_MAX)
+	shape[Mesh.ARRAY_VERTEX] = points
+	shape[Mesh.ARRAY_NORMAL] = normals.commit().surface_get_arrays(0)[Mesh.ARRAY_NORMAL]
 	var result := ArrayMesh.new()
-	if hem:
-		result.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
-	else:
-		var shape := []
-		shape.resize(Mesh.ARRAY_MAX)
-		shape[Mesh.ARRAY_VERTEX] = arrays[Mesh.ARRAY_VERTEX].duplicate()
-		shape[Mesh.ARRAY_NORMAL] = arrays[Mesh.ARRAY_NORMAL].duplicate()
-		result.blend_shape_mode = Mesh.BLEND_SHAPE_MODE_NORMALIZED
-		result.add_blend_shape("ShoulderEase")
-		result.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays,[shape])
+	result.blend_shape_mode = Mesh.BLEND_SHAPE_MODE_NORMALIZED
+	result.add_blend_shape("ShoulderEase")
+	result.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays,[shape])
 	return result
 
 static func apply(rig: Dictionary) -> void:

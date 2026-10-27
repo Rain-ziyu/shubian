@@ -37,7 +37,7 @@ func shaft_hits_for(skeleton: Skeleton3D, weapon: Node3D, include_head := false)
 	for part in skeleton.get_children():
 		if not part is MeshInstance3D: continue
 		var label: String = part.get_meta("source_part","")
-		if label!="Undercoat" and not label.begins_with("RainCape") and not (include_head and label=="Head"): continue
+		if label!="Undercoat" and not label.begins_with("RainCape") and not label.begins_with("CapeHem") and not (include_head and label=="Head"): continue
 		var triangles := surface(part,skeleton)
 		for ray in 9:
 			var offset := Vector3.ZERO if ray==0 else Vector3(cos((ray-1)*TAU/8)*0.024,0,sin((ray-1)*TAU/8)*0.024)
