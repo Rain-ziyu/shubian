@@ -37,12 +37,13 @@ func run() -> void:
 		label.pixel_size = 0.014
 		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 		holder.add_child(label)
-		assign_owners(model,model)
-		var packed := PackedScene.new()
-		var error := packed.pack(model)
-		if error==OK: error = ResourceSaver.save(packed,"res://assets/models/"+str(data.species[index].id)+"-v1.tscn")
-		print("CREATURE_EXPORT: ",data.species[index].id," ",error)
-		if error!=OK: quit(1); return
+		if "--no-export" not in OS.get_cmdline_user_args():
+			assign_owners(model,model)
+			var packed := PackedScene.new()
+			var error := packed.pack(model)
+			if error==OK: error = ResourceSaver.save(packed,"res://assets/models/"+str(data.species[index].id)+"-v1.tscn")
+			print("CREATURE_EXPORT: ",data.species[index].id," ",error)
+			if error!=OK: quit(1); return
 	var reference := Node3D.new()
 	reference.position.x = 22.5
 	stage.add_child(reference)
@@ -111,6 +112,17 @@ func run() -> void:
 			await RenderingServer.frame_post_draw
 			result = root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-creature-mossback-rear.png"))
 			if result!=OK: error = result
+		if data.species[index].id=="stormcrest":
+			camera.position = holder.position+Vector3(size*1.4,size*1.3,size*0.65)
+			camera.look_at(holder.position+Vector3(0,size*0.95,0))
+			camera.fov = 40
+			for state in ["idle","windup"]:
+				Model.animate(holder.get_node("CreatureMesh"),data.species[index],0,state,data.species[index].windup,0)
+				title.text = "SHUBIAN / STORMCREST / "+state.to_upper()
+				for frame in 3: await process_frame
+				await RenderingServer.frame_post_draw
+				result = root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-stormcrest-plates-"+state+".png"))
+				if result!=OK: error = result
 		holder.hide()
 	stage.queue_free()
 	await process_frame

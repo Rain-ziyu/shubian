@@ -244,12 +244,24 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 			var arrays: Array = crest.mesh.surface_get_arrays(0)
 			var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 			var colors := PackedColorArray()
-			for vertex in vertices:
-				colors.append(c.darkened(0.12).lerp(Color("6b8e8c"),smoothstep(0.02,0.40*height,vertex.y/s)))
+			for index in vertices.size():
+				var vertex := vertices[index]/s
+				var rise := smoothstep(0.02,0.12*height,vertex.y)*(1-smoothstep(0.34*height,0.47*height,vertex.y))
+				# Thin mineral plates have raised growth ribs on both broad faces.
+				# Taper them into the root and tip, preserving the weakpoint height.
+				var rib := pow(0.5+0.5*cos((vertex.z-vertex.y*0.10)*TAU/0.045),6)
+				vertex.x += signf(vertex.x)*0.004*rise*rib*smoothstep(0.005,0.020,absf(vertex.x))
+				vertices[index] = vertex*s
+				var tint := c.darkened(0.12).lerp(Color("6b8e8c"),smoothstep(0.02,0.40*height,vertex.y))
+				colors.append(tint.darkened((1-rib)*rise*0.16))
+			arrays[Mesh.ARRAY_VERTEX] = vertices
 			arrays[Mesh.ARRAY_COLOR] = colors
 			var crest_mesh := ArrayMesh.new()
 			crest_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
-			crest.mesh = crest_mesh
+			var normals := SurfaceTool.new()
+			normals.create_from(crest_mesh,0)
+			normals.generate_normals()
+			crest.mesh = normals.commit()
 	preload("res://scripts/creature_skin_material.gd").apply(root,data)
 	TailSkin.bind(tail)
 	for side in [-1,1]:
