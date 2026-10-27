@@ -184,6 +184,7 @@ static func pose_torso(rig: Dictionary, action: String, elapsed: float, gait: fl
 	var adjustment := Transform3D(Basis.from_euler(compensation),head_pivot)
 	adjustment.origin -= adjustment.basis*head_pivot
 	for part in rig.head_parts: part.source.transform = adjustment*part.rest
+	Outfit.Face.animate(rig,action,elapsed,delta)
 	for side in [-1,1]:
 		var arm: Dictionary = rig.arms[side]
 		arm.shoulder.position = rig.torso.transform*(arm.rest_shoulder-Vector3(0,1.08,0))

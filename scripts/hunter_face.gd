@@ -1,6 +1,6 @@
 extends RefCounted
 ## Small anatomical planes and surface-seated features for the authored ranger.
-## Construction only: existing head anchors, bones and animation channels remain.
+## Surface-seated features and eyelid shapes share the existing head anchors.
 static func sculpt(point: Vector3) -> Vector3:
 	var front := 1-smoothstep(-0.075,-0.025,point.z)
 	var x := absf(point.x)
@@ -60,6 +60,51 @@ static func seat_features(root: Node3D) -> void:
 		tool.create_from(projected,0)
 		tool.generate_normals()
 		part.mesh = tool.commit()
+		if white or iris or glint or upper_lid or lower_lid: add_blink(part,surface,upper_lid or lower_lid)
+
+static func add_blink(part: MeshInstance3D, head: TriangleMesh, lid: bool) -> void:
+	var arrays: Array = part.mesh.surface_get_arrays(0)
+	var points: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX].duplicate()
+	var inverse := part.transform.affine_inverse()
+	var side := -1.0 if str(part.name).ends_with("-1") else 1.0
+	for index in points.size():
+		var point: Vector3 = part.transform*points[index]
+		var crease := 1.712+side*(point.x-side*0.056)*0.04
+		point.y = lerpf(crease,point.y,0.12 if lid else 0.025)
+		var hit := head.intersect_segment(Vector3(point.x,point.y,-1),Vector3(point.x,point.y,1))
+		if not hit.is_empty(): point.z = hit.position.z+(-0.0016 if lid else 0.001)
+		points[index] = inverse*point
+	var closed: Array = arrays.duplicate(true)
+	closed[Mesh.ARRAY_VERTEX] = points
+	var temporary := ArrayMesh.new()
+	temporary.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,closed)
+	var normals := SurfaceTool.new()
+	normals.create_from(temporary,0)
+	normals.generate_normals()
+	var shape := []
+	shape.resize(Mesh.ARRAY_MAX)
+	shape[Mesh.ARRAY_VERTEX] = points
+	shape[Mesh.ARRAY_NORMAL] = normals.commit().surface_get_arrays(0)[Mesh.ARRAY_NORMAL]
+	var mesh := ArrayMesh.new()
+	mesh.blend_shape_mode = Mesh.BLEND_SHAPE_MODE_NORMALIZED
+	mesh.add_blend_shape("Blink")
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays,[shape])
+	part.mesh = mesh
+
+static func animate(rig: Dictionary, action: String, elapsed: float, delta: float) -> void:
+	rig.blink_clock = float(rig.get("blink_clock",0.0))+maxf(delta,0)
+	var clock := fposmod(float(rig.blink_clock),8.3)
+	var blink := blink_pulse(clock-3.2)+blink_pulse(clock-7.6)
+	if delta<=0: blink = 0.0 # Static pose samples and baked clips use only authored reactions.
+	if action=="hurt": blink = maxf(blink,smoothstep(0,0.04,elapsed)*(1-smoothstep(0.10,0.22,elapsed)))
+	for part in rig.head_parts:
+		var mesh := part.source as MeshInstance3D
+		if mesh==null: continue
+		var channel := mesh.find_blend_shape_by_name("Blink")
+		if channel>=0: mesh.set_blend_shape_value(channel,clampf(blink,0,1))
+
+static func blink_pulse(age: float) -> float:
+	return smoothstep(0,0.055,age)*(1-smoothstep(0.085,0.20,age))
 
 static func refine_patch(mesh: ArrayMesh) -> ArrayMesh:
 	var arrays: Array = mesh.surface_get_arrays(0)

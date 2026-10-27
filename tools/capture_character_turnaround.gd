@@ -27,12 +27,14 @@ func run() -> void:
 	floor.material_override = Model.V.mat(Color("bfc6bb"))
 	world.add_child(floor)
 	var holders: Array[Node3D] = []
+	var rigs: Array[Dictionary] = []
 	for index in 3:
 		var holder := Node3D.new()
 		holders.append(holder)
 		world.add_child(holder)
 		holder.position.x = (1-index)*1.35
 		var rig := Model.create(holder)
+		rigs.append(rig)
 		rig.root.rotation.y = [0.0,PI/2,PI][index]
 		rig.weapon.position = Vector3(0,1.05,0.26)
 		rig.weapon.rotation.z = 0.35
@@ -77,7 +79,8 @@ func run() -> void:
 		await RenderingServer.frame_post_draw
 		error = root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-fabric-detail.png"))
 		print("CHARACTER_FABRIC_CAPTURE: ",error)
-	if "--head" in OS.get_cmdline_user_args():
+	if "--head" in OS.get_cmdline_user_args() or "--blink" in OS.get_cmdline_user_args():
+		var blink_study := "--blink" in OS.get_cmdline_user_args()
 		layer.hide()
 		for index in [1,2]: holders[index].hide()
 		holders[0].get_node("HunterRig/Trident").hide()
@@ -88,13 +91,17 @@ func run() -> void:
 		camera.fov = 35
 		var sheet := Image.create(2304,768,false,Image.FORMAT_RGB8)
 		for index in 3:
-			holders[0].get_node("HunterRig").rotation.y = [0.0,0.65,PI/2][index]
+			holders[0].get_node("HunterRig").rotation.y = 0.0 if blink_study else [0.0,0.65,PI/2][index]
+			if blink_study:
+				rigs[0].blink_clock = [0.0,3.27,3.42][index]-1.0/60
+				Model.Outfit.Face.animate(rigs[0],"idle",0,1.0/60)
+				Model.pose_arms(rigs[0],false,0)
 			for frame in 3: await process_frame
 			await RenderingServer.frame_post_draw
 			var frame := root.get_texture().get_image()
 			frame.convert(Image.FORMAT_RGB8)
 			sheet.blit_rect(frame,Rect2i(0,0,768,768),Vector2i(index*768,0))
-		var result := sheet.save_png(ProjectSettings.globalize_path("res://../Shubian-ranger-head-study.png"))
+		var result := sheet.save_png(ProjectSettings.globalize_path("res://../Shubian-ranger-"+("blink" if blink_study else "head")+"-study.png"))
 		print("CHARACTER_HEAD_CAPTURE: ",result)
 		if result!=OK: error = result
 	if "--details" in OS.get_cmdline_user_args():

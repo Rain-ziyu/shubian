@@ -10,6 +10,10 @@ func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	var world = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(world)
+	# This fixture issues requests itself; native window events must not add moves.
+	world.hunter.set_process_input(false)
+	world.hunter.set_process_unhandled_input(false)
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	await physics_frame
 	await physics_frame
 	var p = world.hunter
@@ -38,6 +42,7 @@ func run() -> void:
 	check(f.hurt_flash>0,"interruption drives a short character impact flash")
 	c.advance(0.08)
 	p.animate(0,0)
+	check(p.rig.torso.get_node("EyeWhite1").get_blend_shape_value(0)>0.9,"actual damage briefly closes eyes with the impact pose")
 	check(p.rig.weapon.position.y<1.06 and p.rig.torso.rotation.x>0.2 and p.rig.root.position.z>0.05,"interruption also lowers the weapon and recoils the whole body")
 	c.advance(0.56)
 	f.advance(0.56)
