@@ -160,8 +160,11 @@ func stats(values: Array[float]) -> Dictionary:
 	return {"frames":sorted.size(),"mean_ms":total/sorted.size(),"p95_ms":sorted[int((sorted.size()-1)*0.95)],"p99_ms":sorted[int((sorted.size()-1)*0.99)],"max_ms":sorted[-1],"over_33ms":slow}
 func finish() -> void:
 	if finished: return
-	var report := {"all_frames":stats(timings),"after_two_seconds":stats(steady),"stalls":stalls,"maximum_physics_ms":maximum_physics_ms,"maximum_process_ms":maximum_process_ms,"viewport":str(root.get_visible_rect().size),"adapter":RenderingServer.get_video_adapter_name(),"wall_seconds":(Time.get_ticks_usec()-started_us)/1000000.0,"simulation_seconds":elapsed,"scope":"native uncapped real-time full forest hunt from normal spawn, five AI active, no resource resets; local hardware only; excludes initial scene loading; privileged controller, not human difficulty acceptance"}
+	var report := {"all_frames":stats(timings),"after_two_seconds":stats(steady),"stalls":stalls,"maximum_physics_ms":maximum_physics_ms,"maximum_process_ms":maximum_process_ms,"viewport":str(root.get_visible_rect().size),"adapter":RenderingServer.get_video_adapter_name(),"wall_seconds":(Time.get_ticks_usec()-started_us)/1000000.0,"simulation_seconds":elapsed,"scope":"native real-time full forest hunt from normal spawn, five AI active, no resource resets; local hardware only; excludes initial scene loading; privileged controller, not human difficulty acceptance"}
 	report["navigation_slow_paths"] = world.navigation.path_events
+	report["render_frame_limit"] = Engine.max_fps
+	report["audio_driver"] = AudioServer.get_driver_name()
+	report["audio_output_device"] = AudioServer.output_device
 	report["navigation_scope"] = "wall-clock stages for navigation calls >=2ms, last 64 events; includes controller and monster callers; timings do not distinguish CPU work from OS scheduling"
 	report["player_stage_scope"] = "player_simulation, player_animation and player_contacts are nested within player total; wall-clock time includes scheduling, and these are not additional independent costs"
 	report["hazard_stage_scope"] = "species_hazard_spawn is nested inside species physics total; species_hazard_ground measures deferred terrain fitting outside that physics total; timings include scheduling"
