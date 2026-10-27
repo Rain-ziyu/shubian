@@ -453,6 +453,7 @@ static func boot(parent: Node3D) -> MeshInstance3D:
 		elif point.z< -0.18 and point.y<0.27: color = Color("626d63")
 		elif point.y>=0.61 and point.y<=0.71: color = Color("59473a")
 		elif point.y>=1.20: color = Color("65705e")
+		elif point.y>0.20 and point.z<0 and absf(point.x)<0.19: color = Color("504b3c")
 		colors.append(color)
 	arrays[Mesh.ARRAY_COLOR] = colors
 	var mesh := ArrayMesh.new()
@@ -461,7 +462,55 @@ static func boot(parent: Node3D) -> MeshInstance3D:
 	result.material_override.vertex_color_use_as_albedo = true
 	result.position = Vector3(0,-0.025,-0.06)
 	result.scale = Vector3(0.18,0.15,0.30)
+	boot_details(result)
 	return result
+
+static func boot_details(part: MeshInstance3D) -> void:
+	# Build small closed leather ribbons on the actual shoe, in the same mesh and
+	# bone binding. Ray seating follows the rising instep rather than a flat decal.
+	var surface := part.mesh.generate_triangle_mesh()
+	var tool := SurfaceTool.new()
+	tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var original: Array = part.mesh.surface_get_arrays(0)
+	for index in original[Mesh.ARRAY_VERTEX].size():
+		tool.set_uv(original[Mesh.ARRAY_TEX_UV][index])
+		tool.set_color(original[Mesh.ARRAY_COLOR][index])
+		tool.set_normal(original[Mesh.ARRAY_NORMAL][index])
+		tool.add_vertex(original[Mesh.ARRAY_VERTEX][index])
+	tool.set_smooth_group(-1)
+	for row in 5:
+		var height := 0.28+row*0.16
+		for direction in [-1,1]:
+			var a := Vector2(-0.18,height+(0.10 if direction==1 else 0))
+			var b := Vector2(0.18,height+(0.10 if direction==-1 else 0))
+			boot_ribbon(tool,surface,a,b,0.008,Color("79684d"),0.006 if direction==1 else 0.011)
+	# A stitched toe cap border sits below the lacing and follows the vamp curve.
+	boot_ribbon(tool,surface,Vector2(-0.34,0.10),Vector2(0.34,0.10),0.009,Color("81765e"))
+	tool.generate_normals()
+	part.mesh = tool.commit()
+
+static func boot_ribbon(tool: SurfaceTool, surface: TriangleMesh, a: Vector2, b: Vector2, width: float, color: Color, lift := 0.006) -> void:
+	var sideways := (b-a).normalized().orthogonal()*width
+	for step in 12:
+		var p := a.lerp(b,float(step)/12)
+		var q := a.lerp(b,float(step+1)/12)
+		var points: Array[Vector3] = []
+		for sample: Vector2 in [p-sideways,p+sideways,q+sideways,q-sideways]:
+			var hit: Dictionary = surface.intersect_segment(Vector3(sample.x,sample.y,-1),Vector3(sample.x,sample.y,1))
+			assert(not hit.is_empty(),"Boot stitching must sit on the shoe")
+			points.append(hit.position+Vector3(0,0,-lift))
+		tool.set_color(color)
+		MetalMesh.bevel_triangle(tool,points[0],points[1],points[2],Vector3.FORWARD)
+		MetalMesh.bevel_triangle(tool,points[0],points[2],points[3],Vector3.FORWARD)
+		var back := Vector3(0,0,0.008)
+		MetalMesh.bevel_triangle(tool,points[0]+back,points[2]+back,points[1]+back,Vector3.BACK)
+		MetalMesh.bevel_triangle(tool,points[0]+back,points[3]+back,points[2]+back,Vector3.BACK)
+		for edge in 4:
+			var first := points[edge]
+			var second := points[(edge+1)%4]
+			var outward := Vector3((second-first).y,-(second-first).x,0).normalized()
+			MetalMesh.bevel_triangle(tool,first,first+back,second,outward)
+			MetalMesh.bevel_triangle(tool,second,first+back,second+back,outward)
 
 static func create(root: Node3D) -> Dictionary:
 	var dark := Color("303735")

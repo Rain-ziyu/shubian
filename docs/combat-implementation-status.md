@@ -1513,3 +1513,11 @@ EyeRidge从单独眉脊改成同一网格内的上下眼缘：各纵向剖面的
 - 导出当前角色模型，并查看前后装备近景；模型仍是程序化原型，不能据此认定角色美术已经完成。终端位置未改，近景未单独覆盖屏幕正面。
 - 原生回归 5 组 640 项通过：基础派生 109、服装 59、肘部表面 142、装备切换 80、蒙皮 250。报告：`D:/vscode/Shubian/outputs/verification/regressions-20261027-102819-244774/summary.json`。
 - 实际渲染：`D:/vscode/Shubian/outputs/Shubian-equipment-detail.png`、`D:/vscode/Shubian/outputs/Shubian-equipment-rear-detail.png`。未进行新的长时间性能测试或人工试玩验收。
+
+
+### 2026-10-27 靴部鞋面结构
+
+- 保留原靴子外形、脚掌尺寸、节点/骨骼顺序和落脚锚点；在同一网格内补充贴合真实鞋面的立体交叉系带、鞋头接缝及鞋舌色区。交叉带使用不同抬升量避免共面闪烁；鞋带为暗褐色，不增加装备节点。
+- 新增 `capture_character_turnaround.gd -- --boots` 实际渲染近景，输出 `D:/vscode/Shubian/outputs/Shubian-boots-detail.png`；已查看最终近景及默认玩家相机的冻结横扫画面。护胫会遮挡上部系带，默认战斗距离下这些细节较小；本次不代表整体人物/怪物美术目标已达成。
+- 首次导出遇到 SurfaceTool 未开始构建错误，已改为显式复制原顶点属性后追加几何；最终导出与截图日志无此错误。内嵌资源 254 个，稳定 ID 已归一。
+- 原生回归 6 组 551 项通过：靴部蒙皮 33、服装 59、脚底贴地 83、人物脚锁定 20、人物腿部 106、蒙皮 250。报告 `D:/vscode/Shubian/outputs/verification/regressions-20261027-103234-434388/summary.json`。未进行新的长时间帧率测试或人工试玩验收。

@@ -99,6 +99,18 @@ func run() -> void:
 		for frame in 3: await process_frame
 		await RenderingServer.frame_post_draw
 		error = root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-equipment-armed-rear-detail.png" if armed else "res://../Shubian-equipment-rear-detail.png"))
+	if "--boots" in OS.get_cmdline_user_args():
+		layer.hide()
+		for index in [1,2]: holders[index].hide()
+		root.size = Vector2i(1024,1024)
+		root.content_scale_size = Vector2i(1024,1024)
+		camera.position = Vector3(1.75,0.35,-0.85)
+		camera.look_at(Vector3(1.35,0.18,-0.04))
+		camera.fov = 28
+		for frame in 3: await process_frame
+		await RenderingServer.frame_post_draw
+		error = root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-boots-detail.png"))
+		print("CHARACTER_BOOTS_CAPTURE: ",error)
 	if "--fabric" in OS.get_cmdline_user_args():
 		layer.hide()
 		for index in [1,2]: holders[index].hide()
