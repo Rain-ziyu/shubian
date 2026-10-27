@@ -59,6 +59,19 @@ func _ready() -> void:
 		hazard.global_position = location
 	var ghost: Node3D = load("res://scripts/visuals.gd").trident(effects,true)
 	ghost.global_position = location+Vector3(0,1,0)
+	# Warm the actual first-hit material and both damage-font sizes while paused.
+	# Include every digit and each outcome prefix without playing impact audio.
+	for variant in 4:
+		var contact = load("res://scripts/hit_feedback.gd").new()
+		contact.audio_enabled = false
+		contact.damage = 1234567890
+		contact.weak = variant==1
+		contact.armor_reduced = variant==2
+		contact.armor_just_broken = variant==3
+		effects.add_child(contact)
+		contact.global_position = location+Vector3((variant-1.5)*0.3,1,0)
+		contact.set_process(false)
+		contact.advance_visual(0.06)
 	await RenderingServer.frame_post_draw
 	await RenderingServer.frame_post_draw
 	effects.queue_free()

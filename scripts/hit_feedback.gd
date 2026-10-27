@@ -12,6 +12,7 @@ var force := 1.0
 var sparks: Node3D
 var age := 0.0
 var lifetime := 0.55
+var audio_enabled := true
 var rays: Array[MeshInstance3D] = []
 var flash_material: StandardMaterial3D
 var number: Label3D
@@ -49,7 +50,7 @@ func _ready() -> void:
 	sound.pitch_scale = clampf(1.0-(force-1.0)*0.28,0.86,1.08)
 	sound.max_distance = 24
 	add_child(sound)
-	if DisplayServer.get_name()!="headless": sound.play()
+	if audio_enabled and DisplayServer.get_name()!="headless": sound.play()
 	advance_visual(0)
 
 static func impact_force(move: String, is_weak: bool) -> float:

@@ -76,6 +76,13 @@ func run() -> void:
 	var weak_audio := Feedback.synthesize(true)
 	check(normal_audio.data.size()>4000 and weak_audio.data.size()>normal_audio.data.size(),"two nonempty PCM sounds are generated")
 	check(normal_audio.data.decode_s16(0)==0 and abs(normal_audio.data.decode_s16(normal_audio.data.size()-2))<4,"sound envelope starts and ends quietly")
+	var silent := Feedback.new()
+	silent.audio_enabled = false
+	world.add_child(silent)
+	var played := false
+	for child in silent.get_children():
+		if child is AudioStreamPlayer3D: played = played or child.playing
+	check(not played,"preparation can draw feedback without playing its impact sound")
 	print("HIT_FEEDBACK_CHECKS: ",checks," FAILURES: ",failures)
 	world.queue_free()
 	await process_frame
