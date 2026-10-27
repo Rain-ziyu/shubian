@@ -558,6 +558,7 @@ func receive_strike(amount: float, origin: Vector3, action: String, part := "", 
 	var weak: bool = (data.weak_side == "rear" and dot_front < -0.3) or (data.weak_side == "flank" and absf(dot_front)<0.65 and exposed>0) or (data.weak_side == "front" and dot_front>0.2 and phase=="windup")
 	if part!="":
 		weak = weak_part_active(part)
+	var had_armor := armor_integrity>0
 	var factor := float(data.weak_multiplier) if weak else (float(data.front_armor) if dot_front > 0.4 and armor_integrity>0 else 1.0)
 	if data.id=="mossback" and part=="body": armor_integrity = maxf(0,armor_integrity-amount)
 	if data.id=="mossback" and armor_integrity<=0:
@@ -596,4 +597,4 @@ func receive_strike(amount: float, origin: Vector3, action: String, part := "", 
 		mesh.set_meta("impact_rotation",Vector3(-local_source.z*0.105,local_source.x*0.095,local_source.x*0.045)*strength)
 		mesh.set_meta("impact_compression",float(data.size)*0.012*strength)
 		mesh.set_meta("impact_age",0.0)
-	return {"hit":true,"weak":weak,"damage":amount*factor,"part":part if part!="" else "legacy-direction","armor_broken":armor_integrity<=0}
+	return {"hit":true,"weak":weak,"damage":amount*factor,"part":part if part!="" else "legacy-direction","armor_broken":armor_integrity<=0,"armor_reduced":factor<1.0,"armor_just_broken":data.id=="mossback" and had_armor and armor_integrity<=0}

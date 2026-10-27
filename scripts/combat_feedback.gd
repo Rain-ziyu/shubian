@@ -10,7 +10,11 @@ var priority := 0
 var hurt_flash := 0.0
 func hit_message(result: Dictionary) -> String:
 	var part: String = PART_NAMES.get(str(result.get("part","")),"")
-	var text: String = ("弱点命中 " if result.get("weak",false) else "命中 ")+str(roundi(float(result.get("damage",0))))
+	var prefix := "命中 "
+	if result.get("armor_just_broken",false): prefix = "破甲 "
+	elif result.get("weak",false): prefix = "弱点命中 "
+	elif result.get("armor_reduced",false): prefix = "重甲减伤 "
+	var text: String = prefix+str(roundi(float(result.get("damage",0))))
 	return text+(" · "+part if not part.is_empty() else "")
 func advance(delta: float) -> void:
 	remaining = maxf(0,remaining-delta)

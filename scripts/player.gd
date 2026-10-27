@@ -702,6 +702,10 @@ func show_hit_feedback(point: Vector3, result: Dictionary, action: String = "") 
 	var effect := HitFeedback.new()
 	effect.damage = result.damage
 	effect.weak = result.weak
+	effect.armor_reduced = result.get("armor_reduced",false)
+	effect.armor_just_broken = result.get("armor_just_broken",false)
+	if effect.armor_just_broken:
+		feedback.show_event("破甲成功 · 正面重甲已解除",Color("ffc28c"),1.1,2)
 	effect.action = combat.action if action.is_empty() else action
 	get_parent().add_child(effect)
 	effect.global_position = point

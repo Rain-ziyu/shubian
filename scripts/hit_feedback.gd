@@ -5,6 +5,8 @@ static var normal_sound: AudioStreamWAV
 static var weak_sound: AudioStreamWAV
 var damage := 0.0
 var weak := false
+var armor_reduced := false
+var armor_just_broken := false
 var action := "light"
 var force := 1.0
 var sparks: Node3D
@@ -17,6 +19,8 @@ var number: Label3D
 func _ready() -> void:
 	add_to_group("hit_feedback")
 	var color := Color("f4cd77") if weak else Color("a6e8de")
+	if armor_just_broken: color = Color("ffc28c")
+	elif armor_reduced: color = Color("b5bdcc")
 	flash_material = Visuals.mat(color,true)
 	flash_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	flash_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -29,7 +33,7 @@ func _ready() -> void:
 		ray.rotation.z = index*PI/3
 		rays.append(ray)
 	number = Label3D.new()
-	number.text = ("弱点 " if weak else "")+str(roundi(damage))
+	number.text = ("破甲 " if armor_just_broken else "重甲 " if armor_reduced else "弱点 " if weak else "")+str(roundi(damage))
 	number.font_size = 52 if weak else 42
 	number.pixel_size = 0.005
 	number.modulate = color
