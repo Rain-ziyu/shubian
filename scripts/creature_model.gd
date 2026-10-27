@@ -37,7 +37,11 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 	var quad: bool = "quadruped" in data.body
 	var y := s*0.50 if quad else s*0.64
 	var body_profile := [Vector4(-0.56,0.08,0.12,0.03),Vector4(-0.42,0.28,0.23,0.025),Vector4(-0.15,0.37,0.285,0),Vector4(0.20,0.34,0.26,0),Vector4(0.43,0.22,0.20,-0.025),Vector4(0.56,0.08,0.12,-0.025)]
-	if data.id=="thornhorn":
+	if data.id=="mossback":
+		# A broad low shoulder barrel carries the shell; the pelvis still tapers
+		# into the existing tail and the four original leg attachments.
+		body_profile = [Vector4(-0.56,0.08,0.12,0.03),Vector4(-0.42,0.33,0.25,0.025),Vector4(-0.20,0.41,0.30,0.005),Vector4(0.11,0.40,0.285,0),Vector4(0.27,0.35,0.25,-0.005),Vector4(0.43,0.23,0.20,-0.025),Vector4(0.56,0.08,0.12,-0.025)]
+	elif data.id=="thornhorn":
 		body_profile = [Vector4(-0.56,0.10,0.14,0.03),Vector4(-0.42,0.32,0.27,0.035),Vector4(-0.15,0.37,0.29,0.015),Vector4(0.20,0.28,0.22,0),Vector4(0.43,0.19,0.17,-0.025),Vector4(0.56,0.08,0.11,-0.025)]
 	elif data.id=="stormcrest":
 		body_profile = [Vector4(-0.56,0.10,0.15,0.04),Vector4(-0.42,0.30,0.30,0.035),Vector4(-0.15,0.37,0.32,0.025),Vector4(0.20,0.32,0.25,0),Vector4(0.43,0.23,0.18,-0.025),Vector4(0.56,0.08,0.11,-0.025)]
@@ -71,7 +75,7 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 	if data.id=="mossback":
 		# Low nasal wedge and a stronger orbital roof for the armored grazer.
 		# Keep the authored snout endpoint; contacts are fitted to this mesh.
-		head_profile = [Vector4(-0.715,0.010,0.007,0.055),Vector4(-0.70,0.035,0.018,0.055),Vector4(-0.67,0.085,0.035,0.065),Vector4(-0.60,0.14,0.055,0.080),Vector4(-0.49,0.175,0.10,0.125),Vector4(-0.40,0.185,0.115,0.145),Vector4(-0.28,0.165,0.130,0.130),Vector4(-0.09,0.135,0.17,0.08),Vector4(0.12,0.10,0.15,0)]
+		head_profile = [Vector4(-0.715,0.010,0.007,0.055),Vector4(-0.70,0.065,0.020,0.055),Vector4(-0.67,0.12,0.038,0.065),Vector4(-0.60,0.165,0.060,0.080),Vector4(-0.49,0.205,0.105,0.125),Vector4(-0.40,0.225,0.120,0.145),Vector4(-0.28,0.19,0.135,0.130),Vector4(-0.09,0.135,0.17,0.08),Vector4(0.12,0.10,0.15,0)]
 	elif data.id=="thornhorn":
 		head_profile = [Vector4(-0.715,0.006,0.004,0.10),Vector4(-0.71,0.065,0.035,0.10),Vector4(-0.69,0.12,0.065,0.10),Vector4(-0.61,0.155,0.09,0.11),Vector4(-0.42,0.22,0.17,0.17),Vector4(-0.28,0.19,0.18,0.14),Vector4(-0.09,0.135,0.17,0.08),Vector4(0.12,0.10,0.15,0)]
 	elif data.id=="stormcrest":
@@ -97,6 +101,7 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 	var facial_surface: TriangleMesh = head_surface.mesh.generate_triangle_mesh()
 	Surface.mouth_lining(head_surface,Vector3.ZERO,s,head_width,true)
 	var jaw_profile := [Vector4(-0.68,0.006*head_width,0.004,-0.04),Vector4(-0.66,0.035*head_width,0.015,-0.04),Vector4(-0.58,0.13*head_width,0.035,-0.05),Vector4(-0.30,0.145*head_width,0.055,-0.045),Vector4(-0.12,0.06,0.025,0.01)]
+	if data.id=="mossback": jaw_profile = [Vector4(-0.68,0.006,0.004,-0.04),Vector4(-0.66,0.065,0.018,-0.04),Vector4(-0.58,0.155,0.038,-0.05),Vector4(-0.30,0.175,0.060,-0.045),Vector4(-0.12,0.06,0.025,0.01)]
 	if data.id=="stormcrest": jaw_profile = [Vector4(-0.69,0.008,0.005,-0.04),Vector4(-0.67,0.040,0.018,-0.045),Vector4(-0.64,0.10,0.032,-0.050),Vector4(-0.60,0.145,0.040,-0.055),Vector4(-0.40,0.165,0.055,-0.055),Vector4(-0.20,0.13,0.050,-0.025),Vector4(-0.12,0.060,0.025,0.010)]
 	Surface.profile(neck,"Jaw",jaw_profile,s,c.darkened(0.16))
 	var jaw := neck.get_node("Jaw") as MeshInstance3D
@@ -145,7 +150,12 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 		for front in ([false,true] if quad else [false]):
 			var leg := V.pivot(root,("Front" if front else "Hind")+str(side),Vector3(side*s*0.29,y*0.9,-s*0.31 if front else s*0.28))
 			var bottom := -y*0.9/s+0.075
-			var leg_surface := Surface.vertical(leg,"LegSurface",[Vector4(bottom,0.055,0.06,0.025),Vector4(bottom*0.78,0.066,0.075,0.05),Vector4(bottom*0.56,0.092,0.09,-0.04),Vector4(bottom*0.28,0.13,0.12,-0.02),Vector4(0.025,0.16,0.16,0),Vector4(0.11,0.14,0.14,0),Vector4(0.19,0.055,0.065,0),Vector4(0.205,0.005,0.005,0)],s,c)
+			var leg_profile := [Vector4(bottom,0.055,0.06,0.025),Vector4(bottom*0.78,0.066,0.075,0.05),Vector4(bottom*0.56,0.092,0.09,-0.04),Vector4(bottom*0.28,0.13,0.12,-0.02),Vector4(0.025,0.16,0.16,0),Vector4(0.11,0.14,0.14,0),Vector4(0.19,0.055,0.065,0),Vector4(0.205,0.005,0.005,0)]
+			if data.id=="mossback":
+				# Thick wrists and hocks support the armored torso instead of a
+				# narrow biped-like lower leg. Sole and IK anchors stay unchanged.
+				leg_profile = [Vector4(bottom,0.074,0.075,0.025),Vector4(bottom*0.78,0.086,0.090,0.040),Vector4(bottom*0.56,0.105,0.105,-0.025),Vector4(bottom*0.28,0.150,0.135,-0.010),Vector4(0.025,0.175,0.170,0),Vector4(0.11,0.14,0.14,0),Vector4(0.19,0.055,0.065,0),Vector4(0.205,0.005,0.005,0)]
+			var leg_surface := Surface.vertical(leg,"LegSurface",leg_profile,s,c)
 			LegSkin.shape_attachment(leg_surface,s,side)
 			var foot_y := -y*0.9+s*0.05
 			var foot := V.piece(leg,Vector3(0,foot_y,-s*0.10),Vector3(s*0.21,s*0.10,s*0.35),c.darkened(0.25),true)

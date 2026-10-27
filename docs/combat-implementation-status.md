@@ -1529,3 +1529,11 @@ EyeRidge从单独眉脊改成同一网格内的上下眼缘：各纵向剖面的
 - 查看五种怪物实际渲染及默认战斗视角冻结横扫画面；苔甲龙前后对照保存在 `D:/vscode/Shubian/outputs/verification/mesoscale-mossback-before.png` 与 `D:/vscode/Shubian/outputs/Shubian-creature-mossback.png`。皮肤层次更清楚，但五种怪物头颈和肢体造型仍偏相似，不代表最终美术验收。
 - 原生相关回归 4 组 681 项通过：下颌 200、皮肤材质 42、表面 332、尾部蒙皮 107。报告 `D:/vscode/Shubian/outputs/verification/regressions-20261027-103832-f55e3d/summary.json`。渲染/测试未报着色器错误。
 - 默认 Compatibility 原生 1280×720、五 AI 活跃的 30 秒部分狩猎采样：两秒后 4926 帧，平均 5.663 ms、P99 11.534 ms、最大 20.593 ms、超过 33 ms 为 0。日志 `D:/vscode/Shubian/outputs/verification/creature-mesoscale-performance-30s.log`。只证明当前短采样，无同条件旧版性能对照，不证明开销增减或既有长时间卡顿已修复。
+
+
+### 2026-10-27 苔甲龙负重体型
+
+- 为苔甲龙单独制作较宽的低位肩背、较厚的腕/跗部、方阔的口鼻与下颌轮廓。沿用原四肢 IK、脚底、尾根、颈根和口鼻最前端锚点；背甲重新贴合实际躯干，眼/鼻/牙根与头部阻挡按当前模型构建。其余四种怪物不变。
+- 首次肩背截面使背甲射线在某截面边界返回空命中（诊断 z/size=0.01）；调整宽肩截面纵向位置后重新导出，原背甲贴合限制未放宽。最终导出无错误，142 个资源 ID 与 20 个生成牙齿节点名保持稳定。早期失败日志保留在 verification。
+- 九组原生回归 1017 项通过：脚锁定 40、头部阻挡 28、下颌 200、腿部 304、表面 332、头部横扫 57、背甲贴合 10、近战部位 28、投射物部位 18。报告 `D:/vscode/Shubian/outputs/verification/regressions-20261027-104612-86d4a7/summary.json`。
+- 已查看正/后侧实际渲染及默认相机冻结横扫画面。旧轮廓对照 `D:/vscode/Shubian/outputs/verification/mossback-mass-before.png`、`mossback-mass-rear-before.png`；当前 `D:/vscode/Shubian/outputs/Shubian-creature-mossback.png`、`Shubian-creature-mossback-rear.png`。这不是人工动作验收或完整性能证明，整体角色与怪物精细化目标仍未完成。
