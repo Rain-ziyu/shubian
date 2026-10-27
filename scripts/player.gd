@@ -577,7 +577,7 @@ func animate(delta: float, speed: float) -> void:
 		w.transform = pose_from.interpolate_with(w.transform,smoothstep(0,1,pose_blend))
 		if not equipment_route and pose_source_action=="spin" and combat.action=="light" and pose_blend<1:
 			var waypoint := Vector3(0.20,1.30,-0.70 if rig.get("shaft_clearance",false) else -0.50)
-			w.transform = HunterModel.Motion.upright_handoff(pose_from,goal,pose_blend,waypoint,waypoint)
+			w.transform = HunterModel.Motion.upright_handoff(pose_from,goal,pose_blend,waypoint,waypoint,0.45 if rig.get("shaft_clearance",false) else 0.35)
 		if not equipment_route and pose_source_action=="turn" and combat.action in ["light","heavy","pull"] and pose_blend<1:
 			w.transform = HunterModel.Motion.upright_handoff(pose_from,goal,pose_blend,Vector3(-0.20,1.30,-0.50),Vector3(0.20,1.30,-0.50))
 		if equipment_route:

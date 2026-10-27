@@ -122,7 +122,19 @@ func check_cape(model: Node3D, context: String) -> void:
 		for i in points.size():
 			maximum = maxf(maximum,points[i].distance_to(target[i]))
 			if absf(points[i].x)<0.13 or points[i].y>1.53: neck_fixed = neck_fixed and points[i].distance_to(target[i])<0.0001
-		check(neck_fixed and maximum>0.03 and maximum<0.062,"cape leaves neck anchored and adds bounded shoulder allowance: "+context)
+		if cape.get_meta("segmented_mantle",false):
+			var roles: PackedVector2Array = cape.mesh.surface_get_arrays(0)[Mesh.ARRAY_TEX_UV2]
+			var torso_count := 0
+			var arm_count := 0
+			var uniform_triangles := roles.size()==points.size()
+			for i in range(0,roles.size(),3):
+				uniform_triangles = uniform_triangles and roles[i].x==roles[i+1].x and roles[i].x==roles[i+2].x
+				if roles[i].x==0: torso_count += 1
+				elif roles[i].x==1: arm_count += 1
+				else: uniform_triangles = false
+			check(neck_fixed and maximum<0.0001 and uniform_triangles and torso_count>100 and arm_count>100,"segmented cape keeps rigid torso and shoulder panels without stretching connector triangles: "+context)
+		else:
+			check(neck_fixed and maximum>0.03 and maximum<0.062,"cape leaves neck anchored and adds bounded shoulder allowance: "+context)
 		print("CAPE_ALLOWANCE: ",context," side=",side," fixed=",neck_fixed," maximum=",maximum)
 	if context=="saved":
 		var preview: AnimationPlayer = model.get_node("AnimationPreview")

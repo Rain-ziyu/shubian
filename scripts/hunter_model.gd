@@ -83,7 +83,10 @@ static func create(parent: Node3D) -> Dictionary:
 		var knee_cloth := JointCloth.create(root,"JointClothKnee"+str(side),Skinning.relative_transform(leg.hip,root).origin,Skinning.relative_transform(leg.knee,root).origin,Skinning.relative_transform(leg.ankle,root).origin,0.070)
 		rig.soft_joints.append({"source":knee_cloth,"upper":leg.thigh,"lower":leg.shin})
 	Fabric.apply(root)
+	preload("res://scripts/hunter_mantle.gd").apply(rig)
 	rig.skinning = Skinning.bind(rig)
+	rig.elbow_continuity = true
+	rig.shaft_clearance = true
 	if ResourceLoader.exists("res://resources/animations/trident_library.tres"):
 		var player := AnimationPlayer.new()
 		player.name = "AnimationPreview"

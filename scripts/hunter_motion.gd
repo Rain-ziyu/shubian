@@ -72,12 +72,12 @@ static func interpolate(keys: Array, elapsed: float) -> Vector4:
 	return keys[-1]
 
 # Keep the long shaft outside the torso while its carrying side changes.
-static func upright_handoff(from: Transform3D, to: Transform3D, weight: float, first_position: Vector3, last_position: Vector3) -> Transform3D:
+static func upright_handoff(from: Transform3D, to: Transform3D, weight: float, first_position: Vector3, last_position: Vector3, turn_fraction := 0.35) -> Transform3D:
 	var first := Transform3D(Basis(Quaternion(from.basis.y.normalized(),Vector3.UP))*from.basis,first_position)
 	var last := Transform3D(Basis(Quaternion(to.basis.y.normalized(),Vector3.UP))*to.basis,last_position)
-	if weight<0.35: return from.interpolate_with(first,smoothstep(0,0.35,weight))
-	if weight<0.65: return first.interpolate_with(last,smoothstep(0.35,0.65,weight))
-	return last.interpolate_with(to,smoothstep(0.65,1,weight))
+	if weight<turn_fraction: return from.interpolate_with(first,smoothstep(0,turn_fraction,weight))
+	if weight<1-turn_fraction: return first.interpolate_with(last,smoothstep(turn_fraction,1-turn_fraction,weight))
+	return last.interpolate_with(to,smoothstep(1-turn_fraction,1,weight))
 
 static func orbital_grip(shaft: Vector3, left: Vector3, right: Vector3, normal_side := 1.0) -> Vector3:
 	var flat := Vector3(shaft.x,0,shaft.z).normalized()

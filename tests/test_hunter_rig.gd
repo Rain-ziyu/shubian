@@ -34,6 +34,10 @@ func run() -> void:
 				var grip: Vector3 = p.rig.weapon.transform*Vector3(0,0.18 if side==-1 else right_grip,0)
 				if action=="reply" and side==-1 and p.combat.elapsed>0:
 					if p.combat.elapsed>=0.12 and p.combat.elapsed<=0.54: check(arm.hand.position.distance_to(grip)>0.10,"counter sweep releases the left hand for balance")
+				elif action=="turn" and side==-1:
+					var release := smoothstep(0.18,0.28,p.combat.elapsed)*(1-smoothstep(0.44,0.60,p.combat.elapsed))
+					var relaxed: Vector3 = arm.shoulder.position+Vector3(0,-0.72,-0.015)
+					check(arm.hand.position.distance_to(grip.lerp(relaxed,release))<0.001,"turn guide hand follows its release and regrip path")
 				else: check(arm.hand.position.distance_to(grip)<0.001,"hand follows grip "+action)
 				check(arm.shoulder.position.distance_to(arm.hand.position)<0.80,"grip reachable "+action)
 	p.combat.set_action("guard")
