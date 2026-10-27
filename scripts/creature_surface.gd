@@ -77,6 +77,7 @@ static func surface(parent: Node3D, label: String, rings: Array, color: Color, s
 
 static func profile(parent: Node3D, label: String, profiles: Array, scale: float, color: Color, start := 0.0, end := TAU, caps := true) -> MeshInstance3D:
 	var rings := []
+	if label.begins_with("BrowHorn"): profiles = smooth_profiles(profiles)
 	if label in ["BodySurface","TailSurface","HeadSurface","Jaw","Palm","Finger","Talon"] or label.begins_with("Forelimb") or label.begins_with("EyeRidge") or label.begins_with("BrowHorn") or label.begins_with("MistSac") or label.begins_with("ArmorPlate") or label.begins_with("Crest"): profiles = smooth_profiles(profiles)
 	for ring: Vector4 in profiles: rings.append(ring*scale)
 	return surface(parent,label,rings,color,start,end,56 if label.begins_with("ArmorPlate") else 28,caps)
@@ -336,12 +337,29 @@ static func finish_horn(horn: MeshInstance3D, side: int, size: float) -> void:
 	var points: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 	var uv: PackedVector2Array = arrays[Mesh.ARRAY_TEX_UV]
 	var colors: PackedColorArray = arrays[Mesh.ARRAY_COLOR]
+	var sections := {}
+	for point: Vector3 in points:
+		var key := roundi(point.z/size*1000000)
+		if not sections.has(key): sections[key] = Vector2(point.y,point.y)
+		sections[key] = Vector2(minf(sections[key].x,point.y),maxf(sections[key].y,point.y))
 	for i in points.size():
+		var extent: Vector2 = sections[roundi(points[i].z/size*1000000)]
+		var center := Vector3(0,(extent.x+extent.y)*0.5,points[i].z)
+		var radial := points[i]-center
+		var t := uv[i].y
+		var angle := atan2(radial.x,radial.y)
+		var relief := smoothstep(0.10,0.28,t)*(1-smoothstep(0.86,1.0,t))
+		var ring := pow(0.5+0.5*cos(t*TAU*8+0.2*sin(angle*3)),6)
+		if radial.length_squared()>0.00000001:
+			points[i] += radial.normalized()*size*relief*(0.0018*ring+0.0007*cos(angle*7+t*1.4))
+		# Bow the shaft outward between its fixed tip and buried root.
+		points[i].x += side*size*0.035*pow(sin(t*PI),2)
+		points[i].y -= size*0.020*pow(sin(t*PI),2)
 		var seat := smoothstep(-0.49,-0.34,points[i].z/size)
 		points[i].x -= side*size*0.03*seat
 		points[i].y -= size*0.08*seat
 		var growth := smoothstep(0.04,0.95,uv[i].y)
-		var band := 0.96+0.04*cos(uv[i].y*TAU*5)
+		var band := 0.91+0.09*ring
 		colors[i] = Color("d6ccb5").lerp(Color("6b624f"),growth)*Color(band,band,band,1)
 	arrays[Mesh.ARRAY_VERTEX] = points
 	arrays[Mesh.ARRAY_COLOR] = colors

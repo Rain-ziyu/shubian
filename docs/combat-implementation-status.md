@@ -1578,3 +1578,11 @@ EyeRidge从单独眉脊改成同一网格内的上下眼缘：各纵向剖面的
 - 首次纹理使用默认相加模式导致全片仍发光并增加白条，实际截图发现后修正为乘法；增加运行/保存模型均要求纹理和乘法模式的检查。最终查看近景和默认侧面战斗截图，能分开辨认暗矿化面与青色棘脊。保留 `verification/crest-veins-windup-before.png` 对照。
 - 模型仍 133 个内嵌资源 ID，20 个牙齿节点名稳定；新纹理为独立外部资产。五组 486 项检查通过，报告 `regressions-20261027-113713-25de53`；最终提高纹路能量后材质/传播/暖色/恢复 44 项再次通过，报告 `regressions-20261027-113936-87ccd7`。
 - 当前实际图 `D:/vscode/Shubian/outputs/Shubian-stormcrest-plates-windup.png`、`Shubian-camera-flank-stormcrest.png`；直接姿态截图不是 live AI 或人工可读性验收。本次未重测长时间性能，整体精细化目标未完成。
+
+
+### 2026-10-27 棘角奔龙角质生长结构
+
+- 双角在固定角尖/埋入根部之间增加外弓曲率、几何生长环和细纵向纹路，较密纵向截面支撑真实起伏，不再只依赖原先约 4% 的颜色条带。根端与尖端的位移包络为零；原头颈锚点和冲锋逻辑未改。135 个导出资源 ID、20 个牙齿节点名保持稳定。
+- 已查看当前怪物渲染与冲锋低头直接姿态研究 `D:/vscode/Shubian/outputs/Shubian-charge-windup-after.png`。对照 `verification/horn-growth-before.png`；不是 live AI 战斗或最终美术验收。
+- 七组原生回归 609 项通过：冲锋/扑跃承诺 54、头阻挡 28、材质 44、表面/角根全帽嵌入 332、扑跃表面 5、近战部位 28、投射物部位 18。报告 `D:/vscode/Shubian/outputs/verification/regressions-20261027-114711-34e6d8/summary.json`。
+- 同步保存上一轮背棘发光遮罩的 Godot 导入设置，并开启 mipmaps，避免远距离细纹无预过滤；实际导入与此次材质检查通过。未进行新的长时间性能测试，整体精细化目标未完成。
