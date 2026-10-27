@@ -59,6 +59,45 @@ static func loft(parent: Node3D, label: String, rings: Array, color: Color, star
 	parent.add_child(mesh)
 	return mesh
 
+static func bracer_plate(parent: MeshInstance3D) -> MeshInstance3D:
+	# Keep the existing attachment and child order so saved skeletal clips remain valid.
+	var result := V.piece(parent,Vector3(0,-0.06,-0.063),Vector3(0.065,0.28,0.012),Color("626d61"))
+	result.scale = Vector3.ONE
+	var outline := [Vector2(-0.028,-0.36),Vector2(0.028,-0.36),Vector2(0.043,-0.27),Vector2(0.035,0.26),Vector2(0.022,0.36),Vector2(-0.022,0.36),Vector2(-0.035,0.26),Vector2(-0.043,-0.27)]
+	var shell := parent.mesh.generate_triangle_mesh()
+	var edge: Array[Vector3] = []
+	for point: Vector2 in outline:
+		var sample := Vector3(point.x,point.y+result.position.y,0)
+		var hit: Dictionary = shell.intersect_segment(sample+Vector3(0,0,-0.15),sample)
+		assert(not hit.is_empty(),"Forearm plate must seat on bracer")
+		edge.append(hit.position-result.position+Vector3(0,0,-0.001))
+	var center := Vector3(0,0,-0.004)
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(-1)
+	for index in edge.size():
+		var a := edge[index]
+		var b := edge[(index+1)%edge.size()]
+		var inner_a := a.lerp(center,0.18)+Vector3(0,0,-0.002)
+		var inner_b := b.lerp(center,0.18)+Vector3(0,0,-0.002)
+		st.set_color(Color("c4cec6"))
+		MetalMesh.bevel_triangle(st,center,inner_a,inner_b,Vector3.FORWARD)
+		st.set_color(Color.WHITE)
+		MetalMesh.bevel_triangle(st,a,b,inner_a,Vector3.FORWARD)
+		MetalMesh.bevel_triangle(st,b,inner_b,inner_a,Vector3.FORWARD)
+		st.set_color(Color("84938a"))
+		var back := Vector3(0,0,0.004)
+		var outward := ((a+b)*0.5-center).normalized()
+		MetalMesh.bevel_triangle(st,a,a+back,b,outward)
+		MetalMesh.bevel_triangle(st,b,a+back,b+back,outward)
+		MetalMesh.bevel_triangle(st,center+back,b+back,a+back,Vector3.BACK)
+	st.generate_normals()
+	result.mesh = st.commit()
+	result.material_override.vertex_color_use_as_albedo = true
+	result.material_override.metallic = 0.45
+	result.material_override.roughness = 0.62
+	return result
+
 static func bracer_lining(tool: SurfaceTool, ring: Vector4, segments: int) -> void:
 	# A real annular cuff and short inner wall replace the solid end disk.
 	for column in segments:
@@ -94,7 +133,7 @@ static func finish_equipment(part: MeshInstance3D, label: String) -> void:
 		var shade := Color.WHITE
 		if label.begins_with("Bracer"):
 			var cuff := absf(point.y)>0.40
-			shade = Color("aaa590") if cuff else Color("d6dfd5")
+			shade = Color("c75f47") if cuff else Color("d6dfd5")
 			var panel := smoothstep(0.015,0.045,-point.z)*(1-smoothstep(0.38,0.45,absf(point.y)))
 			shade = shade.lerp(Color("79877f"),panel*0.65)
 		else:
