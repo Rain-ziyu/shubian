@@ -1561,3 +1561,12 @@ EyeRidge从单独眉脊改成同一网格内的上下眼缘：各纵向剖面的
 - 发帽从 16×64 增至 24×128 网格，较粗起伏从 3.5 mm 降至 1.6 mm，增加细发束数量并减弱颜色沟槽对比；发际线波动同步降低。仍为不透明程序化发帽，不是写实发片/发丝模型，脸颊与鼻部仍偏简化。
 - 已查看实际三角度头部与眨眼研究；对照 `D:/vscode/Shubian/outputs/verification/ranger-head-refine-before.png`，当前 `D:/vscode/Shubian/outputs/Shubian-ranger-head-study.png`、`Shubian-ranger-blink-study.png`。导出 254 个内嵌资源 ID 稳定。
 - 原生 5 组 470 项通过：服装 59、格挡反击衣料 41、装备切换 80、眨眼 40、蒙皮 250。报告 `D:/vscode/Shubian/outputs/verification/regressions-20261027-111721-eed5dd/summary.json`。不是最终角色美术、捏脸或长时间性能验收，整体目标继续保留。
+
+
+### 2026-10-27 大体型近身视角的信息遮挡
+
+- 在雷脊棘龙正面和 2.5 m 侧面固定姿态截图中，当前相机能容纳双方，但中央多行特性/战术长文遮住背棘和蓄力轮廓。因此本次修正 HUD 构图，不改相机距离/FOV/锁定/瞄准参数。
+- 中央保留单行名称血量、血条与顶部 66 px 的短攻击提示；完整特性与弱点说明移至右上 300 px 自动换行区域。解除锁定、玩家倒下等状态同时隐藏新区域，战斗鼠标继续穿透。
+- `capture_combat_readability.gd -- --species=stormcrest --flank` 新增可复现近身侧面采样，固定姿态非 live AI。已查看正面与侧面实际截图。正面对照 `D:/vscode/Shubian/outputs/verification/lock-framing-stormcrest-before.png`；当前 `D:/vscode/Shubian/outputs/Shubian-camera-stormcrest.png`、`Shubian-camera-flank-stormcrest.png`。
+- 初次综合检查有一项仍从旧标题字段查找弱点说明，按新职责更新为检查新面板的同一完整文本和可见性；补充上中央轮廓区不与长文相交的布局断言。最终 HUD/可读性 89 项通过，报告 `regressions-20261027-112746-9dc266`；相机/锁定/肩位/瞄准 48 项通过，报告 `regressions-20261027-112536-981fee`（此早期综合报告同时保留上述已修正字段断言的失败，不宣称该报告全绿）。
+- 未进行新长时间性能或人工试玩，模型精细化整体目标仍未完成。

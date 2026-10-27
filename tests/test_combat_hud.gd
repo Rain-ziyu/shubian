@@ -55,10 +55,14 @@ func run() -> void:
 	p.lock_target = get_nodes_in_group("monsters")[0]
 	ui.update_state(p,2)
 	check(ui.target_health.visible and ui.target_health.value==p.lock_target.health,"locked target health is visible")
-	check(p.lock_target.data.weakness in ui.target_text.text,"locked target weakness is visible")
+	check(ui.target_strategy.visible and p.lock_target.data.weakness in ui.target_strategy.text,"locked target weakness is preserved in the strategy panel")
+	check(not "\n" in ui.target_text.text and ui.target_hint.position.y<100,"central target header and attack cue stay compact")
+	var viewport: Vector2 = root.get_visible_rect().size
+	var silhouette := Rect2(Vector2(viewport.x*0.32,110),Vector2(viewport.x*0.36,220))
+	check(not ui.target_strategy.get_rect().intersects(silhouette),"persistent strategy prose leaves the upper central creature silhouette clear")
 	p.lock_target = null
 	ui.update_state(p,2)
-	check(not ui.target_health.visible and not ui.target_text.visible,"unlock removes stale target panel")
+	check(not ui.target_health.visible and not ui.target_text.visible and not ui.target_strategy.visible,"unlock removes stale target panel")
 	var key := InputEventKey.new()
 	key.physical_keycode = KEY_F1
 	key.pressed = true

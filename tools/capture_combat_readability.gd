@@ -18,9 +18,10 @@ func run() -> void:
 				if str(monster.data.id)==argument.trim_prefix("--species="): m = monster
 	# Stand beyond the actual long snout rather than inside the head mesh.
 	p.global_position = m.global_position+Vector3(0,0,float(m.data.size)*1.25+0.6)
+	if "--flank" in OS.get_cmdline_user_args(): p.global_position = m.global_position+Vector3(2.5,0,0)
 	p.global_position.y = preload("res://scripts/forest_terrain.gd").height_at(p.global_position.x,p.global_position.z)+0.02
 	p.lock_target = m
-	p.yaw = 0
+	p.yaw = PI/2 if "--flank" in OS.get_cmdline_user_args() else 0
 	p.pitch = -0.25
 	p.rig.root.rotation.y = 0
 	p.combat.drawn = true
@@ -66,6 +67,7 @@ func run() -> void:
 	if sweep: destination = "res://../Shubian-combat-"+captured_action+"-trail.png"
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("--species="): destination = "res://../Shubian-camera-"+str(m.data.id)+".png"
+	if "--flank" in OS.get_cmdline_user_args(): destination = "res://../Shubian-camera-flank-"+str(m.data.id)+".png"
 	var saved := root.get_texture().get_image().save_png(ProjectSettings.globalize_path(destination))
 	print("COMBAT_READABILITY_CAPTURE: ",saved," locked_nameplate_hidden=",not m.label.visible," player_camera=",root.get_camera_3d()==p.camera," msaa_3d=",root.msaa_3d," / frozen windup versus ","sweep" if sweep else "guard","; not live input")
 	world.queue_free()

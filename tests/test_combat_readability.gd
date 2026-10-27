@@ -77,7 +77,7 @@ func run() -> void:
 	m.update_nameplate()
 	ui.update_state(p,0)
 	check(not m.label.visible,"locked creature has no duplicate world label")
-	check(m.data.weakness in ui.target_text.text and "摆尾蓄势" in ui.target_hint.text,"locked target retains weakness and active warning")
+	check(ui.target_strategy.visible and m.data.weakness in ui.target_strategy.text and "摆尾蓄势" in ui.target_hint.text,"locked target retains weakness and active warning")
 	m.wall_stun = 0.3
 	ui.update_state(p,0)
 	check("撞击失衡" in ui.target_hint.text,"wall stun overrides ordinary attack hint")
@@ -120,11 +120,11 @@ func run() -> void:
 	p.combat.health = 0
 	ui.update_state(p,0)
 	m.update_nameplate()
-	check(not ui.target_hint.visible and not ui.target_text.visible and not m.label.visible,"hunter defeat clears target information")
+	check(not ui.target_hint.visible and not ui.target_text.visible and not ui.target_strategy.visible and not m.label.visible,"hunter defeat clears target information")
 	p.combat.health = 240
 	p.lock_target = null
 	ui.update_state(p,0)
-	check(not ui.target_hint.visible and not ui.target_health.visible,"unlock clears warning and health together")
+	check(not ui.target_hint.visible and not ui.target_health.visible and not ui.target_strategy.visible,"unlock clears warning and health together")
 	check(ui.target_hint.mouse_filter==Control.MOUSE_FILTER_IGNORE,"warning row leaves combat mouse input available")
 	print("COMBAT_READABILITY_CHECKS: ",checks," FAILURES: ",failures)
 	world.queue_free()

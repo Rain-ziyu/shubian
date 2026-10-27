@@ -17,6 +17,7 @@ var help: Label
 var target_text: Label
 var target_health: ProgressBar
 var target_hint: Label
+var target_strategy: Label
 var notice: Label
 var throw_charge: ProgressBar
 var throw_charge_text: Label
@@ -96,7 +97,7 @@ func _ready() -> void:
 	target_text.offset_top = 18
 	target_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	target_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	target_text.offset_bottom = 160
+	target_text.offset_bottom = 42
 	target_health = bar_at(Vector2.ZERO,Vector2(440,9),1,Color("b49368"))
 	target_health.anchor_left = 0.5
 	target_health.anchor_right = 0.5
@@ -108,9 +109,19 @@ func _ready() -> void:
 	target_hint.anchor_right = 0.5
 	target_hint.offset_left = -280
 	target_hint.offset_right = 280
-	target_hint.offset_top = 145
+	target_hint.offset_top = 66
 	target_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	target_hint.add_theme_color_override("font_color",Color("e6c57c"))
+	# Keep the tall central creature silhouette clear of persistent strategy prose.
+	target_strategy = text_at(Vector2.ZERO,14)
+	target_strategy.anchor_left = 1
+	target_strategy.anchor_right = 1
+	target_strategy.offset_left = -322
+	target_strategy.offset_right = -22
+	target_strategy.offset_top = 78
+	target_strategy.offset_bottom = 216
+	target_strategy.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	target_strategy.add_theme_color_override("font_color",Color("cecbb9"))
 	action_phase = text_at(Vector2.ZERO,19)
 	action_phase.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
 	action_phase.offset_left = -220
@@ -191,6 +202,7 @@ func update_state(fighter, defeated: int) -> void:
 	target_text.visible = locked
 	target_health.visible = locked
 	target_hint.visible = locked
+	target_strategy.visible = locked
 	if locked:
 		var target = fighter.lock_target
 		var trait_text: String = target.data.trait
@@ -198,7 +210,8 @@ func update_state(fighter, defeated: int) -> void:
 		if target.data.id=="mossback" and target.armor_integrity<=0:
 			trait_text = "背甲已破 · 正面减伤解除"
 			strategy = "绕后追击尾根；正面攻击也已不受重甲减伤"
-		target_text.text = "%s  %d / %d\n\n%s\n对策：%s" % [target.data.name,ceili(target.health),int(target.data.health),trait_text,strategy]
+		target_text.text = "%s  %d / %d" % [target.data.name,ceili(target.health),int(target.data.health)]
+		target_strategy.text = "%s\n\n对策：%s" % [trait_text,strategy]
 		target_health.max_value = target.data.health
 		target_health.value = target.health
 		target_hint.text = target.combat_hint()
