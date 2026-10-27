@@ -81,6 +81,48 @@ static func profile(parent: Node3D, label: String, profiles: Array, scale: float
 	for ring: Vector4 in profiles: rings.append(ring*scale)
 	return surface(parent,label,rings,color,start,end,56 if label.begins_with("ArmorPlate") else 28,caps)
 
+## Broad anatomical planes belong to the continuous skin, not floating detail meshes.
+## Work in species-size coordinates so muscle relief has a consistent visual scale.
+static func sculpt_anatomy(mesh_node: MeshInstance3D, size: float, part: String, species: String) -> void:
+	var arrays: Array = mesh_node.mesh.surface_get_arrays(0)
+	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var colors: PackedColorArray = arrays[Mesh.ARRAY_COLOR]
+	for index in vertices.size():
+		var p := vertices[index]/size
+		var relief := 0.0
+		if part=="body":
+			var side := smoothstep(0.10,0.25,absf(p.x))*(1-smoothstep(0.14,0.25,p.y))
+			var shoulder := exp(-pow((p.z+0.29)/0.12,2))*exp(-pow((p.y-0.01)/0.20,2))
+			var scapula := exp(-pow((p.z+0.12+p.y*0.45)/0.055,2))*exp(-pow((p.y-0.03)/0.19,2))
+			var waist := exp(-pow((p.z-0.17)/0.16,2))*exp(-pow((p.y+0.08)/0.18,2))
+			var hip := exp(-pow((p.z-0.35)/0.10,2))*exp(-pow((p.y+0.02)/0.16,2))
+			var lean := 1.25 if species=="reedclaw" else 0.85 if species=="mossback" else 1.0
+			relief = (0.042*shoulder-0.018*scapula-0.025*waist+0.018*hip)*side*lean
+			p.x += sign(p.x)*relief
+			# A shallow abdominal tuck and a continuous sternum replace the barrel underside.
+			var belly := (1-smoothstep(-0.22,-0.06,p.y))
+			p.y += belly*(0.022*waist-0.009*exp(-pow((p.z+0.24)/0.20,2)))
+			colors[index] = colors[index].darkened(clampf((scapula*0.10+waist*0.04)*side,0,0.13))
+		else:
+			# Cheek mass sits behind the eye, while the nasal ridge rises between the nostrils.
+			var cheek := exp(-pow((p.z+0.25)/0.13,2))*exp(-pow((p.y-0.075)/0.09,2))
+			var side := smoothstep(0.05,0.12,absf(p.x))
+			var bridge := exp(-pow(p.x/0.065,2))*exp(-pow((p.z+0.57)/0.13,2))*smoothstep(0.07,0.14,p.y)
+			var nasal_plane := exp(-pow((absf(p.x)-0.085)/0.045,2))*exp(-pow((p.z+0.57)/0.12,2))*smoothstep(0.07,0.13,p.y)
+			relief = 0.018*cheek*side
+			p.x += sign(p.x)*relief
+			p.y += 0.018*bridge-0.009*nasal_plane
+			colors[index] = colors[index].darkened(0.055*nasal_plane+0.045*cheek*side)
+		vertices[index] = p*size
+	arrays[Mesh.ARRAY_VERTEX] = vertices
+	arrays[Mesh.ARRAY_COLOR] = colors
+	var sculpted := ArrayMesh.new()
+	sculpted.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+	var normals := SurfaceTool.new()
+	normals.create_from(sculpted,0)
+	normals.generate_normals()
+	mesh_node.mesh = normals.commit()
+
 static func seat_forelimb(arm: MeshInstance3D, size: float, side: int) -> void:
 	var arrays: Array = arm.mesh.surface_get_arrays(0)
 	var points: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]

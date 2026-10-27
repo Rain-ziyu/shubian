@@ -24,11 +24,11 @@ func run() -> void:
 	p.lock_target = null
 	var arm: SpringArm3D = p.camera.get_parent()
 	p.update_camera_framing(1.0/60)
-	check(is_equal_approx(arm.spring_length,5) and is_equal_approx(p.mount.rotation.x,p.pitch),"unlocked view retains its original distance and orbit")
+	check(is_equal_approx(arm.spring_length,p.CAMERA_DISTANCE) and is_equal_approx(p.mount.rotation.x,p.pitch),"unlocked view retains its original distance and orbit")
 	var target = get_nodes_in_group("monsters")[0]
 	target.global_position = p.global_position+Vector3(0,0,-3)
 	p.lock_target = target
-	var previous := 5.0
+	var previous: float = p.CAMERA_DISTANCE
 	var peak_step := 0.0
 	var hp: float = p.combat.health
 	var stamina: float = p.combat.stamina
@@ -38,10 +38,29 @@ func run() -> void:
 		p.update_camera_framing(1.0/60)
 		peak_step = maxf(peak_step,absf(arm.spring_length-previous))
 		previous = arm.spring_length
-	check(arm.spring_length>6.2 and arm.spring_length<6.8,"near large target gains bounded framing distance")
+	check(arm.spring_length>5.6 and arm.spring_length<5.8,"near large target gains bounded framing distance")
 	check(peak_step<0.12,"acquiring a close target eases the framing rather than jumping")
 	check(p.mount.position.y>p.global_position.y+1.65 and p.mount.rotation.x< -0.30,"near framing raises the orbit for the large silhouette")
 	check(p.pitch==-0.25 and p.yaw==0 and p.combat.health==hp and p.combat.stamina==stamina and p.combat.elapsed==elapsed and p.rig.weapon.global_transform.is_equal_approx(weapon),"framing does not change aiming, combat clocks, resources or weapon pose")
+	for frame in 8: await physics_frame
+	for frame in 8: await physics_frame
+	var head: Vector2 = p.camera.unproject_position(p.global_position+Vector3.UP*1.8)
+	var feet: Vector2 = p.camera.unproject_position(p.global_position)
+	var hero_pixels := absf(feet.y-head.y)
+	print("NEAR_HERO_PIXELS: ",hero_pixels)
+	check(hero_pixels>160 and hero_pixels<280,"near creature framing keeps hunter large enough to read limb poses")
+	check(p.camera.fov==62,"combat field of view matches the closer detail framing")
+	# Compare the same physical pose and projection against the previous framing.
+	arm.spring_length = 5.0+p.camera_pullback
+	p.camera.fov = 68
+	for frame in 8: await physics_frame
+	var old_head: Vector2 = p.camera.unproject_position(p.global_position+Vector3.UP*1.8)
+	var old_feet: Vector2 = p.camera.unproject_position(p.global_position)
+	var old_pixels := absf(old_feet.y-old_head.y)
+	check(hero_pixels/old_pixels>1.15,"same locked combat pose projects at least fifteen percent larger")
+	print("HERO_FRAMING_RATIO: ",hero_pixels/old_pixels," before=",old_pixels," after=",hero_pixels)
+	p.camera.fov = p.CAMERA_FOV
+	p.update_camera_framing(1.0/60)
 	for frame in 8: await physics_frame
 	var wall = world.obstacle(Vector3(0,2.5,11),Vector3(8,6,0.3),Color.GRAY)
 	for frame in 8: await physics_frame
@@ -50,14 +69,14 @@ func run() -> void:
 	wall.queue_free()
 	target.global_position = p.global_position+Vector3(0,0,-20)
 	for frame in 120: p.update_camera_framing(1.0/60)
-	check(absf(arm.spring_length-5)<0.001,"distant target returns to normal framing")
+	check(absf(arm.spring_length-p.CAMERA_DISTANCE)<0.001,"distant target returns to normal framing")
 	target.global_position = p.global_position+Vector3(0,0,-3)
 	p.pitch = 0.65
 	for frame in 120: p.update_camera_framing(1.0/60)
 	check(p.pitch==0.65,"high weakpoint aim is preserved independently of framing")
 	p.lock_target = null
 	for frame in 120: p.update_camera_framing(1.0/60)
-	check(absf(arm.spring_length-5)<0.001,"unlocking smoothly restores original distance")
+	check(absf(arm.spring_length-p.CAMERA_DISTANCE)<0.001,"unlocking smoothly restores original distance")
 	print("CAMERA_FRAMING_CHECKS: ",checks," FAILURES: ",failures)
 	world.queue_free()
 	await process_frame

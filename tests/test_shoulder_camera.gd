@@ -23,13 +23,13 @@ func run() -> void:
 	for frame in 8: await physics_frame
 	check(p.camera.global_basis.is_equal_approx(p.mount.global_basis),"shoulder view retains the original look heading and pitch")
 	check(p.mount.to_local(p.camera.global_position).x>0.8,"camera separates the weapon from a directly centered rear silhouette")
-	check(arm.get_hit_length()>4.5,"open camera retains its intended follow distance")
+	check(arm.get_hit_length()>p.CAMERA_DISTANCE-0.1,"open camera retains its intended follow distance")
 	var wall = world.obstacle(Vector3(0,2.5,10.4),Vector3(6,5,0.3),Color.GRAY)
 	for frame in 8: await physics_frame
 	check(arm.get_hit_length()<2.5 and p.camera.global_position.z<10.25,"rear wall retracts the shoulder camera before the visible wall")
 	wall.queue_free()
 	for frame in 8: await physics_frame
-	check(arm.get_hit_length()>4.5,"camera extends again when the rear obstruction is removed")
+	check(arm.get_hit_length()>p.CAMERA_DISTANCE-0.1,"camera extends again when the rear obstruction is removed")
 	wall = world.obstacle(Vector3(0.55,2.5,10),Vector3(0.25,5,7),Color.GRAY)
 	for frame in 8: await physics_frame
 	check(arm.get_hit_length()<4.0 and p.camera.global_position.x<0.425,"side wall also retracts the offset camera from the central cast origin")

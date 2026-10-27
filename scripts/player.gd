@@ -32,6 +32,8 @@ var body_turn_applied := 0.0
 var body_turn_pose := 0.0
 var walk_clock := 0.0
 var locomotion_motion := Vector3.ZERO
+const CAMERA_DISTANCE := 4.4
+const CAMERA_FOV := 62.0
 const ARRIVAL_POSE_DURATION := 0.24
 var arrival_pose_left := 0.0
 var heavy_held := -1.0
@@ -89,7 +91,7 @@ func _ready() -> void:
 	mount = Node3D.new()
 	get_parent().add_child.call_deferred(mount)
 	var arm := SpringArm3D.new()
-	arm.spring_length = 5.0
+	arm.spring_length = CAMERA_DISTANCE
 	# Cast from the original central pivot, then counter-rotate the view so
 	# a small shoulder offset separates the shaft from the back silhouette.
 	arm.rotation.y = 0.20
@@ -98,7 +100,7 @@ func _ready() -> void:
 	arm.add_excluded_object(get_rid())
 	mount.add_child(arm)
 	camera = Camera3D.new()
-	camera.fov = 68
+	camera.fov = CAMERA_FOV
 	camera.rotation.y = -0.20
 	camera.current = true
 	arm.add_child(camera)
@@ -206,7 +208,7 @@ func update_camera_framing(delta: float) -> void:
 		desired = clampf((float(lock_target.data.size)-2.0)*0.8,0,1.8)*(1-smoothstep(5,12,distance))
 	camera_pullback = lerpf(camera_pullback,desired,1-exp(-5.0*maxf(0,delta)))
 	var arm: SpringArm3D = camera.get_parent()
-	arm.spring_length = 5.0+camera_pullback
+	arm.spring_length = CAMERA_DISTANCE+camera_pullback
 	mount.position = global_position+Vector3(0,1.5+camera_pullback*0.14,0)
 	var orbit_pitch := pitch*0.2 if pitch>0 else pitch
 	mount.rotation = Vector3(orbit_pitch-camera_pullback*0.09,yaw,0)

@@ -12,6 +12,10 @@ func run() -> void:
 	p.set_process_unhandled_input(false)
 	for monster in get_nodes_in_group("monsters"): monster.set_physics_process(false)
 	var m = get_nodes_in_group("monsters")[0]
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--species="):
+			for monster in get_nodes_in_group("monsters"):
+				if str(monster.data.id)==argument.trim_prefix("--species="): m = monster
 	# Stand beyond the actual long snout rather than inside the head mesh.
 	p.global_position = m.global_position+Vector3(0,0,float(m.data.size)*1.25+0.6)
 	p.global_position.y = preload("res://scripts/forest_terrain.gd").height_at(p.global_position.x,p.global_position.z)+0.02
@@ -60,6 +64,8 @@ func run() -> void:
 	await RenderingServer.frame_post_draw
 	var destination := "res://../Shubian-combat-readable-armor-broken.png" if broken else "res://../Shubian-combat-readable.png"
 	if sweep: destination = "res://../Shubian-combat-"+captured_action+"-trail.png"
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--species="): destination = "res://../Shubian-camera-"+str(m.data.id)+".png"
 	var saved := root.get_texture().get_image().save_png(ProjectSettings.globalize_path(destination))
 	print("COMBAT_READABILITY_CAPTURE: ",saved," locked_nameplate_hidden=",not m.label.visible," player_camera=",root.get_camera_3d()==p.camera," msaa_3d=",root.msaa_3d," / frozen windup versus ","sweep" if sweep else "guard","; not live input")
 	world.queue_free()

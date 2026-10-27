@@ -32,6 +32,8 @@ func advance_flight(delta: float) -> void:
 	var distance := minf(remaining,speed*delta)
 	var end := global_position+direction*distance
 	var query := PhysicsRayQueryParameters3D.create(global_position,end)
+	# Movement-only anatomy blockers must not replace exact skin contact tests.
+	query.collision_mask = 3
 	if is_instance_valid(shooter): query.exclude = [shooter.get_rid()]
 	var creatures := get_tree().get_nodes_in_group("monsters")
 	var excluded := query.exclude

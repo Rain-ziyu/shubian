@@ -43,6 +43,11 @@ func run() -> void:
 		var model := Model.create(holder,data)
 		var saved = load("res://assets/models/"+str(data.id)+"-v1.tscn").instantiate()
 		holder.add_child(saved)
+		for label in ["BodySurface","Neck/HeadSurface"]:
+			var live_mesh: Mesh = model.get_node(label).mesh
+			var saved_mesh: Mesh = saved.get_node(label).mesh
+			check(live_mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]==saved_mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX],"saved anatomical relief matches live skin vertices: "+str(data.id)+"/"+label)
+			check(live_mesh.surface_get_arrays(0)[Mesh.ARRAY_NORMAL]==saved_mesh.surface_get_arrays(0)[Mesh.ARRAY_NORMAL],"saved sculpted skin keeps reconstructed normals: "+str(data.id)+"/"+label)
 		for instance in [model,saved]:
 			check(instance.has_node("BodySurface") and instance.has_node("Neck/HeadSurface") and instance.has_node("Neck/Jaw"),"live and saved continuous body head jaw: "+str(data.id))
 			check(instance.get_node("Tail/TailSurface").mesh is ArrayMesh,"live and saved continuous tail: "+str(data.id))

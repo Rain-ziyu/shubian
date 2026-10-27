@@ -54,7 +54,7 @@ func run() -> void:
 	mist.update_weak_markers()
 	await physics_frame
 	var head: Vector3 = mist.mesh.get_node("Neck").to_global(Vector3(0,mist.data.size*0.14,-mist.data.size*0.42))
-	var query := PhysicsRayQueryParameters3D.create(head+Vector3.FORWARD*4,head)
+	var query := PhysicsRayQueryParameters3D.create(head+Vector3.FORWARD*4,head,1)
 	check(stage.get_world_3d().direct_space_state.intersect_ray(query).is_empty(),"visible head lies outside the old body capsule ray")
 	var health: float = mist.health
 	var shot = fire(head+Vector3.FORWARD*4,Vector3.BACK)

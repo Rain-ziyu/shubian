@@ -46,6 +46,7 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 		# them: this fast leaper carries its mass in the hindquarters.
 		body_profile = [Vector4(-0.56,0.08,0.12,0.03),Vector4(-0.42,0.28,0.23,0.025),Vector4(-0.15,0.35,0.27,0),Vector4(0.20,0.24,0.19,0.055),Vector4(0.43,0.22,0.20,-0.025),Vector4(0.56,0.08,0.12,-0.025)]
 	var body := Surface.profile(root,"BodySurface",body_profile,s,c)
+	Surface.sculpt_anatomy(body,s,"body",str(data.id))
 	body.position.y = y
 	if data.id=="reedclaw":
 		body.scale = Vector3(0.80,0.85,1)
@@ -78,6 +79,7 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 		# from the low armored grazer without lengthening its forward reach.
 		head_profile = [Vector4(-0.715,0.010,0.010,0.060),Vector4(-0.70,0.055,0.035,0.060),Vector4(-0.675,0.10,0.060,0.065),Vector4(-0.64,0.145,0.085,0.075),Vector4(-0.57,0.17,0.10,0.085),Vector4(-0.43,0.205,0.18,0.15),Vector4(-0.28,0.19,0.19,0.14),Vector4(-0.09,0.14,0.18,0.08),Vector4(0.12,0.10,0.15,0)]
 	var head_surface := Surface.profile(neck,"HeadSurface",head_profile,s,c.lightened(0.03))
+	Surface.sculpt_anatomy(head_surface,s,"head",str(data.id))
 	if data.id=="mossback":
 		head_surface.set_meta("unarmored_mesh",head_surface.mesh)
 		var arrays: Array = head_surface.mesh.surface_get_arrays(0)
