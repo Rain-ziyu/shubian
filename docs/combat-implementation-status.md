@@ -1553,3 +1553,11 @@ EyeRidge从单独眉脊改成同一网格内的上下眼缘：各纵向剖面的
 - 两侧胫甲各加入两道按实际裤腿射线贴合的褐色固定带，带体为闭合薄环并并入原胫甲网格，不增加骨骼或节点。带体沿用护甲材质，尚未单独配置皮革反射材质，不作为最终材质完成证明。导出仍为 254 个内嵌资源，原 ID 保持稳定。
 - 原生五组 468 项检查通过：靴蒙皮 33、服装/护甲闭合 59、脚锁定 20、腿部 106、蒙皮 250。报告 `D:/vscode/Shubian/outputs/verification/regressions-20261027-110825-02b9ab/summary.json`。
 - 已查看实际近景 `D:/vscode/Shubian/outputs/Shubian-boots-detail.png` 和人物三视图；旧近景 `D:/vscode/Shubian/outputs/verification/leg-armor-before.png`。本次未做新的长时间性能测试或人工战斗验收，整体人物/怪物精细化目标仍保留。
+
+
+### 2026-10-27 玩家眉形与发束层次
+
+- 眉毛由三点尖折带改为五点弧线，宽度由 6 mm 改为 5 mm 并沿两端收细，继续投影贴合当前头部。鼻梁上端改为较宽、较短的额部过渡。眼球/眼睑、眨眼形态及头部骨骼锚点未改。
+- 发帽从 16×64 增至 24×128 网格，较粗起伏从 3.5 mm 降至 1.6 mm，增加细发束数量并减弱颜色沟槽对比；发际线波动同步降低。仍为不透明程序化发帽，不是写实发片/发丝模型，脸颊与鼻部仍偏简化。
+- 已查看实际三角度头部与眨眼研究；对照 `D:/vscode/Shubian/outputs/verification/ranger-head-refine-before.png`，当前 `D:/vscode/Shubian/outputs/Shubian-ranger-head-study.png`、`Shubian-ranger-blink-study.png`。导出 254 个内嵌资源 ID 稳定。
+- 原生 5 组 470 项通过：服装 59、格挡反击衣料 41、装备切换 80、眨眼 40、蒙皮 250。报告 `D:/vscode/Shubian/outputs/verification/regressions-20261027-111721-eed5dd/summary.json`。不是最终角色美术、捏脸或长时间性能验收，整体目标继续保留。

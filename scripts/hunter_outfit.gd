@@ -312,7 +312,11 @@ static func ribbon(parent: Node3D, label: String, points: Array, width: float, c
 		var before: Vector3 = points[maxi(0,index-1)]
 		var after: Vector3 = points[mini(points.size()-1,index+1)]
 		var tangent := (after-before).normalized()
-		var normal := Vector3(-tangent.y,tangent.x,0)*width*0.5
+		var taper := 1.0
+		if label.begins_with("Brow"):
+			var across := float(index)/maxi(1,points.size()-1)
+			taper = 0.20+0.80*pow(sin(across*PI),0.5)
+		var normal := Vector3(-tangent.y,tangent.x,0)*width*0.5*taper
 		outline.append(points[index]+normal)
 		reverse.push_front(points[index]-normal)
 	outline.append_array(reverse)
@@ -686,8 +690,8 @@ static func create_head(root: Node3D, skin: Color) -> void:
 		blob(root,"EyeGlint"+str(side),Vector3(side*0.053,1.716,-0.114),Vector3(0.003,0.003,0.002),Color("ddd7bd"))
 		ribbon(root,"UpperLid"+str(side),[Vector3(side*0.033,1.713,-0.109),Vector3(side*0.056,1.720,-0.112),Vector3(side*0.079,1.714,-0.099)],0.0035,skin.darkened(0.18))
 		ribbon(root,"LowerLid"+str(side),[Vector3(side*0.034,1.709,-0.109),Vector3(side*0.056,1.705,-0.112),Vector3(side*0.076,1.709,-0.102)],0.0025,skin.darkened(0.06))
-		ribbon(root,"Brow"+str(side),[Vector3(side*0.025,1.744,-0.115),Vector3(side*0.056,1.75,-0.114),Vector3(side*0.086,1.74,-0.101)],0.006,Color("3c342b"))
-	loft(root,"NoseBridge",[Vector4(1.652,0.004,0.005,-0.117),Vector4(1.658,0.015,0.009,-0.121),Vector4(1.667,0.018,0.013,-0.126),Vector4(1.676,0.015,0.012,-0.126),Vector4(1.691,0.010,0.009,-0.121),Vector4(1.720,0.007,0.007,-0.116),Vector4(1.732,0.003,0.005,-0.113)],skin,0,TAU,24)
+		ribbon(root,"Brow"+str(side),[Vector3(side*0.025,1.744,-0.115),Vector3(side*0.039,1.747,-0.115),Vector3(side*0.054,1.748,-0.114),Vector3(side*0.069,1.745,-0.108),Vector3(side*0.086,1.739,-0.101)],0.005,Color("494036"))
+	loft(root,"NoseBridge",[Vector4(1.652,0.004,0.005,-0.117),Vector4(1.658,0.015,0.009,-0.121),Vector4(1.667,0.018,0.013,-0.126),Vector4(1.676,0.015,0.012,-0.126),Vector4(1.691,0.011,0.009,-0.120),Vector4(1.708,0.010,0.008,-0.116),Vector4(1.723,0.006,0.005,-0.112)],skin,0,TAU,24)
 	blob(root,"UpperLip",Vector3(0,1.634,-0.1085),Vector3(0.055,0.006,0.008),Color("9a7262"))
 	blob(root,"LowerLip",Vector3(0,1.6285,-0.1085),Vector3(0.050,0.006,0.008),Color("b28a74"))
 	detail_face(root,skin)
@@ -747,8 +751,8 @@ static func create_hair(root: Node3D) -> void:
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_smooth_group(0)
 	var hair_color := Color("252b28")
-	var rows := 16
-	var segments := 64
+	var rows := 24
+	var segments := 128
 	for row in rows:
 		for column in segments:
 			var vertices := []
@@ -756,16 +760,16 @@ static func create_hair(root: Node3D) -> void:
 			for pair in [[row,column],[row+1,column],[row,column+1],[row+1,column+1]]:
 				var fraction: float = float(pair[0])/rows
 				var angle: float = float(pair[1])/segments*TAU
-				var hairline := 1.69+0.10*pow((1-cos(angle))*0.5,2)+0.003*sin(angle*9)
+				var hairline := 1.69+0.10*pow((1-cos(angle))*0.5,2)+0.0015*sin(angle*9)
 				var height := lerpf(hairline,1.915,fraction)
 				var radius := 0.145
 				if height>1.79: radius = maxf(0.001,0.145*sqrt(maxf(0,1-pow((height-1.79)/0.125,2))))
-				var flow := angle*24+fraction*5
-				radius += 0.0035*sin(flow)*sin(fraction*PI)
+				var flow := angle*32+fraction*5+0.4*sin(angle*3+fraction*2)
+				radius += 0.0016*sin(flow)*sin(fraction*PI)
 				var nape := 0.016*(1-smoothstep(1.69,1.80,height))*maxf(0,cos(angle))
 				vertices.append(Vector3(sin(angle)*radius,height,cos(angle)*radius*0.95+0.015-nape))
 				var strand := pow(0.5+0.5*cos(flow),6)
-				colors.append(hair_color.darkened(0.12).lerp(hair_color.lightened(0.08),strand))
+				colors.append(hair_color.darkened(0.08).lerp(hair_color.lightened(0.055),strand))
 			for index in [0,1,2,2,1,3]:
 				st.set_color(colors[index])
 				st.add_vertex(vertices[index])
