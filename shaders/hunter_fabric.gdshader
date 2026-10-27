@@ -18,6 +18,18 @@ void fragment() {
     float stitch = (1.0-smoothstep(0.018,0.028,edge))*step(0.45,fract((UV.x+UV.y)*70.0));
     float shade = (0.97+0.06*(damp-0.5)+0.035*weave)*(1.0-wetness*0.08)*(1.0-seam*0.18)+stitch*0.045;
     ALBEDO = base_color.rgb*shade;
+    // Millimetre-scale relief in view space; derivatives also work on meshes
+    // without tangents. Filtered yarn fades before it can shimmer at distance.
+    float fold = sin(UV.x*25.13274+fabric_noise(UV*3.0+vec2(pattern_seed))*1.8);
+    float relief = weave*0.00018+fold*0.0007+damp*0.00035;
+    vec3 dx = dFdx(VERTEX);
+    vec3 dy = dFdy(VERTEX);
+    vec3 normal = normalize(NORMAL);
+    vec3 across_y = cross(dy,normal);
+    vec3 across_x = cross(normal,dx);
+    float determinant = dot(dx,across_y);
+    vec3 gradient = sign(determinant)*(dFdx(relief)*across_y+dFdy(relief)*across_x);
+    NORMAL = normalize(normal-gradient/max(abs(determinant),0.00000001));
     ROUGHNESS = clamp(0.92-wetness*0.16+weave*0.025,0.74,0.97);
     SPECULAR = 0.22;
 }
