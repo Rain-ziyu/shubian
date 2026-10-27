@@ -201,7 +201,12 @@ func update_state(fighter, defeated: int) -> void:
 	target_hint.visible = locked
 	if locked:
 		var target = fighter.lock_target
-		target_text.text = "%s  %d / %d\n\n%s\n对策：%s" % [target.data.name,ceili(target.health),int(target.data.health),target.data.trait,target.data.weakness]
+		var trait_text: String = target.data.trait
+		var strategy: String = target.data.weakness
+		if target.data.id=="mossback" and target.armor_integrity<=0:
+			trait_text = "背甲已破 · 正面减伤解除"
+			strategy = "绕后追击尾根；正面攻击也已不受重甲减伤"
+		target_text.text = "%s  %d / %d\n\n%s\n对策：%s" % [target.data.name,ceili(target.health),int(target.data.health),trait_text,strategy]
 		target_health.max_value = target.data.health
 		target_health.value = target.health
 		target_hint.text = target.combat_hint()

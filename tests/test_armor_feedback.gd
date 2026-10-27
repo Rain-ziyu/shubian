@@ -21,6 +21,9 @@ func run() -> void:
 		actor.set_process(false)
 		if actor.data.id=="mossback": monster = actor
 	var origin := monster.global_position-monster.global_basis.z*4
+	player.lock_target = monster
+	world.combat_hud.update_state(player,0)
+	check("背甲完整" in world.combat_hud.target_text.text,"Intact armor strategy matches the current target state")
 	var before: float = monster.health
 	var reduced: Dictionary = monster.receive_strike(10,origin,"light","body")
 	check(reduced.armor_reduced and not reduced.weak and not reduced.armor_just_broken,"Front armor contact is distinct from weakness and armor break")
@@ -38,6 +41,11 @@ func run() -> void:
 	effects = get_nodes_in_group("hit_feedback")
 	check(effects.size()==2 and effects[1].number.text.begins_with("破甲"),"Breaking contact has a distinct damage label")
 	check("破甲成功" in player.feedback.text,"Actual armor break produces the central combat cue")
+	world.combat_hud.update_state(player,0)
+	check("背甲已破" in world.combat_hud.target_text.text and "正面减伤解除" in world.combat_hud.target_text.text,"Persistent target information changes when the actual armor breaks")
+	player.feedback.advance(1.2)
+	world.combat_hud.update_state(player,0)
+	check("背甲已破" in world.combat_hud.target_text.text,"Broken armor information survives the transient break cue")
 	before = monster.health
 	var after: Dictionary = monster.receive_strike(10,origin,"light","body")
 	check(not after.armor_reduced and not after.armor_just_broken and after.armor_broken,"Later contacts do not repeat the break event")

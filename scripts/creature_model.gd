@@ -201,10 +201,12 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
 		tail_surface.mesh = mesh
 	if data.id=="mossback":
+		var trunk_surface := body.mesh.generate_triangle_mesh()
 		for i in 5:
 			var taper := 1.0-absf(i-2)*0.12
-			var plate := Surface.profile(root,"ArmorPlate"+str(i),[Vector4(-0.13,0.28*taper,0.06*taper,0),Vector4(-0.07,0.37*taper,0.24*taper,0),Vector4(0.09,0.35*taper,0.21*taper,0),Vector4(0.14,0.27*taper,0.05*taper,0)],s,c.darkened(0.16),-PI/2,PI/2,false)
+			var plate := Surface.profile(root,"ArmorPlate"+str(i),[Vector4(-0.13,0.28*taper,0.06*taper,0),Vector4(-0.07,0.37*taper,0.24*taper,0),Vector4(0.09,0.35*taper,0.21*taper,0),Vector4(0.14,0.27*taper,0.05*taper,0)],s,c.lightened(0.18),-PI/2,PI/2,false)
 			plate.position = Vector3(0,y+s*0.045,(i-2)*s*0.18)
+			preload("res://scripts/creature_armor_shell.gd").fit(plate,body,trunk_surface,s)
 			plate.set_meta("body_bind",body.transform.affine_inverse()*plate.transform)
 			plate.material_override.cull_mode = BaseMaterial3D.CULL_DISABLED
 	elif data.id=="thornhorn":

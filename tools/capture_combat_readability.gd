@@ -26,6 +26,10 @@ func run() -> void:
 	m.clock = m.data.windup*0.8
 	m.rear_attack = false
 	m.CreatureModel.animate(m.mesh,m.data,0,m.phase,m.clock,0)
+	var broken := "--break-armor" in OS.get_cmdline_user_args()
+	if broken:
+		var result: Dictionary = m.receive_strike(250,p.global_position,"heavy","body")
+		p.show_hit_feedback(m.mesh.get_node("Neck").global_position,result,"heavy")
 	for frame in 120: p.update_camera_framing(1.0/60)
 	p.camera.make_current()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -35,7 +39,8 @@ func run() -> void:
 	await physics_frame
 	await process_frame
 	await RenderingServer.frame_post_draw
-	var saved := root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-combat-readable.png"))
+	var destination := "res://../Shubian-combat-readable-armor-broken.png" if broken else "res://../Shubian-combat-readable.png"
+	var saved := root.get_texture().get_image().save_png(ProjectSettings.globalize_path(destination))
 	print("COMBAT_READABILITY_CAPTURE: ",saved," locked_nameplate_hidden=",not m.label.visible," player_camera=",root.get_camera_3d()==p.camera," msaa_3d=",root.msaa_3d," / frozen guard and windup poses")
 	world.queue_free()
 	await process_frame
