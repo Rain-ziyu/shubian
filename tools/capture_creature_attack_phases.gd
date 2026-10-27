@@ -38,6 +38,8 @@ func run() -> void:
 	label.add_theme_constant_override("outline_size",4)
 	layer.add_child(label)
 	var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://resources/monsters.json"))
+	var shoulder_study := "--forelimb" in OS.get_cmdline_user_args()
+	if shoulder_study: data.species = data.species.filter(func(species): return species.id=="reedclaw")
 	var sheet := Image.create(CELL.x*4,CELL.y*data.species.size(),false,Image.FORMAT_RGB8)
 	var captures := 0
 	for row in data.species.size():
@@ -52,6 +54,10 @@ func run() -> void:
 			var ground := func(_point: Vector3) -> float: return 0.0
 			var normal := func(_point: Vector3) -> Vector3: return Vector3.UP
 			Model.animate(model,species,0,sample[0],sample[1],0,ground,normal)
+			if shoulder_study:
+				camera.position = Vector3(size*1.8,size*0.95+model.position.y,-size*1.3)
+				camera.look_at(Vector3(size*0.20,size*0.60+model.position.y,-size*0.35))
+				camera.fov = 35
 			label.text = "%s / %s / %.2fs\nRUNTIME POSE SAMPLE" % [str(species.id).to_upper(),str(sample[0]).to_upper(),float(sample[1])]
 			await process_frame
 			await process_frame
@@ -61,9 +67,9 @@ func run() -> void:
 			sheet.blit_rect(frame,Rect2i(Vector2i.ZERO,CELL),Vector2i(column*CELL.x,row*CELL.y))
 			captures += 1
 		model.free()
-	var destination := ProjectSettings.globalize_path("res://../Shubian-creature-attack-phases.png")
+	var destination := ProjectSettings.globalize_path("res://../"+("Shubian-reedclaw-shoulder-poses.png" if shoulder_study else "Shubian-creature-attack-phases.png"))
 	var error := sheet.save_png(destination)
 	print("CREATURE_ATTACK_PHASES: captures=",captures," result=",error," path=",destination," / pose samples, not AI or human acceptance")
 	stage.queue_free()
 	await process_frame
-	quit(0 if error==OK and captures==20 else 1)
+	quit(0 if error==OK and captures==data.species.size()*4 else 1)

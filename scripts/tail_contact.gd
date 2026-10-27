@@ -13,7 +13,7 @@ static func profile(mesh: Mesh) -> Array[Vector4]:
 	var result: Array[Vector4] = []
 	for depth in depths:
 		var bounds: Vector4 = rings[depth]
-		result.append(Vector4(depth,(bounds.z+bounds.w)*0.5,maxf(bounds.y-bounds.x,bounds.w-bounds.z)*0.5,0))
+		result.append(Vector4(depth,(bounds.z+bounds.w)*0.5,maxf(bounds.y-bounds.x,bounds.w-bounds.z)*0.5,(bounds.x+bounds.y)*0.5))
 	return result
 
 static func touches(rings: Array[Vector4], before: Transform3D, after: Transform3D, feet: Vector3, previous_feet: Variant = null) -> bool:

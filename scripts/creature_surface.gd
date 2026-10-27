@@ -81,6 +81,23 @@ static func profile(parent: Node3D, label: String, profiles: Array, scale: float
 	for ring: Vector4 in profiles: rings.append(ring*scale)
 	return surface(parent,label,rings,color,start,end,56 if label.begins_with("ArmorPlate") else 28,caps)
 
+static func seat_forelimb(arm: MeshInstance3D, size: float, side: int) -> void:
+	var arrays: Array = arm.mesh.surface_get_arrays(0)
+	var points: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	for index in points.size():
+		var point := points[index]
+		var root := smoothstep(-size*0.14,size*0.02,point.z)
+		point.x = lerpf(point.x,point.x*0.65-side*size*0.18,root)
+		point.y *= lerpf(1.0,0.75,root)
+		points[index] = point
+	arrays[Mesh.ARRAY_VERTEX] = points
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+	var normals := SurfaceTool.new()
+	normals.create_from(mesh,0)
+	normals.generate_normals()
+	arm.mesh = normals.commit()
+
 static func tooth_root(surface_mesh: TriangleMesh, x: float, z: float, radius: float, scale: float, upper: bool) -> Vector3:
 	# Seat the whole circular root cap, including its edge on a curved jaw.
 	var height := -INF if upper else INF

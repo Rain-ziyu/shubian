@@ -157,6 +157,7 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 		if not quad:
 			var arm := Surface.profile(root,"Forelimb"+str(side),[Vector4(-0.24,0.02,0.03,-0.13),Vector4(-0.12,0.045,0.055,-0.10),Vector4(0.02,0.055,0.07,0)],s,c)
 			arm.position = Vector3(side*s*0.28,y,-s*0.35)
+			if data.id=="reedclaw": Surface.seat_forelimb(arm,s,side)
 			if data.id=="mistfrill":
 				# Short broad digits balance the throat display; unlike the leaper's
 				# hooked grasp, these carry no independent strike or claw contact.
