@@ -245,27 +245,46 @@ static func nostril_relief(part: MeshInstance3D, skull: TriangleMesh, size: floa
 	part.material_override.roughness = 0.82
 	part.material_override.metallic_specular = 0.15
 
-static func seat_orbital_ridge(ridge: MeshInstance3D, skull: TriangleMesh, side: int, scale: float) -> void:
-	# Each longitudinal section follows its own skull cross-section; a single
-	# eye-center offset leaves the upper ridge floating above a curved cranium.
-	var arrays: Array = ridge.mesh.surface_get_arrays(0)
-	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
-	var cache := {}
-	for index in vertices.size():
-		var point := ridge.transform*vertices[index]
-		var yz := Vector2(point.y,point.z)
-		if not cache.has(yz): cache[yz] = skull.intersect_segment(Vector3(side*2*scale,point.y,point.z),Vector3(0,point.y,point.z))
-		var contact: Dictionary = cache[yz]
-		if contact.is_empty(): continue
-		point.x = contact.position.x+vertices[index].x*0.70-side*0.006*scale
-		vertices[index] = ridge.transform.affine_inverse()*point
-	arrays[Mesh.ARRAY_VERTEX] = vertices
-	var projected := ArrayMesh.new()
-	projected.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
-	var surface := SurfaceTool.new()
-	surface.create_from(projected,0)
-	surface.generate_normals()
-	ridge.mesh = surface.commit()
+static func seat_orbital_ridge(ridge: MeshInstance3D, skull: TriangleMesh, side: int, scale: float, eye: MeshInstance3D, skin: Color) -> void:
+	# Upper and lower eyelids share the same longitudinal sections and embed
+	# both outer roots in the skull. The middle remains an actual eye opening.
+	var rows: Array[PackedVector3Array] = []
+	for row in 25:
+		var u := float(row)/24*2-1
+		var z := eye.position.z+u*scale*0.035
+		var outside := sqrt(maxf(0,1-u*u))
+		var aperture := sqrt(maxf(0,1-pow(u*0.035/0.020,2)))
+		var y := eye.position.y+u*scale*0.002
+		var ys := [y+scale*0.018*outside,y+scale*(0.010*outside+0.0035*aperture),y+scale*0.0075*aperture,y-scale*0.0075*aperture,y-scale*(0.007*outside+0.0035*aperture),y-scale*0.013*outside]
+		var points := PackedVector3Array()
+		for index in 6:
+			var hit := skull.intersect_segment(Vector3(side*scale*2,ys[index],z),Vector3(0,ys[index],z))
+			assert(not hit.is_empty(),"Orbital socket must stay attached to the skull")
+			var x: float = hit.position.x-side*scale*0.0005
+			if index in [1,4]: x = lerpf(x,eye.position.x+side*scale*(0.008 if index==1 else 0.007),0.85*outside)
+			if index in [2,3]: x = lerpf(x,eye.position.x+side*scale*0.009,outside)
+			points.append(Vector3(x,ys[index],z))
+		rows.append(points)
+	var tool := SurfaceTool.new()
+	tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+	tool.set_smooth_group(0)
+	for row in 24:
+		for column in [0,1,3,4]:
+			for face in [[Vector2i(row,column),Vector2i(row+1,column),Vector2i(row,column+1)],[Vector2i(row+1,column),Vector2i(row+1,column+1),Vector2i(row,column+1)]]:
+				var a: Vector3 = rows[face[0].x][face[0].y]
+				var b: Vector3 = rows[face[1].x][face[1].y]
+				var c: Vector3 = rows[face[2].x][face[2].y]
+				var order := [0,2,1] if (b-a).cross(c-a).dot(Vector3(side,0,0))>0 else [0,1,2]
+				for index in order:
+					var cell: Vector2i = face[index]
+					var darkness := 0.65 if cell.y in [2,3] else 0.22 if cell.y in [1,4] else 0.25
+					tool.set_color(skin.darkened(darkness))
+					tool.set_uv(Vector2(float(cell.x)/24,float(cell.y)/5))
+					tool.add_vertex(ridge.transform.affine_inverse()*rows[cell.x][cell.y])
+	tool.generate_normals()
+	ridge.mesh = tool.commit()
+	ridge.material_override.roughness = 0.75
+	ridge.material_override.metallic_specular = 0.20
 
 static func vertical(parent: Node3D, label: String, profiles: Array, scale: float, color: Color) -> MeshInstance3D:
 	var rings := []

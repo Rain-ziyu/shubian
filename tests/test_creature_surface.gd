@@ -52,6 +52,7 @@ func run() -> void:
 			check(instance.has_node("BodySurface") and instance.has_node("Neck/HeadSurface") and instance.has_node("Neck/Jaw"),"live and saved continuous body head jaw: "+str(data.id))
 			check(instance.get_node("Tail/TailSurface").mesh is ArrayMesh,"live and saved continuous tail: "+str(data.id))
 			check_nasal_relief(instance,float(data.size))
+			check_orbital_opening(instance,float(data.size))
 		var body: MeshInstance3D = model.get_node("BodySurface")
 		var skin: Array = body.mesh.surface_get_arrays(0)
 		check(skin[Mesh.ARRAY_COLOR].size()==skin[Mesh.ARRAY_VERTEX].size(),"surface coloration is saved per vertex")
@@ -207,3 +208,16 @@ func check_nasal_relief(model: Node3D, size: float) -> void:
 			fitted = fitted and distance>size*0.0001 and distance<size*0.007
 		check(fitted and maximum-minimum>size*0.003,"raised nasal rim and recessed floor follow the actual curved skull")
 		check(nose.material_override.shading_mode==BaseMaterial3D.SHADING_MODE_PER_PIXEL and nose.material_override.vertex_color_use_as_albedo and nose.material_override.metallic_specular<0.2,"nasal relief receives matte scene lighting instead of an unshaded black sticker")
+
+func check_orbital_opening(model: Node3D, size: float) -> void:
+	for side in [-1,1]:
+		var eye: MeshInstance3D = model.get_node("Neck/Eye"+str(side))
+		var pupil: MeshInstance3D = model.get_node("Neck/Pupil"+str(side))
+		var ridge: MeshInstance3D = model.get_node("Neck/EyeRidge"+str(side))
+		var geometry := ridge.mesh.generate_triangle_mesh()
+		var upper := geometry.intersect_segment(Vector3(side*size,eye.position.y+size*0.010,eye.position.z),Vector3(0,eye.position.y+size*0.010,eye.position.z))
+		var lower := geometry.intersect_segment(Vector3(side*size,eye.position.y-size*0.010,eye.position.z),Vector3(0,eye.position.y-size*0.010,eye.position.z))
+		check(not upper.is_empty() and not lower.is_empty(),"orbital socket has actual upper and lower eyelid surfaces")
+		var opening := geometry.intersect_segment(Vector3(side*size,pupil.position.y,pupil.position.z),Vector3(0,pupil.position.y,pupil.position.z))
+		check(opening.is_empty(),"eyelids preserve a real aperture in front of the pupil")
+		check(eye.scale.x<=size*0.021 and pupil.scale.y<=size*0.0141,"eye globe and pupil fit the compact socket instead of protruding as a large ball")
