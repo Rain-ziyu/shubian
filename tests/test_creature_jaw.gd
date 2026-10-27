@@ -9,20 +9,54 @@ func check(ok: bool, label: String) -> void:
 		failures += 1
 		printerr("FAIL: ",label)
 func _initialize() -> void: call_deferred("run")
-func check_teeth(parent: Node3D, surface_node: MeshInstance3D, scale: float, upper: bool) -> void:
+func check_teeth(parent: Node3D, surface_node: MeshInstance3D, scale: float, upper: bool, species: String) -> void:
 	var surface_mesh := surface_node.mesh.generate_triangle_mesh()
 	var count := 0
 	var projected := true
 	var seated := true
 	var worst := 0.0
+	var closed := true
+	var enamel := true
+	var shortest := INF
+	var longest := 0.0
+	var curved := true
+	var caps_present := true
 	for child in parent.get_children():
-		if not child is MeshInstance3D or not child.mesh is CylinderMesh: continue
+		if not child is MeshInstance3D or not child.get_meta("dental_tooth",false): continue
 		count += 1
+		var bounds: AABB = child.mesh.get_aabb()
+		shortest = minf(shortest,bounds.size.y)
+		longest = maxf(longest,bounds.size.y)
 		var arrays: Array = child.mesh.surface_get_arrays(0)
 		var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 		var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+		var tip_y := bounds.position.y if upper else bounds.end.y
+		var tip_z := 0.0
+		var tip_samples := 0
+		for point in vertices:
+			if absf(point.y-tip_y)>scale*0.00001: continue
+			tip_z += point.z
+			tip_samples += 1
+		if tip_samples==0: curved = false
+		elif species=="reedclaw": curved = curved and tip_z/tip_samples>scale*0.019
+		elif species=="mossback": curved = curved and tip_z/tip_samples>0 and tip_z/tip_samples<scale*0.005
+
+		var edges := {}
+		for triangle in range(0,vertices.size(),3):
+			for edge in 3:
+				var a := str(Vector3i((vertices[triangle+edge]*1000000).round()))
+				var b := str(Vector3i((vertices[triangle+(edge+1)%3]*1000000).round()))
+				var key := a+"|"+b if a<b else b+"|"+a
+				edges[key] = int(edges.get(key,0))+1
+		for adjacent: int in edges.values(): closed = closed and adjacent==2
+		var shades := {}
+		for color: Color in arrays[Mesh.ARRAY_COLOR]: shades[color] = true
+		enamel = enamel and shades.size()>2 and child.material_override.vertex_color_use_as_albedo
+
+		var root_samples := 0
 		for index in vertices.size():
 			if normals[index].y*(1 if upper else -1)<0.99: continue
+			root_samples += 1
 			var point: Vector3 = child.transform*vertices[index]
 			if surface_node!=parent: point = surface_node.transform.affine_inverse()*point
 			var start := Vector3(point.x,-scale*0.25 if upper else scale*0.25,point.z)
@@ -33,8 +67,13 @@ func check_teeth(parent: Node3D, surface_node: MeshInstance3D, scale: float, upp
 			var embed: float = (point.y-hit.position.y)*(1 if upper else -1)
 			worst = maxf(worst,absf(embed))
 			seated = seated and embed>=scale*0.0005 and embed<=scale*0.025
-	check(count==10 and projected,"all ten tooth roots have real jaw attachment surfaces")
+		caps_present = caps_present and root_samples>=16
+	check(count==10 and caps_present and projected,"all ten tooth roots have real jaw attachment surfaces")
 	check(seated,"entire tooth root caps are seated without floating or excessive burial")
+	check(count==10 and closed,"all curved teeth are closed meshes with two faces per edge")
+	check(count==10 and enamel,"enamel color variation is stored and enabled in the tooth materials")
+	check(longest/shortest>1.20,"dental row has visibly varied crown heights")
+	check(curved,"tooth tip curvature follows the species dental silhouette")
 	print("TOOTH_ROOT_DEVIATION: upper=",upper," max_embed=",worst)
 func run() -> void:
 	var stage := Node3D.new()
@@ -102,11 +141,11 @@ func run() -> void:
 		check(saved.get_node("Neck/HeadSurface/MouthRoof").mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]==roof_points,"saved upper palate matches runtime geometry")
 		var saved_neck: Node3D = saved.get_node("Neck")
 		var saved_jaw: MeshInstance3D = saved.get_node("Neck/Jaw")
-		check_teeth(saved_neck,saved_neck.get_node("HeadSurface"),float(data.size),true)
-		check_teeth(saved_jaw,saved_jaw,float(data.size),false)
+		check_teeth(saved_neck,saved_neck.get_node("HeadSurface"),float(data.size),true,str(data.id))
+		check_teeth(saved_jaw,saved_jaw,float(data.size),false,str(data.id))
 		saved.queue_free()
-		check_teeth(neck,neck.get_node("HeadSurface"),float(data.size),true)
-		check_teeth(jaw,jaw,float(data.size),false)
+		check_teeth(neck,neck.get_node("HeadSurface"),float(data.size),true,str(data.id))
+		check_teeth(jaw,jaw,float(data.size),false,str(data.id))
 		var loaded := Model.jaw_pose(data,"windup",float(data.windup))
 		check(loaded.is_equal_approx(Model.jaw_pose(data,"active",0)),"jaw joins anticipation to attack without a snap")
 		check(Model.jaw_pose(data,"active",0.65).is_equal_approx(Model.jaw_pose(data,"recover",0)),"jaw joins attack to recovery without a snap")

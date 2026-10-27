@@ -141,8 +141,8 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 		for tooth in 5:
 			var upper_root := Surface.tooth_root(facial_surface,side*s*0.10*head_width,s*(-0.56+tooth*0.045),s*0.014,s,true)
 			var lower_root := Surface.tooth_root(dental_jaw,side*s*0.095*head_width,s*(-0.5375+tooth*0.045)-hinge.z,s*0.010,s,false)
-			H.tapered(neck,upper_root-Vector3.UP*s*0.03,s*0.014,s*0.001,s*0.06,Color("c6c5aa"))
-			H.tapered(jaw,lower_root+Vector3.UP*s*0.0175,s*0.001,s*0.010,s*0.035,Color("b6b79d"))
+			preload("res://scripts/creature_tooth.gd").create(neck,upper_root,s,tooth,true,str(data.id))
+			preload("res://scripts/creature_tooth.gd").create(jaw,lower_root,s,tooth,false,str(data.id))
 		for front in ([false,true] if quad else [false]):
 			var leg := V.pivot(root,("Front" if front else "Hind")+str(side),Vector3(side*s*0.29,y*0.9,-s*0.31 if front else s*0.28))
 			var bottom := -y*0.9/s+0.075

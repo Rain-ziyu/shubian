@@ -131,6 +131,17 @@ func run() -> void:
 				await RenderingServer.frame_post_draw
 				result = root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-stormcrest-plates-"+state+".png"))
 				if result!=OK: error = result
+		if "--dental" in OS.get_cmdline_user_args():
+			Model.animate(holder.get_node("CreatureMesh"),data.species[index],0,"windup",data.species[index].windup,0)
+			var neck: Node3D = holder.get_node("CreatureMesh/Neck")
+			camera.position = neck.to_global(Vector3(size*0.65,size*0.25,-size*1.25))
+			camera.look_at(neck.to_global(Vector3(0,size*0.05,-size*0.40)))
+			camera.fov = 34
+			title.text = "SHUBIAN / "+str(data.species[index].name)+" / DENTITION STUDY"
+			for frame in 3: await process_frame
+			await RenderingServer.frame_post_draw
+			result = root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-creature-"+str(data.species[index].id)+"-dentition.png"))
+			if result!=OK: error = result
 		holder.hide()
 	stage.queue_free()
 	await process_frame
