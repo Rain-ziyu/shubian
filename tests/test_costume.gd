@@ -27,6 +27,19 @@ func run() -> void:
 	root.add_child(collar_saved)
 	check_collars(collar_saved.get_node("Torso"),"saved")
 	check_cape(collar_saved,"saved")
+	for side in [-1,1]:
+		for path in ["Bracer"+str(side),"Pelvis/BeltPouch"+str(side)]:
+			var live: MeshInstance3D = rig.root.get_node(path)
+			var saved: MeshInstance3D = collar_saved.get_node(path)
+			var data: Array = live.mesh.surface_get_arrays(0)
+			var colors: PackedColorArray = data[Mesh.ARRAY_COLOR]
+			var distinct := {}
+			for color in colors: distinct[color] = true
+			check(distinct.size()>1 and live.material_override.vertex_color_use_as_albedo,"equipment panel and rim colours reach material: "+path)
+			check(data[Mesh.ARRAY_VERTEX]==saved.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX] and colors==saved.mesh.surface_get_arrays(0)[Mesh.ARRAY_COLOR],"saved equipment keeps refined shape and colour: "+path)
+			if "Pouch" in path:
+				var bounds := live.mesh.get_aabb()
+				check(bounds.size.x<0.123 and bounds.size.z<0.075 and bounds.size.y<0.136,"rounded pouch stays within the belt attachment envelope")
 	collar_saved.queue_free()
 	for label in ["KneePlate","ShinPlate"]:
 		var plate: MeshInstance3D = rig.legs[1].knee.get_node(label)

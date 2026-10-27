@@ -22,6 +22,13 @@ func run() -> void:
 	await physics_frame
 	var p = world.hunter
 	p.set_physics_process(false)
+	# This fixture injects events directly; native focus/mouse motion must not steer it.
+	p.set_process_input(false)
+	p.set_process_unhandled_input(false)
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	p.yaw = 0
+	p.pitch = -0.25
+	p.rig.root.rotation.y = 0
 	for m in get_nodes_in_group("monsters"): m.set_physics_process(false)
 	var c = p.combat
 	c.drawn = true

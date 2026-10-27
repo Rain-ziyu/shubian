@@ -30,7 +30,7 @@ static func loft(parent: Node3D, label: String, rings: Array, color: Color, star
 				if label=="ForestBoot": point = boot_shape(point)
 				if garment: point = garment_drape(point,label,bottom,span)
 				if label.begins_with("RainCape") or label.begins_with("CapeHem"): point = cape_drape(point)
-				st.add_vertex(point)
+				st.add_vertex(equipment_shape(point,label))
 	if caps:
 		st.set_smooth_group(-1)
 		for row in [0,rings.size()-1]:
@@ -42,15 +42,47 @@ static func loft(parent: Node3D, label: String, rings: Array, color: Color, star
 				for point in ([center,a,b] if row==0 else [center,b,a]):
 					st.set_uv(Vector2(point.x/maxf(ring.y*2,0.0001)+0.5,(point.z-ring.w)/maxf(ring.z*2,0.0001)+0.5))
 					if label=="ForestBoot": point = boot_shape(point)
-					st.add_vertex(point)
+					st.add_vertex(equipment_shape(point,label))
 	st.generate_normals()
 	var mesh := MeshInstance3D.new()
 	mesh.name = label
 	mesh.mesh = st.commit()
 	if label.begins_with("RainCape"): shoulder_ease(mesh,label)
 	mesh.material_override = V.mat(color)
+	if label.begins_with("Bracer") or label.begins_with("BeltPouch"): finish_equipment(mesh,label)
 	parent.add_child(mesh)
 	return mesh
+
+static func equipment_shape(point: Vector3, label: String) -> Vector3:
+	if label.begins_with("BeltPouch"):
+		# Rounded rectangular leather panels, with the original circular UV and anchors.
+		var angle := atan2(point.x/0.06,point.z/0.035)
+		var radius := Vector2(point.x/0.06,point.z/0.035).length()
+		point.x = sign(sin(angle))*pow(absf(sin(angle)),0.45)*0.06*radius
+		point.z = sign(cos(angle))*pow(absf(cos(angle)),0.45)*0.035*radius
+	return point
+
+static func finish_equipment(part: MeshInstance3D, label: String) -> void:
+	var arrays: Array = part.mesh.surface_get_arrays(0)
+	var colors := PackedColorArray()
+	for point: Vector3 in arrays[Mesh.ARRAY_VERTEX]:
+		var shade := Color.WHITE
+		if label.begins_with("Bracer"):
+			var cuff := absf(point.y)>0.40
+			shade = Color("aaa590") if cuff else Color("d6dfd5")
+			var panel := smoothstep(0.015,0.045,-point.z)*(1-smoothstep(0.38,0.45,absf(point.y)))
+			shade = shade.lerp(Color("79877f"),panel*0.65)
+		else:
+			shade = Color("e1d6b8") if point.y>0.972 else Color("c0b59b")
+			if point.y>0.957 and point.y<0.972: shade = Color("716653")
+		colors.append(shade)
+	arrays[Mesh.ARRAY_COLOR] = colors
+	var detailed := ArrayMesh.new()
+	detailed.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+	part.mesh = detailed
+	part.material_override.vertex_color_use_as_albedo = true
+	part.material_override.roughness = 0.58 if label.begins_with("Bracer") else 0.86
+	part.material_override.metallic = 0.30 if label.begins_with("Bracer") else 0.0
 
 static func shoulder_ease(part: MeshInstance3D, label: String) -> void:
 	var arrays: Array = part.mesh.surface_get_arrays(0)
@@ -269,9 +301,12 @@ static func armor_plate(parent: Node3D, label: String, points: Array, color: Col
 		var b: Vector3 = points[(index+1)%points.size()]
 		var inner_a := a.lerp(center,0.15)+Vector3(0,0,-0.006)
 		var inner_b := b.lerp(center,0.15)+Vector3(0,0,-0.006)
+		st.set_color(Color("c4cec6"))
 		MetalMesh.bevel_triangle(st,center+Vector3(0,0,-0.018),inner_a,inner_b,Vector3.FORWARD)
+		st.set_color(Color.WHITE)
 		MetalMesh.bevel_triangle(st,a,b,inner_a,Vector3.FORWARD)
 		MetalMesh.bevel_triangle(st,b,inner_b,inner_a,Vector3.FORWARD)
+		st.set_color(Color("84938a"))
 		var edge_out := ((a+b)*0.5-center).normalized()
 		MetalMesh.bevel_triangle(st,a,a+Vector3(0,0,0.012),b,edge_out)
 		MetalMesh.bevel_triangle(st,b,a+Vector3(0,0,0.012),b+Vector3(0,0,0.012),edge_out)
@@ -281,6 +316,7 @@ static func armor_plate(parent: Node3D, label: String, points: Array, color: Col
 	result.name = label
 	result.mesh = st.commit()
 	result.material_override = V.mat(color)
+	result.material_override.vertex_color_use_as_albedo = true
 	result.material_override.metallic = 0.45
 	result.material_override.roughness = 0.62
 	parent.add_child(result)
@@ -404,7 +440,7 @@ static func create(root: Node3D) -> Dictionary:
 		patch(pivot,"CoatPanel",[Vector3(-0.105,0,-0.018),Vector3(0.105,0,-0.018),Vector3(0.12,-0.25,-0.075),Vector3(-0.08,-0.29,-0.068)],Color("77725a"))
 		ribbon(pivot,"PanelTrim",[Vector3(side*0.09,-0.01,-0.021),Vector3(side*0.09,-0.23,-0.077)],0.015,red)
 		skirts[side] = pivot
-		var pouch := loft(root,"BeltPouch"+str(side),[Vector4(0.865,0.055,0.035,0),Vector4(1.00,0.06,0.035,0)],Color("67644d"),0,TAU,12)
+		var pouch := loft(root,"BeltPouch"+str(side),[Vector4(0.865,0.043,0.025,0),Vector4(0.875,0.055,0.034,0),Vector4(0.950,0.060,0.035,0),Vector4(0.960,0.057,0.032,0),Vector4(0.970,0.061,0.037,0),Vector4(0.992,0.061,0.037,0),Vector4(1.00,0.055,0.030,0)],Color("67644d"),0,TAU,12)
 		pouch.position = Vector3(side*0.215,0,0.04)
 		V.piece(root,Vector3(side*0.215,0.96,-0.003),Vector3(0.035,0.045,0.015),Color("8b8b73"))
 	back_mount(root)

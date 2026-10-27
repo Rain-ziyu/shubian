@@ -67,6 +67,23 @@ func run() -> void:
 	await RenderingServer.frame_post_draw
 	var error := root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-character-turnaround.png"))
 	print("CHARACTER_TURNAROUND: ",error)
+	if "--equipment" in OS.get_cmdline_user_args():
+		layer.hide()
+		for index in [1,2]: holders[index].hide()
+		root.size = Vector2i(1024,1024)
+		root.content_scale_size = Vector2i(1024,1024)
+		camera.position = Vector3(2.05,1.05,-1.15)
+		camera.look_at(Vector3(1.35,1.03,0))
+		camera.fov = 29
+		for frame in 3: await process_frame
+		await RenderingServer.frame_post_draw
+		error = root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-equipment-detail.png"))
+		camera.position = Vector3(2.10,1.10,1.25)
+		camera.look_at(Vector3(1.35,0.98,0))
+		camera.fov = 34
+		for frame in 3: await process_frame
+		await RenderingServer.frame_post_draw
+		error = root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-equipment-rear-detail.png"))
 	if "--fabric" in OS.get_cmdline_user_args():
 		layer.hide()
 		for index in [1,2]: holders[index].hide()
