@@ -12,8 +12,13 @@ static func panel(tool: SurfaceTool, side: int, back: bool, hem: bool) -> void:
 			for corner in [Vector2i(column,row),Vector2i(column,row+1),Vector2i(column+1,row),Vector2i(column+1,row),Vector2i(column,row+1),Vector2i(column+1,row+1)]:
 				var u: float = corner.x/6.0
 				var v: float = lerpf(0.965,1.0,float(corner.y)/rows) if hem else float(corner.y)/rows
-				var point := Vector3(side*lerpf(lerpf(0.045,0.075,v),lerpf(0.14,0.185,v),u),lerpf(1.48,1.17,v),(-1 if not back else 1)*lerpf(0.125,0.235,v))
-				point.z += (1 if back else -1)*0.008*sin(u*PI)*sin(v*PI)
+				# A sloping neckline and rounded free hem avoid rectangular chest tabs.
+				# Keep each flap torso-bound and separate from the moving shoulder cap.
+				var top := lerpf(1.51,1.46,u)
+				var bottom := 1.17+0.035*pow(absf(u*2-1),3)+0.025*u*u
+				var point := Vector3(side*lerpf(lerpf(0.045,0.075,v),lerpf(0.18,0.205,v),u),lerpf(top,bottom,v),(-1 if not back else 1)*lerpf(0.125,0.235,v))
+				var drape := 0.008*sin(u*PI)*sin(v*PI)+0.004*sin(u*PI*3)*sin(v*PI*0.5)
+				point.z += (1 if back else -1)*drape
 				vertex(tool,point,Vector2(u,v),0.0)
 
 static func shoulder(tool: SurfaceTool, arm_rest: Transform3D, hem: bool) -> void:
