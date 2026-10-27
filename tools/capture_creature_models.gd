@@ -112,6 +112,28 @@ func run() -> void:
 			await RenderingServer.frame_post_draw
 			result = root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-reedclaw-skin-detail.png"))
 			if result!=OK: error = result
+		if data.species[index].id=="reedclaw" and "--leap" in OS.get_cmdline_user_args():
+			root.size = Vector2i(800,600)
+			root.content_scale_size = Vector2i(800,600)
+			var sheet := Image.create(1600,1200,false,Image.FORMAT_RGB8)
+			var poses := [["windup",float(data.species[index].windup)*0.85,"COIL"],["active",0.12,"LAUNCH"],["active",0.40,"EXTEND"],["recover",0.20,"SETTLE"]]
+			for pose_index in poses.size():
+				var sample: Array = poses[pose_index]
+				Model.animate(holder.get_node("CreatureMesh"),data.species[index],0,sample[0],sample[1],0)
+				camera.position = holder.position+Vector3(size*2.8,size*1.25,-size*2.5)
+				camera.look_at(holder.position+Vector3(0,size*0.6,-size*0.05))
+				camera.fov = 38
+				title.text = "REEDCLAW / "+sample[2]+" / POSE STUDY"
+				for frame in 3: await process_frame
+				await RenderingServer.frame_post_draw
+				var pose_image := root.get_texture().get_image()
+				pose_image.convert(Image.FORMAT_RGB8)
+				sheet.blit_rect(pose_image,Rect2i(0,0,800,600),Vector2i((pose_index%2)*800,(pose_index/2)*600))
+			result = sheet.save_png(ProjectSettings.globalize_path("res://../Shubian-reedclaw-leap-study.png"))
+			print("REEDCLAW_LEAP_STUDY: ",result," / direct poses, not live AI or root travel")
+			if result!=OK: error = result
+			root.size = Vector2i(1280,720)
+			root.content_scale_size = Vector2i(1280,720)
 		if data.species[index].id=="mossback":
 			camera.position = holder.position+Vector3(size*2.0,size*1.2,size*2.8)
 			camera.look_at(holder.position+Vector3(0,size*0.40,1.3))

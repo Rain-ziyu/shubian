@@ -48,7 +48,7 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 	elif data.id=="reedclaw":
 		# Keep the shoulder and hip attachments, but tuck the abdomen between
 		# them: this fast leaper carries its mass in the hindquarters.
-		body_profile = [Vector4(-0.56,0.08,0.12,0.03),Vector4(-0.42,0.28,0.23,0.025),Vector4(-0.15,0.35,0.27,0),Vector4(0.20,0.24,0.19,0.055),Vector4(0.43,0.22,0.20,-0.025),Vector4(0.56,0.08,0.12,-0.025)]
+		body_profile = [Vector4(-0.56,0.08,0.12,0.03),Vector4(-0.42,0.255,0.205,0.035),Vector4(-0.15,0.30,0.235,0.025),Vector4(0.10,0.235,0.17,0.065),Vector4(0.28,0.27,0.20,0.005),Vector4(0.43,0.25,0.21,-0.025),Vector4(0.56,0.08,0.12,-0.025)]
 	var body := Surface.profile(root,"BodySurface",body_profile,s,c)
 	Surface.sculpt_anatomy(body,s,"body",str(data.id))
 	body.position.y = y
@@ -76,6 +76,10 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 		# Low nasal wedge and a stronger orbital roof for the armored grazer.
 		# Keep the authored snout endpoint; contacts are fitted to this mesh.
 		head_profile = [Vector4(-0.715,0.010,0.007,0.055),Vector4(-0.70,0.065,0.020,0.055),Vector4(-0.67,0.12,0.038,0.065),Vector4(-0.60,0.165,0.060,0.080),Vector4(-0.49,0.205,0.105,0.125),Vector4(-0.40,0.225,0.120,0.145),Vector4(-0.28,0.19,0.135,0.130),Vector4(-0.09,0.135,0.17,0.08),Vector4(0.12,0.10,0.15,0)]
+	elif data.id=="reedclaw":
+		# Lower narrow snout, distinct orbital vault and a slim throat give the
+		# leaper a forward silhouette rather than the caster's round head.
+		head_profile = [Vector4(-0.715,0.008,0.006,0.060),Vector4(-0.70,0.025,0.015,0.060),Vector4(-0.67,0.045,0.026,0.067),Vector4(-0.60,0.092,0.052,0.085),Vector4(-0.43,0.145,0.115,0.135),Vector4(-0.29,0.115,0.125,0.120),Vector4(-0.09,0.095,0.125,0.080),Vector4(0.12,0.10,0.15,0)]
 	elif data.id=="thornhorn":
 		head_profile = [Vector4(-0.715,0.006,0.004,0.10),Vector4(-0.71,0.065,0.035,0.10),Vector4(-0.69,0.12,0.065,0.10),Vector4(-0.61,0.155,0.09,0.11),Vector4(-0.42,0.22,0.17,0.17),Vector4(-0.28,0.19,0.18,0.14),Vector4(-0.09,0.135,0.17,0.08),Vector4(0.12,0.10,0.15,0)]
 	elif data.id=="stormcrest":
@@ -101,6 +105,7 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 	var facial_surface: TriangleMesh = head_surface.mesh.generate_triangle_mesh()
 	Surface.mouth_lining(head_surface,Vector3.ZERO,s,head_width,true)
 	var jaw_profile := [Vector4(-0.68,0.006*head_width,0.004,-0.04),Vector4(-0.66,0.035*head_width,0.015,-0.04),Vector4(-0.58,0.13*head_width,0.035,-0.05),Vector4(-0.30,0.145*head_width,0.055,-0.045),Vector4(-0.12,0.06,0.025,0.01)]
+	if data.id=="reedclaw": jaw_profile = [Vector4(-0.68,0.004,0.003,-0.04),Vector4(-0.66,0.026,0.014,-0.04),Vector4(-0.58,0.098,0.035,-0.050),Vector4(-0.30,0.115,0.055,-0.045),Vector4(-0.12,0.06,0.025,0.01)]
 	if data.id=="mossback": jaw_profile = [Vector4(-0.68,0.006,0.004,-0.04),Vector4(-0.66,0.065,0.018,-0.04),Vector4(-0.58,0.155,0.038,-0.05),Vector4(-0.30,0.175,0.060,-0.045),Vector4(-0.12,0.06,0.025,0.01)]
 	if data.id=="stormcrest": jaw_profile = [Vector4(-0.69,0.008,0.005,-0.04),Vector4(-0.67,0.040,0.018,-0.045),Vector4(-0.64,0.10,0.032,-0.050),Vector4(-0.60,0.145,0.040,-0.055),Vector4(-0.40,0.165,0.055,-0.055),Vector4(-0.20,0.13,0.050,-0.025),Vector4(-0.12,0.060,0.025,0.010)]
 	Surface.profile(neck,"Jaw",jaw_profile,s,c.darkened(0.16))
@@ -155,6 +160,10 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 				# Thick wrists and hocks support the armored torso instead of a
 				# narrow biped-like lower leg. Sole and IK anchors stay unchanged.
 				leg_profile = [Vector4(bottom,0.074,0.075,0.025),Vector4(bottom*0.78,0.086,0.090,0.040),Vector4(bottom*0.56,0.105,0.105,-0.025),Vector4(bottom*0.28,0.150,0.135,-0.010),Vector4(0.025,0.175,0.170,0),Vector4(0.11,0.14,0.14,0),Vector4(0.19,0.055,0.065,0),Vector4(0.205,0.005,0.005,0)]
+			elif data.id=="reedclaw":
+				# Concentrate propulsion in the thigh and keep the hock light;
+				# attachment caps and the three IK joint positions are retained.
+				leg_profile = [Vector4(bottom,0.055,0.060,0.025),Vector4(bottom*0.78,0.063,0.070,0.05),Vector4(bottom*0.56,0.092,0.090,-0.04),Vector4(bottom*0.28,0.15,0.14,-0.02),Vector4(0.025,0.19,0.175,0),Vector4(0.11,0.16,0.15,0),Vector4(0.19,0.055,0.065,0),Vector4(0.205,0.005,0.005,0)]
 			var leg_surface := Surface.vertical(leg,"LegSurface",leg_profile,s,c)
 			LegSkin.shape_attachment(leg_surface,s,side)
 			var foot_y := -y*0.9+s*0.05

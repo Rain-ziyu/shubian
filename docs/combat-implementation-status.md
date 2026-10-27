@@ -1537,3 +1537,11 @@ EyeRidge从单独眉脊改成同一网格内的上下眼缘：各纵向剖面的
 - 首次肩背截面使背甲射线在某截面边界返回空命中（诊断 z/size=0.01）；调整宽肩截面纵向位置后重新导出，原背甲贴合限制未放宽。最终导出无错误，142 个资源 ID 与 20 个生成牙齿节点名保持稳定。早期失败日志保留在 verification。
 - 九组原生回归 1017 项通过：脚锁定 40、头部阻挡 28、下颌 200、腿部 304、表面 332、头部横扫 57、背甲贴合 10、近战部位 28、投射物部位 18。报告 `D:/vscode/Shubian/outputs/verification/regressions-20261027-104612-86d4a7/summary.json`。
 - 已查看正/后侧实际渲染及默认相机冻结横扫画面。旧轮廓对照 `D:/vscode/Shubian/outputs/verification/mossback-mass-before.png`、`mossback-mass-rear-before.png`；当前 `D:/vscode/Shubian/outputs/Shubian-creature-mossback.png`、`Shubian-creature-mossback-rear.png`。这不是人工动作验收或完整性能证明，整体角色与怪物精细化目标仍未完成。
+
+
+### 2026-10-27 苇影迅龙扑跃体型
+
+- 细化苇影迅龙的收窄胸腹、较细后颈、低长口鼻、较厚大腿与较轻跗部，使负重集中后肢；保留颈根、尾根、肩部及 IK/脚底锚点。仅该物种源模型与导出模型改变，131 个内嵌资源 ID 和 20 个牙齿生成节点名保持稳定。
+- 首次回归发现玩家前进后与新下颌有约 8 mm 相交（探针碰撞点差），恢复下颌既有厚度/高度并保留窄口鼻轮廓后修复；未放宽阻挡检查或修改通用玩家物理。早期失败报告 `regressions-20261027-105213-411196` 和 `reedclaw-leaper-blocker-probe.log` 保留。
+- 最终原生十组 1055 项全部通过：扑跃承诺 54、脚锁定 40、头阻挡 28、下颌 200、腿部 304、表面 332、扑跃表面 5、近战部位 28、投射物部位 18、迅龙肩部 46。报告 `D:/vscode/Shubian/outputs/verification/regressions-20261027-105851-596af1/summary.json`。
+- `capture_creature_models.gd -- --no-export --leap` 新增四阶段姿态研究，输出 `D:/vscode/Shubian/outputs/Shubian-reedclaw-leap-study.png`；已查看侧轮廓和四姿态。此为直接姿态、固定根位置的美术研究，不是 live AI 或实际根位移录像。旧轮廓 `D:/vscode/Shubian/outputs/verification/reedclaw-leaper-before.png`。仍未达到整体最终精细化目标，本次未重测长时间性能。
