@@ -1521,3 +1521,11 @@ EyeRidge从单独眉脊改成同一网格内的上下眼缘：各纵向剖面的
 - 新增 `capture_character_turnaround.gd -- --boots` 实际渲染近景，输出 `D:/vscode/Shubian/outputs/Shubian-boots-detail.png`；已查看最终近景及默认玩家相机的冻结横扫画面。护胫会遮挡上部系带，默认战斗距离下这些细节较小；本次不代表整体人物/怪物美术目标已达成。
 - 首次导出遇到 SurfaceTool 未开始构建错误，已改为显式复制原顶点属性后追加几何；最终导出与截图日志无此错误。内嵌资源 254 个，稳定 ID 已归一。
 - 原生回归 6 组 551 项通过：靴部蒙皮 33、服装 59、脚底贴地 83、人物脚锁定 20、人物腿部 106、蒙皮 250。报告 `D:/vscode/Shubian/outputs/verification/regressions-20261027-103234-434388/summary.json`。未进行新的长时间帧率测试或人工试玩验收。
+
+
+### 2026-10-27 怪物中尺度鳞片层次
+
+- 原细鳞在战斗距离被像素足迹过滤后，会留下大块光滑表面。共享皮肤着色器补充 28×24 中尺度错列鳞片、解析坡度法线和轻微粗糙度/颜色变化；保留距离过滤、UV 接缝淡化及面部低对比。几何、碰撞、骨骼和攻击逻辑未改，已保存模型直接引用更新后的共享着色器。
+- 查看五种怪物实际渲染及默认战斗视角冻结横扫画面；苔甲龙前后对照保存在 `D:/vscode/Shubian/outputs/verification/mesoscale-mossback-before.png` 与 `D:/vscode/Shubian/outputs/Shubian-creature-mossback.png`。皮肤层次更清楚，但五种怪物头颈和肢体造型仍偏相似，不代表最终美术验收。
+- 原生相关回归 4 组 681 项通过：下颌 200、皮肤材质 42、表面 332、尾部蒙皮 107。报告 `D:/vscode/Shubian/outputs/verification/regressions-20261027-103832-f55e3d/summary.json`。渲染/测试未报着色器错误。
+- 默认 Compatibility 原生 1280×720、五 AI 活跃的 30 秒部分狩猎采样：两秒后 4926 帧，平均 5.663 ms、P99 11.534 ms、最大 20.593 ms、超过 33 ms 为 0。日志 `D:/vscode/Shubian/outputs/verification/creature-mesoscale-performance-30s.log`。只证明当前短采样，无同条件旧版性能对照，不证明开销增减或既有长时间卡顿已修复。

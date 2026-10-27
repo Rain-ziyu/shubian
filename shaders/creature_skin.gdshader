@@ -15,6 +15,27 @@ float noise(vec2 p) {
 	f = f*f*(3.0-2.0*f);
 	return mix(mix(hash(cell),hash(cell+vec2(1,0)),f.x),mix(hash(cell+vec2(0,1)),hash(cell+vec2(1,1)),f.x),f.y);
 }
+// Medium scutes remain readable after the submillimetre grain is filtered out.
+// Return height and its analytic UV slopes; differentiating a wrapped cell
+// directly would produce false normals along pixel-quad boundaries.
+vec3 scute_relief(vec2 uv) {
+	vec2 count = vec2(28.0,24.0);
+	vec2 cells = uv*count;
+	cells.x += mod(floor(cells.y),2.0)*0.5;
+	vec2 id = floor(cells);
+	vec2 offset = vec2(hash(id+vec2(7.3,2.1)),hash(id+vec2(31.4,6.8)));
+	vec2 p = fract(cells)-0.5-(offset-0.5)*0.10;
+	float size = mix(0.92,1.06,hash(id+vec2(2.3,17.9)));
+	vec2 f = abs(p)*vec2(1.0,1.15)/size;
+	float edge = max(max(f.x,f.y),(f.x+f.y)*0.72);
+	vec2 slope = f.x>f.y ? vec2(1.0,0.0) : vec2(0.0,1.0);
+	if ((f.x+f.y)*0.72>max(f.x,f.y)) slope = vec2(0.72);
+	slope *= sign(p)*vec2(1.0,1.15)/size;
+	float t = clamp((edge-0.24)/0.25,0.0,1.0);
+	float rise = mix(0.75,1.10,hash(id+vec2(11.8,3.2)));
+	float height = (1.0-smoothstep(0.24,0.49,edge))*rise;
+	return vec3(height,slope*count*(-6.0*t*(1.0-t)/0.25)*rise);
+}
 void fragment() {
 	vec2 wrapped = vec2(sin(UV.x*6.2831853),cos(UV.x*6.2831853));
 	float mottling = noise(wrapped*2.3+UV.y*pattern_count);
@@ -48,7 +69,12 @@ void fragment() {
 	edge_slope *= sign(scale_point)*vec2(1.0,1.2)/scale_size;
 	// Quiet colour variation; most fine-scale definition comes from light on
 	// the raised plate instead of dark isolated spots painted onto smooth skin.
-	float grain = (plate-0.5)*0.03*detail*end_fade*fine_scale_weight;
+	vec2 medium_cells = UV*vec2(28.0,24.0);
+	float medium_footprint = max(length(dFdx(medium_cells)),length(dFdy(medium_cells)));
+	float medium_detail = 1.0-smoothstep(0.20,0.65,medium_footprint);
+	vec3 scute = scute_relief(UV);
+	float medium_weight = mix(0.30,1.0,fine_scale_weight);
+	float grain = ((plate-0.5)*0.03*detail*fine_scale_weight+(scute.x-0.5)*0.075*medium_detail*medium_weight)*end_fade;
 	// Broad countershading makes the jaw and underside readable through turns.
 	float underside = 1.0-smoothstep(-0.65,0.15,wrapped.y);
 	float skin_variation = mix(0.92,1.05,mottling);
@@ -58,6 +84,7 @@ void fragment() {
 	float height_strength = 0.0006*detail*detail*end_fade*seam_fade*fine_scale_weight;
 	float bevel_t = clamp((plate_edge-0.32)/0.16,0.0,1.0);
 	vec2 height_slope = edge_slope*vec2(72.0,60.0)*(-6.0*bevel_t*(1.0-bevel_t)/0.16)*height_strength;
+	height_slope += scute.yz*(0.003*medium_detail*medium_detail*medium_weight*end_fade*seam_fade);
 	vec3 dx = dFdx(VERTEX);
 	vec3 dy = dFdy(VERTEX);
 	vec3 normal = normalize(NORMAL);
@@ -68,8 +95,8 @@ void fragment() {
 	// quad, which otherwise makes the tiny bevels look like stair steps.
 	vec3 gradient = sign(determinant)*(dot(height_slope,dFdx(UV))*across_y+dot(height_slope,dFdy(UV))*across_x);
 	vec3 bump = gradient/max(abs(determinant),0.00000001);
-	bump *= min(1.0,0.12/max(length(bump),0.00001));
+	bump *= min(1.0,0.20/max(length(bump),0.00001));
 	NORMAL = normalize(normal-bump);
-	ROUGHNESS = clamp(0.78+(1.0-plate)*0.10*detail*fine_scale_weight,0.0,1.0);
+	ROUGHNESS = clamp(0.78+(1.0-plate)*0.07*detail*fine_scale_weight+(1.0-scute.x)*0.06*medium_detail,0.0,1.0);
 	SPECULAR = 0.25;
 }
