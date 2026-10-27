@@ -71,6 +71,9 @@ func run() -> void:
 	var action := "light"
 	for candidate in ["heavy","pull","throw","plant","guard","reply","finisher","flash","fourfold","spin","turn"]:
 		if "--"+candidate in OS.get_cmdline_user_args(): action = candidate
+	var recovery := action=="heavy" and "--recovery" in OS.get_cmdline_user_args()
+	var continuous := recovery or "--continuous" in OS.get_cmdline_user_args()
+	var sampled_time := 0.0
 	p.combat.set_action(action)
 	if action=="plant":
 		camera.fov = 42
@@ -85,13 +88,23 @@ func run() -> void:
 		times["fourfold"] = [0.18,0.33,0.43]
 		times["turn"] = [0.18,0.40,0.44]
 		times["spin"] = [0.18,0.38,0.85]
+		if recovery: times["heavy"] = [0.72,0.80,0.90]
 		var t: float = times[action][i]
-		p.combat.elapsed = t
-		p.animate(0,0)
+		if continuous:
+			if i==0: p.animate(0,0)
+			while sampled_time<t:
+				var next_time := minf(t,sampled_time+1.0/120)
+				p.combat.elapsed = next_time
+				p.animate(next_time-sampled_time,0)
+				sampled_time=next_time
+		else:
+			p.combat.elapsed = t
+			p.animate(0,0)
 		var labels: Array = {"throw":["01 / READY","02 / WINDUP","03 / RELEASE PREPARATION"],"plant":["01 / RAISE","02 / DRIVE","03 / SETTLE"]}.get(action,["01 / PREPARE","02 / CONTACT","03 / FOLLOW THROUGH"])
 		if action=="fourfold": labels = ["01 / FIRST THRUST","02 / RETRACT","03 / SECOND THRUST"]
 		if action=="turn": labels = ["01 / WINDUP","02 / UPRIGHT HANDOFF","03 / CONTACT"]
 		if action=="spin": labels = ["01 / WINDUP","02 / FIRST CONTACT","03 / SECOND CONTACT"]
+		if recovery: labels = ["01 / RETURN","02 / UPRIGHT","03 / READY"]
 		label.text = labels[i]+" / %.2f s" % t
 		if aimed: label.text += " / AIM %.2f" % p.pitch
 		await process_frame
@@ -112,6 +125,7 @@ func run() -> void:
 	paths["spin"] = "Shubian-spin-keyframes"
 	var suffix := "-parts" if "--shoulder-parts" in OS.get_cmdline_user_args() else "-feet" if feet_detail else ("-shoulder" if shoulder_detail else ("-game-view" if game_view else ""))
 	if aimed: suffix += "-aim"
+	if recovery: suffix += "-recovery"
 	sheet.save_png(ProjectSettings.globalize_path("res://../"+("segmented-" if segmented else "")+str(paths[action])+suffix+".png"))
 	stage.queue_free()
 	await process_frame

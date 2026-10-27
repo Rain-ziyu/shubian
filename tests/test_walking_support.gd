@@ -11,6 +11,13 @@ func check(ok: bool, label: String) -> void:
 	if not ok:
 		failures += 1
 		printerr("FAIL: ",label)
+func held_movement(axis: Vector2, sprint := false) -> void:
+	# This is a synthetic movement fixture, not an OS keyboard test. Own its
+	# held actions at each controlled physics boundary, including focus changes.
+	for key in ["move_forward","move_back","move_left","move_right","sprint"]: Input.action_release(key)
+	if axis.y!=0: Input.action_press("move_back" if axis.y>0 else "move_forward",absf(axis.y))
+	if axis.x!=0: Input.action_press("move_right" if axis.x>0 else "move_left",absf(axis.x))
+	if sprint: Input.action_press("sprint")
 func _initialize() -> void: call_deferred("run")
 func run() -> void:
 	var stage := Node3D.new()
@@ -20,6 +27,9 @@ func run() -> void:
 	var p := Player.new()
 	stage.add_child(p)
 	p.set_physics_process(false)
+	p.set_process_input(false)
+	p.set_process_unhandled_input(false)
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	p.position = Vector3(0,0.02,0)
 	p.yaw = 0
 	await physics_frame
@@ -34,6 +44,7 @@ func run() -> void:
 		var longest := 0
 		var worst := 0.0
 		for frame in 120:
+			held_movement(Vector2(0,-1),sprint)
 			p._physics_process(1.0/60)
 			await physics_frame
 			for side in [-1,1]:
@@ -91,6 +102,7 @@ func run() -> void:
 		for frame in 31:
 			# A moving facing fixture isolates strafing from changes in target bearing.
 			facing.position = p.position+Vector3.FORWARD*15
+			held_movement(axis)
 			p._physics_process(1.0/60)
 			await physics_frame
 			for side in [-1,1]:

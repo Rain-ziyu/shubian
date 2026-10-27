@@ -121,7 +121,9 @@ static func pose_arms(rig: Dictionary, armed: bool, gait: float, grip_weight := 
 		bend = (bend-unit*bend.dot(unit)).normalized()
 		var height := sqrt(maxf(0,0.39*0.39-pow(distance*0.5,2)))
 		if rig.get("elbow_continuity",false):
-			bend = preload("res://scripts/hunter_arm_clearance.gd").solve(shoulder,target,bend,height,rig.weapon.transform,side,arm.elbow.position,delta,armed and rig.weapon.visible and rig.get("shaft_clearance",false))
+			bend = preload("res://scripts/hunter_arm_clearance.gd").solve(shoulder,target,bend,height,rig.weapon.transform,side,arm.elbow.position,delta,armed and rig.weapon.visible and rig.get("shaft_clearance",false),arm.get("pole_axis",Vector3.ZERO),arm.get("pole_bend",Vector3.ZERO))
+		arm.pole_axis = unit
+		arm.pole_bend = bend
 		var elbow := middle+bend*height
 		segment(arm.upper,shoulder,elbow)
 		# Use the anatomical elbow plane, avoiding shortest-arc roll and pole switches.

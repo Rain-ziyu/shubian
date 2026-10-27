@@ -370,6 +370,7 @@ func animate(delta: float, speed: float) -> void:
 	if combat.action!=pose_action or combat.drawn!=pose_drawn:
 		equipment_route = combat.drawn!=pose_drawn
 		pose_duration = 0.30 if pose_drawn and not combat.drawn else 0.10
+		if equipment_route and combat.drawn and combat.action!="guard": pose_duration = 0.14
 		# Let the far-side sweep return through the light thrust's anticipation.
 		# Finish before its0.25s contact; guard/dodge and draw routes stay responsive.
 		if not equipment_route and pose_action=="heavy" and combat.action=="light": pose_duration = 0.18
@@ -565,12 +566,12 @@ func animate(delta: float, speed: float) -> void:
 			w.transform = upright.interpolate_with(authored_weapon,smoothstep(0.09,0.18,combat.elapsed))
 			w.position.z -= 0.09*sin(PI*smoothstep(0.09,0.18,combat.elapsed))
 		elif combat.elapsed<0.70: w.transform = authored_weapon
-		elif combat.elapsed<0.81:
-			w.transform = authored_weapon.interpolate_with(upright,smoothstep(0.70,0.81,combat.elapsed))
-			w.position.x = lerpf(authored_weapon.origin.x,upright.origin.x,smoothstep(0.77,0.81,combat.elapsed))-0.06*sin(PI*smoothstep(0.70,0.77,combat.elapsed))
-			w.position.z = lerpf(authored_weapon.origin.z,upright.origin.z,smoothstep(0.70,0.77,combat.elapsed))
-			w.position.y -= 0.08*sin(PI*smoothstep(0.70,0.77,combat.elapsed))
-		else: w.transform = upright.interpolate_with(ready,smoothstep(0.81,0.92,combat.elapsed))
+		elif combat.elapsed<0.84:
+			w.transform = authored_weapon.interpolate_with(upright,smoothstep(0.70,0.84,combat.elapsed))
+			w.position.x = lerpf(authored_weapon.origin.x,upright.origin.x,smoothstep(0.75,0.84,combat.elapsed))-0.06*sin(PI*smoothstep(0.70,0.80,combat.elapsed))
+			w.position.z = lerpf(authored_weapon.origin.z,upright.origin.z,smoothstep(0.70,0.80,combat.elapsed))
+			w.position.y -= 0.04*sin(PI*smoothstep(0.70,0.80,combat.elapsed))
+		else: w.transform = upright.interpolate_with(ready,smoothstep(0.84,0.92,combat.elapsed))
 	if delta>0:
 		pose_blend = minf(1,pose_blend+delta/pose_duration)
 		var goal := w.transform

@@ -33,6 +33,11 @@ func run() -> void:
 	var skeleton: Skeleton3D = p.rig.skinning.skeleton
 	for action in ["idle","light","heavy","pull","turn","guard","reply","flash","throw","fourfold","spin","plant","wait","counter_window","finisher","dodge","hurt"]:
 		if not requested.is_empty() and action!=requested: continue
+		if not requested.is_empty():
+			p.combat.drawn = true
+			p.combat.set_action("counter_window" if action=="finisher" else "idle")
+			p.combat.elapsed = 0.5 if action=="finisher" else 0.0
+			p.animate(0,0)
 		if requested=="reply":
 			# A counter starts from the successful guard, not a previous clip.
 			p.combat.drawn = true
@@ -63,13 +68,14 @@ func run() -> void:
 				finger_tracks.append({"track":track,"rendered":binding.rendered})
 		p.combat.set_action(action)
 		p.combat.drawn = true
-		var sample_rate := 60.0 if action=="reply" else 30.0
+		var continuous: bool = action in ["heavy","guard","reply","finisher"]
+		var sample_rate := 60.0 if continuous else 30.0
 		var frames := ceili(clip.length*sample_rate)
 		var sampled_time := 0.0
 		for frame in range(frames+1):
 			var t := minf(clip.length,frame/sample_rate)
-			if action=="reply" and frame>0:
-				# The counter uses the preceding elbow pose. Preserve its actual
+			if continuous and frame>0:
+				# These arm poses use the preceding bending plane. Preserve actual
 				# 120Hz transport; 60Hz keys also keep its hand on the fast shaft.
 				while sampled_time<t:
 					var next_time := minf(t,sampled_time+1.0/120)

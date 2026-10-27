@@ -32,6 +32,15 @@ func run() -> void:
 		check(pole.angle_to(avoided)<=8.0*delta+0.0001,"Avoidance respects the angular speed limit")
 	var authored := Solver.solve(shoulder,wrist,Vector3.LEFT,height,Transform3D.IDENTITY,1,middle+Vector3.RIGHT*height,0,false)
 	check(authored.is_equal_approx(Vector3.LEFT),"Zero-delta authored sampling is deterministic")
+	# The new wrist can cross the tiny offset of an almost straight elbow.
+	# Its previous position alone would then choose the opposite bending side.
+	var folded_wrist := Vector3(0.20,0.70,0)
+	var folded_axis := folded_wrist.normalized()
+	var folded_height := sqrt(0.39*0.39-folded_wrist.length_squared()*0.25)
+	var expected_plane := (Vector3.RIGHT-folded_axis*folded_axis.dot(Vector3.RIGHT)).normalized()
+	var transported := Solver.solve(Vector3.ZERO,folded_wrist,expected_plane,folded_height,Transform3D.IDENTITY,1,Vector3(0.028,0.389,0),1.0/120,false,Vector3.UP,Vector3.RIGHT)
+	check(transported.dot(expected_plane)>0.999,"Folding after near extension preserves the preceding elbow side")
+	check(absf(transported.dot(folded_axis))<0.0001,"Transported bending plane stays perpendicular to the new wrist axis")
 	var stage := Node3D.new()
 	root.add_child(stage)
 	var player := preload("res://scripts/player.gd").new()

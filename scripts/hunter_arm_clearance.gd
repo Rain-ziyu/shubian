@@ -10,7 +10,7 @@ static func gap(shoulder: Vector3, elbow: Vector3, start: Vector3, shaft: Vector
 		result = minf(result,point.distance_to(nearest)-section.y)
 	return result
 
-static func solve(shoulder: Vector3, target: Vector3, preferred: Vector3, height: float, weapon: Transform3D, side: int, previous_elbow: Vector3, delta: float, avoid_shaft := true) -> Vector3:
+static func solve(shoulder: Vector3, target: Vector3, preferred: Vector3, height: float, weapon: Transform3D, side: int, previous_elbow: Vector3, delta: float, avoid_shaft := true, previous_axis := Vector3.ZERO, previous_bend := Vector3.ZERO) -> Vector3:
 	if height<0.00001: return preferred
 	var axis := (target-shoulder).normalized()
 	var middle := (target+shoulder)*0.5
@@ -19,8 +19,14 @@ static func solve(shoulder: Vector3, target: Vector3, preferred: Vector3, height
 	var inverse_length := 1.0/maxf(0.000001,shaft.length_squared())
 	var seed := preferred
 	if delta>0:
-		var projected := previous_elbow-middle
-		projected -= axis*projected.dot(axis)
+		var projected: Vector3
+		if previous_axis.length_squared()>0.5 and previous_bend.length_squared()>0.5:
+			# Carry the bending plane even when a nearly straight elbow no
+			# longer has enough positional offset to define a reliable pole.
+			projected = Quaternion(previous_axis,axis)*previous_bend
+		else:
+			projected = previous_elbow-middle
+			projected -= axis*projected.dot(axis)
 		if projected.length_squared()>0.000001:
 			seed = projected.normalized().lerp(preferred,1-exp(-12*delta))
 			seed = seed.normalized() if seed.length_squared()>0.000001 else preferred

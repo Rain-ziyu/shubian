@@ -53,7 +53,8 @@ func run() -> void:
 			var previous := Quaternion.IDENTITY
 			for frame in frames+1:
 				p.combat.elapsed = float(p.Combat.MOVES[action].duration)*frame/frames
-				p.animate(0,0)
+				# Exercise runtime elbow transport, rather than independent pose queries.
+				p.animate(1.0/60,0)
 				var rotation := plate.basis.get_rotation_quaternion()
 				if frame>0 and previous.angle_to(rotation)>worst_step:
 					worst_step = previous.angle_to(rotation)
@@ -106,6 +107,18 @@ func run() -> void:
 						drift_case = "%s %.2f actual %s expected %s" % [action,time,actual,expected]
 		check(drift<0.002,"saved animation keeps the fastening strap attached to its armor")
 		print("SAVED_SHOULDER_FASTENER_DRIFT: ",side," ",drift," ",drift_case)
+		var saved_step := 0.0
+		for action in ["heavy","guard","throw","plant","finisher"]:
+			preview.play(action)
+			var previous := Quaternion.IDENTITY
+			var length: float = preview.get_animation(action).length
+			for frame in ceili(length*60)+1:
+				preview.seek(minf(length,frame/60.0),true)
+				var rotation := saved_skeleton.get_bone_global_pose(plate_bone).basis.get_rotation_quaternion()
+				if frame>0: saved_step=maxf(saved_step,previous.angle_to(rotation))
+				previous=rotation
+		check(saved_step<0.6,"saved shoulder animation also avoids single-frame armor flips")
+		print("SAVED_SHOULDER_ROTATION_STEP: ",side," ",saved_step)
 	print("SHOULDER_RIG_CHECKS: ",checks," FAILURES: ",failures)
 	stage.queue_free()
 	await process_frame
