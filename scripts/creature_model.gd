@@ -123,8 +123,7 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 			if not eye_contact.is_empty(): eye_x = absf(eye_contact.position.x)/s+0.006
 		var nostril := V.piece(neck,Vector3(side*s*nose_x,s*0.109,-s*0.64),Vector3(s*0.028,s*0.006,s*0.035),Color("26372b"),true)
 		nostril.name = "Nostril"+str(side)
-		nostril.material_override.albedo_color = Color("142118")
-		nostril.material_override.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		Surface.nostril_relief(nostril,facial_surface,s,side,c)
 		var eye := V.piece(neck,Vector3(side*s*eye_x,s*0.20,-s*0.43),Vector3(s*0.028,s*0.02,s*0.045),Color("dba75d"),true)
 		eye.name = "Eye"+str(side)
 		eye.mesh.radial_segments = 24

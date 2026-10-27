@@ -43,7 +43,7 @@ func run() -> void:
 		var model := Model.create(holder,data)
 		var saved = load("res://assets/models/"+str(data.id)+"-v1.tscn").instantiate()
 		holder.add_child(saved)
-		for label in ["BodySurface","Neck/HeadSurface"]:
+		for label in ["BodySurface","Neck/HeadSurface","Neck/Nostril-1","Neck/Nostril1"]:
 			var live_mesh: Mesh = model.get_node(label).mesh
 			var saved_mesh: Mesh = saved.get_node(label).mesh
 			check(live_mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]==saved_mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX],"saved anatomical relief matches live skin vertices: "+str(data.id)+"/"+label)
@@ -51,6 +51,7 @@ func run() -> void:
 		for instance in [model,saved]:
 			check(instance.has_node("BodySurface") and instance.has_node("Neck/HeadSurface") and instance.has_node("Neck/Jaw"),"live and saved continuous body head jaw: "+str(data.id))
 			check(instance.get_node("Tail/TailSurface").mesh is ArrayMesh,"live and saved continuous tail: "+str(data.id))
+			check_nasal_relief(instance,float(data.size))
 		var body: MeshInstance3D = model.get_node("BodySurface")
 		var skin: Array = body.mesh.surface_get_arrays(0)
 		check(skin[Mesh.ARRAY_COLOR].size()==skin[Mesh.ARRAY_VERTEX].size(),"surface coloration is saved per vertex")
@@ -180,3 +181,29 @@ func check_horn_roots(model: Node3D, size: float) -> void:
 			sampled += 1
 		print("HORN_ROOT_EMBEDDED: side=",side," points=",sampled," inside=",embedded)
 		check(sampled>28 and embedded,"whole horn root cap is seated inside the actual skull")
+
+func check_nasal_relief(model: Node3D, size: float) -> void:
+	var skull: MeshInstance3D = model.get_node("Neck/HeadSurface")
+	var triangles := skull.mesh.generate_triangle_mesh()
+	for side in [-1,1]:
+		var nose: MeshInstance3D = model.get_node("Neck/Nostril"+str(side))
+		var anchor := nose.position
+		var seed := triangles.intersect_segment(Vector3(side*size*2,anchor.y,anchor.z),Vector3(0,anchor.y,anchor.z))
+		check(not seed.is_empty() and nose.mesh is ArrayMesh,"nasal relief has a real skull attachment")
+		if seed.is_empty(): continue
+		var normal: Vector3 = seed.normal
+		if normal.x*side<0: normal = -normal
+		var fitted := true
+		var minimum := INF
+		var maximum := -INF
+		for vertex: Vector3 in nose.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+			var point := nose.transform*vertex
+			var hit := triangles.intersect_segment(point+normal*size*0.02,point-normal*size*0.02)
+			fitted = fitted and not hit.is_empty()
+			if hit.is_empty(): continue
+			var distance: float = (point-hit.position).dot(normal)
+			minimum = minf(minimum,distance)
+			maximum = maxf(maximum,distance)
+			fitted = fitted and distance>size*0.0001 and distance<size*0.007
+		check(fitted and maximum-minimum>size*0.003,"raised nasal rim and recessed floor follow the actual curved skull")
+		check(nose.material_override.shading_mode==BaseMaterial3D.SHADING_MODE_PER_PIXEL and nose.material_override.vertex_color_use_as_albedo and nose.material_override.metallic_specular<0.2,"nasal relief receives matte scene lighting instead of an unshaded black sticker")

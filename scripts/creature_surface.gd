@@ -200,6 +200,51 @@ static func mouth_lining(jaw: MeshInstance3D, hinge: Vector3, scale: float, head
 	jaw.add_child(result)
 	return result
 
+static func nostril_relief(part: MeshInstance3D, skull: TriangleMesh, size: float, side: int, skin: Color) -> void:
+	var contact := skull.intersect_segment(Vector3(side*size*2,part.position.y,part.position.z),Vector3(0,part.position.y,part.position.z))
+	assert(not contact.is_empty(),"Nostril must remain on the real skull")
+	var normal: Vector3 = contact.normal
+	if normal.x*side<0: normal = -normal
+	var along := (Vector3.FORWARD-normal*Vector3.FORWARD.dot(normal)).normalized()
+	var across := normal.cross(along).normalized()
+	var rows: Array[PackedVector3Array] = []
+	var radii := [1.0,0.82,0.60,0.28,0.0]
+	var lifts := [0.0005,0.005,0.0038,0.0008,0.0008]
+	var tints := [skin.darkened(0.58),skin.darkened(0.45),skin.darkened(0.85),Color("08100b"),Color("050c08")]
+	for row in radii.size():
+		var points := PackedVector3Array()
+		for column in 25:
+			var angle := TAU*float(column)/24
+			var plane: Vector3 = contact.position+(along*cos(angle)*0.022+across*sin(angle)*0.009)*size*float(radii[row])
+			var hit := skull.intersect_segment(plane+normal*size*0.1,plane-normal*size*0.1)
+			assert(not hit.is_empty(),"Nasal rim must follow the curved skull surface")
+			var up: Vector3 = hit.normal
+			if up.dot(normal)<0: up = -up
+			points.append(hit.position+up*size*float(lifts[row])-part.position)
+		rows.append(points)
+	var tool := SurfaceTool.new()
+	tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+	tool.set_smooth_group(0)
+	for row in range(rows.size()-1):
+		for column in 24:
+			var quad := [rows[row][column],rows[row][column+1],rows[row+1][column],rows[row+1][column+1]]
+			var faces := [Vector3i(0,1,2),Vector3i(1,3,2)] if row<rows.size()-2 else [Vector3i(0,1,2)]
+			for face: Vector3i in faces:
+				var a: Vector3 = quad[face.x]
+				var b: Vector3 = quad[face.y]
+				var c: Vector3 = quad[face.z]
+				var order := [face.x,face.z,face.y] if (b-a).cross(c-a).dot(normal)>0 else [face.x,face.y,face.z]
+				for index: int in order:
+					tool.set_color(tints[row+(1 if index>=2 else 0)])
+					tool.add_vertex(quad[index])
+	tool.generate_normals()
+	part.mesh = tool.commit()
+	part.scale = Vector3.ONE
+	part.material_override.albedo_color = Color.WHITE
+	part.material_override.vertex_color_use_as_albedo = true
+	part.material_override.roughness = 0.82
+	part.material_override.metallic_specular = 0.15
+
 static func seat_orbital_ridge(ridge: MeshInstance3D, skull: TriangleMesh, side: int, scale: float) -> void:
 	# Each longitudinal section follows its own skull cross-section; a single
 	# eye-center offset leaves the upper ridge floating above a curved cranium.
