@@ -14,6 +14,10 @@ var controller_us := 0
 var sample_limit := 0.0
 var draw_started_us := 0
 var last_draw_ms := 0.0
+var draw_finished_us := 0
+var partition_samples := 0
+var partition_error_ms := 0.0
+var partition_peaks := {"before_draw":0.0,"draw_submission":0.0,"after_draw":0.0}
 var recent_events: Array[Dictionary] = []
 var previous_pipelines := {}
 var compilation_events: Array[Dictionary] = []
@@ -74,7 +78,13 @@ func setup() -> void:
 	RenderingServer.frame_post_draw.connect(end_draw)
 	fighter.hit_confirmed.connect(record_contact)
 func begin_draw() -> void: draw_started_us = Time.get_ticks_usec()
-func end_draw() -> void: last_draw_ms = (Time.get_ticks_usec()-draw_started_us)/1000.0
+func end_draw() -> void:
+	draw_finished_us = Time.get_ticks_usec()
+	last_draw_ms = (draw_finished_us-draw_started_us)/1000.0
+
+func frame_partition(begin: int, end: int) -> Dictionary:
+	if draw_started_us<begin or draw_finished_us<draw_started_us or draw_finished_us>end: return {"valid":false}
+	return {"valid":true,"before_draw":(draw_started_us-begin)/1000.0,"draw_submission":(draw_finished_us-draw_started_us)/1000.0,"after_draw":(end-draw_finished_us)/1000.0}
 func record_contact(action: String, beat: int, victim: Node3D, result: Dictionary) -> void:
 	recent_events.append({"wall_seconds":(Time.get_ticks_usec()-started_us)/1000000.0,"simulation_seconds":elapsed,"action":action,"beat":beat,"species":victim.data.id,"part":result.part,"weak":result.weak})
 	if recent_events.size()>256: recent_events.pop_front()
@@ -89,6 +99,14 @@ func sample_frame() -> void:
 	if finished: return
 	var now := Time.get_ticks_usec()
 	var frame_ms := (now-previous_us)/1000.0
+	var partition := frame_partition(previous_us,now)
+	if partition.valid:
+		partition_samples += 1
+		var total := 0.0
+		for stage in partition_peaks:
+			partition_peaks[stage] = maxf(partition_peaks[stage],partition[stage])
+			total += float(partition[stage])
+		partition_error_ms = maxf(partition_error_ms,absf(total-frame_ms))
 	previous_us = now
 	var pipeline_totals := pipeline_counts()
 	var pipeline_delta := {}
@@ -128,6 +146,7 @@ func sample_frame() -> void:
 		maximum_process_ms = maxf(maximum_process_ms,Performance.get_monitor(Performance.TIME_PROCESS)*1000)
 	if frame_ms>33.33:
 		stalls.append({"ms":snappedf(frame_ms,0.01),"species":monster.data.id if is_instance_valid(monster) else "travel","phase":monster.phase if is_instance_valid(monster) else "travel","wall_seconds":(now-started_us)/1000000.0,"script_cost_ms":costs,"render_submission_ms":last_draw_ms,"pipeline_compilation_delta":pipeline_delta,"pipeline_compilation_totals":pipeline_totals,"player_action":fighter.combat.action,"monster_clock":monster.clock if is_instance_valid(monster) else 0,"process_ms":Performance.get_monitor(Performance.TIME_PROCESS)*1000,"physics_ms":Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS)*1000,"recent_contacts":recent_events.slice(maxi(0,recent_events.size()-6)).duplicate(true)})
+		stalls[-1]["frame_partition_ms"] = partition
 	if sample_limit>0 and elapsed>=sample_limit: finish.call_deferred()
 func stats(values: Array[float]) -> Dictionary:
 	if values.is_empty(): return {}
@@ -158,6 +177,7 @@ func finish() -> void:
 	report["contact_events"] = recent_events
 	if sample_limit>0: report["scope"] = "partial native real-time forest sample, all five AI active, no resource resets; not a full expedition or human difficulty acceptance"
 	report["render_timing_scope"] = "frame_pre_draw to frame_post_draw wall time; rendering submission, not GPU execution time"
+	report["frame_partition"] = {"samples":partition_samples,"max_closure_error_ms":partition_error_ms,"peaks_ms":partition_peaks,"scope":"Consecutive process_frame timestamps split at frame_pre_draw/frame_post_draw. before_draw includes scene work; after_draw includes physics, engine work, presentation waits and scheduling. Wall time only, not CPU/GPU execution attribution. Invalid partitions are retained as invalid rather than guessed."}
 	var path := "res://../verification/forest-performance-"+str(int(Time.get_unix_time_from_system()))+"-"+str(OS.get_process_id())+".json"
 	FileAccess.open(path,FileAccess.WRITE).store_string(JSON.stringify(report,"  "))
 	print("FOREST_PERFORMANCE: ",JSON.stringify(report))
