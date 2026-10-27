@@ -12,4 +12,6 @@ static func apply(root: Node3D) -> void:
 		material.set_shader_parameter("base_color",original.albedo_color)
 		material.set_shader_parameter("wetness",0.55 if label.begins_with("RainCape") else 0.20)
 		material.set_shader_parameter("pattern_seed",float(absi(label.hash())%1000)*0.031)
+		material.set_shader_parameter("canvas_map",preload("res://assets/textures/cloth/ranger-waxed-canvas.png"))
+		material.set_shader_parameter("canvas_weight",0.65 if label.begins_with("RainCape") else 0.0)
 		part.material_override = material

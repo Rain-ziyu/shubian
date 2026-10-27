@@ -40,6 +40,10 @@ func run() -> void:
 	var cape: ShaderMaterial = rig.root.get_node("Torso/RainCape1").material_override
 	var coat: ShaderMaterial = rig.root.get_node("Torso/Undercoat").material_override
 	check(cape.get_shader_parameter("wetness")>coat.get_shader_parameter("wetness"),"exposed cape has stronger damp response than protected inner layer")
+	var canvas := cape.get_shader_parameter("canvas_map") as Texture2D
+	check(canvas!=null and canvas.resource_path=="res://assets/textures/cloth/ranger-waxed-canvas.png","cape uses the project-owned canvas texture")
+	check(canvas!=null and canvas.get_image().has_mipmaps(),"fine woven source has imported mip levels for distant views")
+	check(cape.get_shader_parameter("canvas_weight")>0 and coat.get_shader_parameter("canvas_weight")==0,"weathered rain canvas is restricted to exposed cape pieces")
 	var saved = load("res://assets/models/hunter-forest-v1.tscn").instantiate()
 	holder.add_child(saved)
 	var saved_count := 0
@@ -64,6 +68,9 @@ func run() -> void:
 		if material!=null and material.shader.resource_path.ends_with("hunter_fabric.gdshader"):
 			saved_count += 1
 			check(mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_TEX_UV].size()>0,"saved cloth retains UV")
+			if label.begins_with("RainCape"):
+				var saved_canvas := material.get_shader_parameter("canvas_map") as Texture2D
+				check(saved_canvas!=null and saved_canvas.resource_path==canvas.resource_path and material.get_shader_parameter("canvas_weight")>0,"saved cape retains its canvas texture and material strength")
 	check(saved_count==count,"saved model retains every runtime fabric material")
 	print("HUNTER_FABRIC_CHECKS: ",checks," FAILURES: ",failures)
 	holder.queue_free()

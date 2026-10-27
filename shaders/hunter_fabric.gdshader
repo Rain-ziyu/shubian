@@ -3,6 +3,8 @@ render_mode cull_disabled;
 uniform vec4 base_color : source_color = vec4(0.3,0.36,0.27,1.0);
 uniform float wetness : hint_range(0.0,1.0) = 0.2;
 uniform float pattern_seed = 0.0;
+uniform sampler2D canvas_map : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
+uniform float canvas_weight : hint_range(0.0,1.0) = 0.0;
 float hash21(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
 float fabric_noise(vec2 p) {
     vec2 cell=floor(p); vec2 f=fract(p); f=f*f*(3.0-2.0*f);
@@ -17,7 +19,17 @@ void fragment() {
     float seam = 1.0-smoothstep(0.005,0.018,edge);
     float stitch = (1.0-smoothstep(0.018,0.028,edge))*step(0.45,fract((UV.x+UV.y)*70.0));
     float shade = (0.97+0.06*(damp-0.5)+0.035*weave)*(1.0-wetness*0.08)*(1.0-seam*0.18)+stitch*0.045;
-    ALBEDO = base_color.rgb*shade;
+    float weathering = 1.0;
+    if (canvas_weight>0.0) {
+        // Mirrored boundaries are continuous even when the generated source
+        // is not pixel-perfect tileable. Keep the authored garment hue.
+        vec2 material_uv = UV*vec2(1.25,0.85)+vec2(pattern_seed*0.13,pattern_seed*0.07);
+        material_uv = 1.0-abs(fract(material_uv*0.5)*2.0-1.0);
+        float canvas = dot(texture(canvas_map,material_uv).rgb,vec3(0.2126,0.7152,0.0722));
+        float canvas_mid = OUTPUT_IS_SRGB ? 0.33 : 0.0984;
+        weathering = mix(1.0,clamp(canvas/canvas_mid,0.70,1.30),canvas_weight);
+    }
+    ALBEDO = base_color.rgb*shade*weathering;
     // Millimetre-scale relief in view space; derivatives also work on meshes
     // without tangents. Filtered yarn fades before it can shimmer at distance.
     float fold = sin(UV.x*25.13274+fabric_noise(UV*3.0+vec2(pattern_seed))*1.8);
@@ -30,6 +42,6 @@ void fragment() {
     float determinant = dot(dx,across_y);
     vec3 gradient = sign(determinant)*(dFdx(relief)*across_y+dFdy(relief)*across_x);
     NORMAL = normalize(normal-gradient/max(abs(determinant),0.00000001));
-    ROUGHNESS = clamp(0.92-wetness*0.16+weave*0.025,0.74,0.97);
+    ROUGHNESS = clamp(0.92-wetness*0.16+weave*0.025+(weathering-1.0)*0.08,0.74,0.97);
     SPECULAR = 0.22;
 }

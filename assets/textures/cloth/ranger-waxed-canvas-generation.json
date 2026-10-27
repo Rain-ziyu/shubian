@@ -1,0 +1,6 @@
+{
+  "method": "Built-in image_gen",
+  "use_case": "stylized-concept",
+  "prompt": "Use case: stylized-concept. Asset type: seamless tileable albedo texture for a 3D game's rain cape, one flat square texture image only. Primary request: a perfectly flat, orthographic close-up scan of aged olive-grey woven waxed canvas used by a ranger living in a humid Chinese border forest in a fictional future setting. Muted neutral olive canvas, subtle irregular natural cotton fibres, fine worn threads, small desaturated weather stains, restrained rubbed wax wear. Texture covers the complete square edge to edge and seamlessly repeats on all four sides. Even diffuse illumination with no cast shadows, no directional highlights, no folds, no buttons, no seams, no garment silhouette, no objects, no perspective, no text, no border. Moderately fine weave, broad tonal variation subtle, realistic material detail suitable for stylized grounded 3D art. Do not include large tears or holes. This image is a reusable material texture, not an illustration or product photo.",
+  "usage": "Waxed-canvas albedo variation; preserve authored garment palette with a restrained grayscale modulation. Mirror texture coordinates at boundaries to avoid relying on generated seamless edges."
+}

@@ -1,7 +1,8 @@
 [gd_scene format=4]
 
-[ext_resource type="Shader" path="res://shaders/hunter_fabric.gdshader" id="1_6x7as"]
-[ext_resource type="AnimationLibrary" path="res://resources/animations/trident_library.tres" id="2_pltne"]
+[ext_resource type="Shader" path="res://shaders/hunter_fabric.gdshader" id="1_pltne"]
+[ext_resource type="Texture2D" path="res://assets/textures/cloth/ranger-waxed-canvas.png" id="2_w24ih"]
+[ext_resource type="AnimationLibrary" path="res://resources/animations/trident_library.tres" id="3_a2ir0"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_w24ih"]
 albedo_color = Color(0.38431373, 0.42745098, 0.38039216, 1)
@@ -77,10 +78,12 @@ roughness = 0.65
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_4esh8"]
 render_priority = 0
-shader = ExtResource("1_6x7as")
+shader = ExtResource("1_pltne")
 shader_parameter/base_color = Color(0.46666667, 0.44705883, 0.3529412, 1)
 shader_parameter/wetness = 0.2
 shader_parameter/pattern_seed = 13.516
+shader_parameter/canvas_map = ExtResource("2_w24ih")
+shader_parameter/canvas_weight = 0.0
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_7qjxw"]
 _blend_shape_names = PackedStringArray("HemFlex")
@@ -136,10 +139,12 @@ roughness = 0.65
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_44vpl"]
 render_priority = 0
-shader = ExtResource("1_6x7as")
+shader = ExtResource("1_pltne")
 shader_parameter/base_color = Color(0.46666667, 0.44705883, 0.3529412, 1)
 shader_parameter/wetness = 0.2
 shader_parameter/pattern_seed = 13.516
+shader_parameter/canvas_map = ExtResource("2_w24ih")
+shader_parameter/canvas_weight = 0.0
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_phh0s"]
 _blend_shape_names = PackedStringArray("HemFlex")
@@ -195,10 +200,12 @@ roughness = 0.65
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ecywk"]
 render_priority = 0
-shader = ExtResource("1_6x7as")
+shader = ExtResource("1_pltne")
 shader_parameter/base_color = Color(0.1882353, 0.21568628, 0.20784314, 1)
 shader_parameter/wetness = 0.2
 shader_parameter/pattern_seed = 0.062
+shader_parameter/canvas_map = ExtResource("2_w24ih")
+shader_parameter/canvas_weight = 0.0
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_fo3ei"]
 _surfaces = [{
@@ -275,10 +282,12 @@ _surfaces = [{
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_jye1t"]
 render_priority = 0
-shader = ExtResource("1_6x7as")
+shader = ExtResource("1_pltne")
 shader_parameter/base_color = Color(0.29803923, 0.36862746, 0.27058825, 1)
 shader_parameter/wetness = 0.55
 shader_parameter/pattern_seed = 9.114
+shader_parameter/canvas_map = ExtResource("2_w24ih")
+shader_parameter/canvas_weight = 0.65
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_hbwef"]
 _blend_shape_names = PackedStringArray("ShoulderEase")
@@ -318,10 +327,12 @@ roughness = 0.65
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_mpdes"]
 render_priority = 0
-shader = ExtResource("1_6x7as")
+shader = ExtResource("1_pltne")
 shader_parameter/base_color = Color(0.29803923, 0.36862746, 0.27058825, 1)
 shader_parameter/wetness = 0.55
 shader_parameter/pattern_seed = 15.903
+shader_parameter/canvas_map = ExtResource("2_w24ih")
+shader_parameter/canvas_weight = 0.65
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_psq4k"]
 _blend_shape_names = PackedStringArray("ShoulderEase")
@@ -834,10 +845,12 @@ rings = 12
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_wii3c"]
 render_priority = 0
-shader = ExtResource("1_6x7as")
+shader = ExtResource("1_pltne")
 shader_parameter/base_color = Color(0.1882353, 0.21960784, 0.20392157, 1)
 shader_parameter/wetness = 0.2
 shader_parameter/pattern_seed = 17.515
+shader_parameter/canvas_map = ExtResource("2_w24ih")
+shader_parameter/canvas_weight = 0.0
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_3q4yx"]
 _surfaces = [{
@@ -867,10 +880,12 @@ _surfaces = [{
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_4chwa"]
 render_priority = 0
-shader = ExtResource("1_6x7as")
+shader = ExtResource("1_pltne")
 shader_parameter/base_color = Color(0.1882353, 0.21960784, 0.20392157, 1)
 shader_parameter/wetness = 0.2
 shader_parameter/pattern_seed = 11.749
+shader_parameter/canvas_map = ExtResource("2_w24ih")
+shader_parameter/canvas_weight = 0.0
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_ym0wa"]
 _surfaces = [{
@@ -977,10 +992,12 @@ rings = 12
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_gu3so"]
 render_priority = 0
-shader = ExtResource("1_6x7as")
+shader = ExtResource("1_pltne")
 shader_parameter/base_color = Color(0.1882353, 0.21960784, 0.20392157, 1)
 shader_parameter/wetness = 0.2
 shader_parameter/pattern_seed = 17.515
+shader_parameter/canvas_map = ExtResource("2_w24ih")
+shader_parameter/canvas_weight = 0.0
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_j7l1f"]
 _surfaces = [{
@@ -1010,10 +1027,12 @@ _surfaces = [{
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_wkpe1"]
 render_priority = 0
-shader = ExtResource("1_6x7as")
+shader = ExtResource("1_pltne")
 shader_parameter/base_color = Color(0.1882353, 0.21960784, 0.20392157, 1)
 shader_parameter/wetness = 0.2
 shader_parameter/pattern_seed = 11.749
+shader_parameter/canvas_map = ExtResource("2_w24ih")
+shader_parameter/canvas_weight = 0.0
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_an4fb"]
 _surfaces = [{
@@ -1272,10 +1291,12 @@ _surfaces = [{
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_xffvi"]
 render_priority = 0
-shader = ExtResource("1_6x7as")
+shader = ExtResource("1_pltne")
 shader_parameter/base_color = Color(0.1882353, 0.21960784, 0.20392157, 1)
 shader_parameter/wetness = 0.2
 shader_parameter/pattern_seed = 17.483999999999998
+shader_parameter/canvas_map = ExtResource("2_w24ih")
+shader_parameter/canvas_weight = 0.0
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_gtlo6"]
 _surfaces = [{
@@ -1320,10 +1341,12 @@ _surfaces = [{
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_w76tt"]
 render_priority = 0
-shader = ExtResource("1_6x7as")
+shader = ExtResource("1_pltne")
 shader_parameter/base_color = Color(0.1882353, 0.21960784, 0.20392157, 1)
 shader_parameter/wetness = 0.2
 shader_parameter/pattern_seed = 29.233
+shader_parameter/canvas_map = ExtResource("2_w24ih")
+shader_parameter/canvas_weight = 0.0
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_fgbjf"]
 _surfaces = [{
@@ -4395,4 +4418,4 @@ skeleton = NodePath("..")
 metadata/source_part = "JointClothKnee1"
 
 [node name="AnimationPreview" type="AnimationPlayer" parent="." unique_id=685127596]
-libraries/ = ExtResource("2_pltne")
+libraries/ = ExtResource("3_a2ir0")
