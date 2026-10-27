@@ -36,16 +36,24 @@ static func blade(parent: Node3D, label: String, outline: PackedVector2Array, ap
 		var normal := Vector2(-incoming.y,incoming.x)*orientation
 		var next_normal := Vector2(-outgoing.y,outgoing.x)*orientation
 		var bisector := (normal+next_normal).normalized()
-		inset.append(outline[index]+bisector*minf(0.010,0.003/maxf(0.15,bisector.dot(normal))))
+		inset.append(outline[index]+bisector*minf(0.010,0.006/maxf(0.15,bisector.dot(normal))))
 	var indices := Geometry2D.triangulate_polygon(inset)
 	for side in [-1,1]:
 		# Dark forged flats and a honed bevel stay legible at the gameplay scale.
-		st.set_color(Color(0.40,0.46,0.44))
-		for index in range(0,indices.size(),3):
-			var triangle := [indices[index],indices[index+1],indices[index+2]]
-			if side==1: triangle.reverse()
-			for vertex in triangle:
-				st.add_vertex(Vector3(inset[vertex].x,inset[vertex].y,side*0.012))
+		st.set_color(Color(0.50,0.56,0.54))
+		if label=="CenterBlade":
+			# A shallow forged spine catches light across the convex central leaf.
+			# Its outline and all contact markers remain unchanged.
+			var spine := Vector3(0,0.97,side*0.022)
+			for index in inset.size():
+				var next := (index+1)%inset.size()
+				bevel_triangle(st,spine,Vector3(inset[index].x,inset[index].y,side*0.012),Vector3(inset[next].x,inset[next].y,side*0.012),Vector3(0,0,side))
+		else:
+			for index in range(0,indices.size(),3):
+				var triangle := [indices[index],indices[index+1],indices[index+2]]
+				if side==1: triangle.reverse()
+				for vertex in triangle:
+					st.add_vertex(Vector3(inset[vertex].x,inset[vertex].y,side*0.012))
 		st.set_color(Color(0.95,0.98,1.0))
 		for index in outline.size():
 			var next := (index+1)%outline.size()
