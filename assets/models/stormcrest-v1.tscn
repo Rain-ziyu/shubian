@@ -1,11 +1,12 @@
 [gd_scene format=4]
 
-[ext_resource type="Shader" path="res://shaders/creature_skin.gdshader" id="1_k2xxo"]
-[ext_resource type="Shader" path="res://shaders/creature_eye.gdshader" id="2_kk0oi"]
+[ext_resource type="Shader" path="res://shaders/creature_skin.gdshader" id="1_kk0oi"]
+[ext_resource type="Shader" path="res://shaders/creature_eye.gdshader" id="2_cs76h"]
+[ext_resource type="Texture2D" path="res://assets/textures/creature/stormcrest-energy-mask.png" id="3_3v5wq"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_k2xxo"]
 render_priority = 0
-shader = ExtResource("1_k2xxo")
+shader = ExtResource("1_kk0oi")
 shader_parameter/pattern_style = 0
 shader_parameter/pattern_count = 8.0
 shader_parameter/pattern_strength = 0.3
@@ -285,7 +286,7 @@ _surfaces = [{
 
 [sub_resource type="ShaderMaterial" id="StandardMaterial3D_71xx0"]
 render_priority = 0
-shader = ExtResource("2_kk0oi")
+shader = ExtResource("2_cs76h")
 shader_parameter/iris_tint = Color(0.5803922, 0.654902, 0.70980394, 1)
 
 [sub_resource type="SphereMesh" id="SphereMesh_lmctj"]
@@ -409,7 +410,7 @@ _surfaces = [{
 
 [sub_resource type="ShaderMaterial" id="StandardMaterial3D_0a22g"]
 render_priority = 0
-shader = ExtResource("2_kk0oi")
+shader = ExtResource("2_cs76h")
 shader_parameter/iris_tint = Color(0.5803922, 0.654902, 0.70980394, 1)
 
 [sub_resource type="SphereMesh" id="SphereMesh_kvfsq"]
@@ -1061,7 +1062,9 @@ bind/16/pose = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.27299997, -4.4352)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hxdu3"]
 vertex_color_use_as_albedo = true
-roughness = 0.62
+roughness = 0.72
+emission_operator = 1
+emission_texture = ExtResource("3_3v5wq")
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_o1r0e"]
 _surfaces = [{
@@ -1076,7 +1079,9 @@ _surfaces = [{
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_37c38"]
 vertex_color_use_as_albedo = true
-roughness = 0.62
+roughness = 0.72
+emission_operator = 1
+emission_texture = ExtResource("3_3v5wq")
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_mnr5w"]
 _surfaces = [{
@@ -1091,7 +1096,9 @@ _surfaces = [{
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_p5cjp"]
 vertex_color_use_as_albedo = true
-roughness = 0.62
+roughness = 0.72
+emission_operator = 1
+emission_texture = ExtResource("3_3v5wq")
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_f6fms"]
 _surfaces = [{
@@ -1106,7 +1113,9 @@ _surfaces = [{
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_8brm1"]
 vertex_color_use_as_albedo = true
-roughness = 0.62
+roughness = 0.72
+emission_operator = 1
+emission_texture = ExtResource("3_3v5wq")
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_setq5"]
 _surfaces = [{
@@ -1121,7 +1130,9 @@ _surfaces = [{
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nfs80"]
 vertex_color_use_as_albedo = true
-roughness = 0.62
+roughness = 0.72
+emission_operator = 1
+emission_texture = ExtResource("3_3v5wq")
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_lclbq"]
 _surfaces = [{

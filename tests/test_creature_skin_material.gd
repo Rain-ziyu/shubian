@@ -48,6 +48,9 @@ func run() -> void:
 			check(left>20 and right>20,"both continuous body flanks carry readable soft-scale coloration")
 			check(saved.get_node("BodySurface").mesh.surface_get_arrays(0)[Mesh.ARRAY_COLOR]==colors,"saved reedclaw retains the authored flank colors")
 		if data.id=="stormcrest":
+			for instance in [model,saved]:
+				var mineral: StandardMaterial3D = instance.get_node("Crest2").material_override
+				check(mineral.emission_texture!=null and mineral.emission_operator==BaseMaterial3D.EMISSION_OP_MULTIPLY,"live and saved energy is masked rather than added across the whole crest")
 			Model.animate(model,data,0,"windup",data.windup*0.3,0)
 			check(model.get_node("Crest4").material_override.emission_energy_multiplier>model.get_node("Crest0").material_override.emission_energy_multiplier+0.1,"charge reaches tail-end crest before the front crest")
 			Model.animate(model,data,0,"windup",data.windup,0)

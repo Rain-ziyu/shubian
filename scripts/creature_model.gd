@@ -283,6 +283,11 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 			normals.create_from(crest_mesh,0)
 			normals.generate_normals()
 			crest.mesh = normals.commit()
+			# Restrict emission to mineral growth channels and the exposed ridge.
+			# Lit colored faces remain visible beneath the traveling charge cue.
+			crest.material_override.emission_texture = preload("res://assets/textures/creature/stormcrest-energy-mask.png")
+			crest.material_override.emission_operator = BaseMaterial3D.EMISSION_OP_MULTIPLY
+			crest.material_override.roughness = 0.72
 	preload("res://scripts/creature_skin_material.gd").apply(root,data)
 	TailSkin.bind(tail)
 	for side in [-1,1]:
@@ -571,7 +576,7 @@ static func charge_visuals(root: Node3D, data: Dictionary, phase: String, clock:
 			var delay := float(4-index)*0.10
 			var charge := smoothstep(delay,delay+0.55,load)
 			var emission := Color("e2b968") if weak_brace else Color("78b9b5")
-			var energy := 0.65 if weak_brace else charge*1.10
+			var energy := 1.30 if weak_brace else charge*2.0
 			if not material.emission_enabled: material.emission_enabled = true
 			if not material.emission.is_equal_approx(emission): material.emission = emission
 			if not is_equal_approx(material.emission_energy_multiplier,energy): material.emission_energy_multiplier = energy
