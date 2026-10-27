@@ -785,23 +785,28 @@ func update_weapon_contacts() -> void:
 				hit_confirmed.emit(window.action,window.beat,m,result)
 		window.previous = points
 
+func report_throw_outcome(value: String, arrived := false) -> void:
+	message = value
+	# Keep a real hit interruption above a later projectile-return notice.
+	feedback.show_event(value,Color("bde4d4") if arrived else Color("e7c88b"),1.0,1)
+
 func finish_throw(point: Vector3, allow_arrival := true) -> void:
 	projectile = null
 	throw_recalled = true
 	if not allow_arrival or combat.health<=0 or combat.action=="hurt":
-		message = "投掷被打断，武器收回"
+		report_throw_outcome("投掷被打断，武器收回")
 		return
 	var motion := Vector3(point.x-global_position.x,0,point.z-global_position.z)
 	# The projectile reserves space before its impact. At point-blank range that
 	# offset can fall behind the caster; return the weapon instead of a tiny blink.
 	if motion.length()<0.5:
-		message = "落点过近，武器收回"
+		report_throw_outcome("落点过近，武器收回")
 		return
 	var collision := move_and_collide(motion,true)
 	if collision:
 		motion = collision.get_travel()*0.90
 		if motion.length()<0.5:
-			message = "落点受阻，武器收回"
+			report_throw_outcome("落点受阻，武器收回")
 			return
 	var candidate := global_position+motion
 	# Search below the projectile, so overhead terrain cannot become an arrival floor.
@@ -811,7 +816,7 @@ func finish_throw(point: Vector3, allow_arrival := true) -> void:
 	probe.collision_mask = 2
 	var floor_hit := get_world_3d().direct_space_state.intersect_ray(probe)
 	if floor_hit.is_empty() or floor_hit.normal.y<0.72:
-		message = "落点悬空或过陡，取消瞬移"
+		report_throw_outcome("落点悬空或过陡，取消瞬移")
 		return
 	# Require body clearance above the proposed floor before changing position.
 	candidate.y = floor_hit.position.y+0.05
@@ -820,7 +825,7 @@ func finish_throw(point: Vector3, allow_arrival := true) -> void:
 	body_probe.transform = Transform3D(Basis.IDENTITY,candidate+Vector3(0,0.9,0))
 	body_probe.exclude = [get_rid()]
 	if not get_world_3d().direct_space_state.intersect_shape(body_probe,1).is_empty():
-		message = "落点空间不足，取消瞬移"
+		report_throw_outcome("落点空间不足，取消瞬移")
 		return
 	var departure: Transform3D = rig.root.global_transform
 	var travel := global_position.distance_to(candidate)
@@ -833,4 +838,4 @@ func finish_throw(point: Vector3, allow_arrival := true) -> void:
 		effect.departure = departure
 		effect.arrival = rig.root.global_transform
 		get_parent().add_child(effect)
-	message = "投掷命中落点，已移至安全位置" if motion.length()>0.5 else "落点受阻，武器收回"
+	report_throw_outcome("投掷命中落点，已移至安全位置" if motion.length()>0.5 else "落点受阻，武器收回",motion.length()>0.5)

@@ -28,6 +28,8 @@ func run() -> void:
 	var stamina: float = p.combat.stamina
 	var original = p.rig.root.find_children("*","MeshInstance3D",true,false)[0].material_override
 	p.finish_throw(Vector3(0,0,-13))
+	world.combat_hud.update_state(p,0)
+	check("已移至安全位置" in world.combat_hud.action_event.text,"Successful arrival is acknowledged in the central action cue")
 	var effects := get_nodes_in_group("teleport_feedback")
 	check(effects.size()==1,"successful arrival creates exactly one effect")
 	var effect = effects[0]
@@ -82,8 +84,13 @@ func run() -> void:
 	check(p.arrival_pose_left==0 and p.combat.elapsed>=0.29,"arrival timer expires without pausing the combat clock")
 	p.finish_throw(Vector3(0,0,-18),false)
 	check(get_nodes_in_group("teleport_feedback").size()==1,"cancelled arrival creates no effect")
+	check(p.feedback.priority==3 and "被打断" in p.feedback.text,"A delayed weapon return cannot replace the actual hit interruption cue")
+	p.combat.advance(0.6)
+	p.feedback.advance(2.0)
 	p.finish_throw(p.global_position)
 	check(get_nodes_in_group("teleport_feedback").size()==1,"stationary return creates no effect")
+	world.combat_hud.update_state(p,0)
+	check("落点过近" in world.combat_hud.action_event.text,"A close return explains why no teleport happened in the central cue")
 	effect._process(0.175)
 	check(effect.material.albedo_color.a<0.1 and effect.rings[0].scale.x>1,"effect fades and expands")
 	effect._process(0.18)
