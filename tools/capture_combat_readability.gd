@@ -8,6 +8,8 @@ func run() -> void:
 	await create_timer(0.3).timeout
 	var p = world.hunter
 	p.set_physics_process(false)
+	p.set_process_input(false)
+	p.set_process_unhandled_input(false)
 	for monster in get_nodes_in_group("monsters"): monster.set_physics_process(false)
 	var m = get_nodes_in_group("monsters")[0]
 	# Stand beyond the actual long snout rather than inside the head mesh.
@@ -31,6 +33,20 @@ func run() -> void:
 		var result: Dictionary = m.receive_strike(250,p.global_position,"heavy","body")
 		p.show_hit_feedback(m.mesh.get_node("Neck").global_position,result,"heavy")
 	for frame in 120: p.update_camera_framing(1.0/60)
+	var sweep := "--sweep" in OS.get_cmdline_user_args()
+	if sweep:
+		p.weapon_trail.set_process(false)
+		p.combat.set_action("heavy")
+		var impact_time: float = p.Combat.MOVES.heavy.hits[0]
+		var emitted := false
+		for frame in range(ceili((impact_time+0.07)*120)+1):
+			p.combat.elapsed = float(frame)/120
+			p.animate(1.0/120,0)
+			if not emitted and p.combat.elapsed>=impact_time:
+				p.on_strike(0)
+				emitted = true
+			p.update_weapon_contacts()
+			p.weapon_trail.advance_visual(1.0/120)
 	p.camera.make_current()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	world.combat_hud.update_state(p,0)
@@ -40,8 +56,9 @@ func run() -> void:
 	await process_frame
 	await RenderingServer.frame_post_draw
 	var destination := "res://../Shubian-combat-readable-armor-broken.png" if broken else "res://../Shubian-combat-readable.png"
+	if sweep: destination = "res://../Shubian-combat-sweep-trail.png"
 	var saved := root.get_texture().get_image().save_png(ProjectSettings.globalize_path(destination))
-	print("COMBAT_READABILITY_CAPTURE: ",saved," locked_nameplate_hidden=",not m.label.visible," player_camera=",root.get_camera_3d()==p.camera," msaa_3d=",root.msaa_3d," / frozen guard and windup poses")
+	print("COMBAT_READABILITY_CAPTURE: ",saved," locked_nameplate_hidden=",not m.label.visible," player_camera=",root.get_camera_3d()==p.camera," msaa_3d=",root.msaa_3d," / frozen windup versus ","sweep" if sweep else "guard","; not live input")
 	world.queue_free()
 	await process_frame
 	await RenderingServer.frame_post_draw

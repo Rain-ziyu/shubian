@@ -2,6 +2,7 @@ extends MeshInstance3D
 ## Short world-space strips from authored weapon markers; no collision or combat clock.
 const LIFETIME := 0.12
 var samples: Array[Dictionary] = []
+var strip_mesh := ArrayMesh.new()
 func _ready() -> void:
 	top_level = true
 	global_transform = Transform3D.IDENTITY
@@ -16,6 +17,7 @@ func _ready() -> void:
 	hide()
 func clear_trail() -> void:
 	samples.clear()
+	strip_mesh.clear_surfaces()
 	mesh = null
 	hide()
 func add_sample(a: Vector3, b: Vector3, key: String, empowered: bool) -> void:
@@ -23,7 +25,7 @@ func add_sample(a: Vector3, b: Vector3, key: String, empowered: bool) -> void:
 		var previous: Dictionary = samples[-1]
 		if a.distance_to(previous.a)>2.5 or b.distance_to(previous.b)>2.5: clear_trail()
 		elif key==previous.key and a.distance_squared_to(previous.a)+b.distance_squared_to(previous.b)<0.000001: return
-	samples.append({"a":a,"b":b,"key":key,"age":0.0,"color":Color("ebce86") if empowered else Color("85cfc1")})
+	samples.append({"a":a,"b":b,"key":key,"age":0.0,"color":Color("ebce86") if empowered else Color("c3eee2")})
 	rebuild()
 func _process(delta: float) -> void: advance_visual(delta)
 func advance_visual(delta: float) -> void:
@@ -31,6 +33,7 @@ func advance_visual(delta: float) -> void:
 	while not samples.is_empty() and float(samples[0].age)>=LIFETIME: samples.pop_front()
 	rebuild()
 func rebuild() -> void:
+	strip_mesh.clear_surfaces()
 	if samples.size()<2:
 		mesh = null
 		hide()
@@ -45,7 +48,7 @@ func rebuild() -> void:
 		for corner in [0,1,2,1,3,2]:
 			var sample: Dictionary = before if corner<2 else after
 			var color: Color = sample.color
-			color.a = 0.32*clampf(1-float(sample.age)/LIFETIME,0,1)
+			color.a = (0.55 if corner%2==0 else 0.04)*clampf(1-float(sample.age)/LIFETIME,0,1)
 			surface.set_color(color)
 			surface.add_vertex(sample.a if corner%2==0 else sample.b)
 		triangles += 2
@@ -53,5 +56,6 @@ func rebuild() -> void:
 		mesh = null
 		hide()
 	else:
-		mesh = surface.commit()
+		surface.commit(strip_mesh)
+		mesh = strip_mesh
 		show()

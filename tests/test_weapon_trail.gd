@@ -29,7 +29,10 @@ func run() -> void:
 	p.animate(0,0)
 	p.update_weapon_contacts()
 	check(trail.visible and trail.mesh is ArrayMesh,"moving effective-frame markers form a visible strip")
+	var resource: RID = trail.mesh.get_rid()
 	var vertices: PackedVector3Array = trail.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+	var colors: PackedColorArray = trail.mesh.surface_get_arrays(0)[Mesh.ARRAY_COLOR]
+	check(colors[0].a>colors[1].a*4 and colors[1].a>0,"blade-tip edge is stronger than the fading inner edge")
 	check(vertices.size()==6 and vertices[0].is_equal_approx(tip) and vertices[2].is_equal_approx(p.rig.weapon.get_node("TipContact").global_position),"strip follows actual previous and current tip positions")
 	if DisplayServer.get_name()!="headless":
 		var camera := Camera3D.new()
@@ -63,12 +66,14 @@ func run() -> void:
 	var health: float = p.combat.health
 	var clock: float = p.combat.elapsed
 	trail.advance_visual(0.06)
+	check(trail.mesh.get_rid()==resource and trail.mesh.get_surface_count()==1,"aging reuses one mesh instead of appending resources or surfaces")
 	check(p.combat.health==health and p.combat.elapsed==clock,"trail aging does not advance combat or damage")
 	check(trail.find_children("*","CollisionObject3D",true,false).is_empty(),"trail adds no collision")
 	trail.advance_visual(0.07)
 	check(trail.samples.is_empty() and not trail.visible and trail.mesh==null,"trail expires after its short lifetime")
 	trail.add_sample(Vector3.ZERO,Vector3.UP,"heavy0",false)
 	trail.add_sample(Vector3.RIGHT,Vector3.ONE,"heavy0",false)
+	check(trail.mesh.get_rid()==resource,"a new strike reuses the mesh after the previous trail expires")
 	p.motion_epoch += 1
 	p.update_weapon_contacts()
 	check(not trail.visible and trail.samples.size()<=1,"teleport epoch cannot connect a streak across the map")
