@@ -1,5 +1,6 @@
 extends CharacterBody3D
 const CombatAudio = preload("res://scripts/combat_audio.gd")
+const LandingFeedback = preload("res://scripts/creature_landing_feedback.gd")
 const Visuals = preload("res://scripts/visuals.gd")
 const Hazard = preload("res://scripts/hazard.gd")
 const CreatureModel = preload("res://scripts/creature_model.gd")
@@ -456,7 +457,21 @@ func update_area_warning(center: Vector3, radius: float) -> void:
 
 func move_actor() -> void:
 	move_and_slide()
-	if airborne_leap and is_on_floor(): airborne_leap = false
+	if airborne_leap and is_on_floor():
+		airborne_leap = false
+		if health>0: show_landing()
+
+func show_landing() -> void:
+	var effect := LandingFeedback.new()
+	effect.size = float(data.size)
+	for side in [-1,1]:
+		var point := global_transform*Vector3(side*float(data.size)*0.29,0,float(data.size)*0.18)
+		var hit := foot_ground_sample(point)
+		if hit.is_empty(): continue
+		effect.points.append(hit.position+hit.normal*0.015)
+		effect.normals.append(hit.normal)
+	if effect.points.is_empty(): effect.free()
+	else: get_parent().add_child(effect)
 
 func foot_ground_height(point: Vector3) -> float:
 	var hit := foot_ground_sample(point)

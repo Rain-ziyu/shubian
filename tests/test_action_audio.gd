@@ -19,7 +19,7 @@ func run() -> void:
 	stage.add_child(p)
 	p.set_physics_process(false)
 	await process_frame
-	for kind in ["thrust","sweep","throw","kick"]:
+	for kind in ["thrust","sweep","throw","kick","landing"]:
 		check(Audio.streams.has(kind),"action stream is prepared before combat: "+kind)
 		var stream: AudioStreamWAV = Audio.streams[kind]
 		var peak := 0

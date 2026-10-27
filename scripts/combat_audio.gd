@@ -4,7 +4,7 @@ static var streams: Dictionary = {}
 var age := 0.0
 var cue := ""
 static func warmup_actions() -> void:
-	for kind in ["thrust","sweep","throw","kick"]:
+	for kind in ["thrust","sweep","throw","kick","landing"]:
 		if not streams.has(kind): streams[kind] = synthesize(kind)
 static func emit_at(parent: Node3D, kind: String, point: Vector3) -> void:
 	var sound := new()
@@ -13,6 +13,7 @@ static func emit_at(parent: Node3D, kind: String, point: Vector3) -> void:
 	sound.stream = streams[kind]
 	var action_cue := kind in ["thrust","sweep","throw","kick"]
 	sound.volume_db = -20 if action_cue else (-15 if kind=="warning" else -12)
+	if kind=="landing": sound.volume_db = -18
 	sound.max_distance = 12 if action_cue else (28 if kind=="warning" else 18)
 	sound.unit_size = 4
 	parent.add_child(sound)
@@ -23,7 +24,7 @@ static func synthesize(kind: String) -> AudioStreamWAV:
 	var stream := AudioStreamWAV.new()
 	stream.format = AudioStreamWAV.FORMAT_16_BITS
 	stream.mix_rate = 22050
-	var duration: float = {"warning":0.36,"thrust":0.13,"sweep":0.20,"throw":0.24,"kick":0.15}.get(kind,0.18)
+	var duration: float = {"warning":0.36,"thrust":0.13,"sweep":0.20,"throw":0.24,"kick":0.15,"landing":0.24}.get(kind,0.18)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = absi(kind.hash())
 	var noise := 0.0
@@ -39,6 +40,10 @@ static func synthesize(kind: String) -> AudioStreamWAV:
 			tone = noise*1.8
 			if kind=="kick": tone = sin(TAU*(90*t-90*t*t))*0.7+noise*0.5
 			envelope = minf(t/0.012,1.0)*pow(1-t/duration,2.2)
+		elif kind=="landing":
+			noise = lerpf(noise,rng.randf_range(-1,1),0.14)
+			tone = sin(TAU*(65*t-60*t*t))*0.9+noise*0.45
+			envelope = minf(t/0.004,1.0)*pow(1-t/duration,3)
 		elif kind=="guard":
 			tone = sin(TAU*740*t)*exp(-t*20)+0.4*sin(TAU*1873*t)*exp(-t*30)
 		elif kind=="warning":

@@ -7,13 +7,17 @@ var frames := 0
 var peak := 0.0
 var launched := false
 var title: Label
+var landing_study := false
+var landing_captured := false
 func _initialize() -> void: call_deferred("setup")
 func setup() -> void:
+	landing_study = "--landing" in OS.get_cmdline_user_args()
 	world = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(world)
 	await physics_frame
 	await physics_frame
 	hunter = world.hunter
+	if landing_study: hunter.hide()
 	hunter.set_process_unhandled_input(false)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	world.hud.get_parent().hide()
@@ -23,6 +27,8 @@ func setup() -> void:
 		foe.hide()
 		if foe.data.id=="reedclaw": creature = foe
 	creature.show()
+	if landing_study:
+		for marker in creature.weak_markers: marker.layers = 0
 	creature.label.hide()
 	creature.global_position = Vector3(0,0.01,-16)
 	creature.rotation = Vector3.ZERO
@@ -61,12 +67,25 @@ func control() -> void:
 	launched = launched or creature.airborne_leap
 	camera.position = Vector3(creature.global_position.x+7,4.5,creature.global_position.z-7)
 	camera.look_at(Vector3(creature.global_position.x,1.3,creature.global_position.z-0.5))
+	if landing_study:
+		camera.position = creature.global_position+Vector3(4,1.7,3)
+		camera.look_at(creature.global_position+Vector3(0,0.6,0.5))
+		title.text = "戍边 / 苇影迅龙实际落地\n正常 AI · 自动走位 · 地面碎屑不造成伤害"
+		for effect in get_nodes_in_group("landing_feedback"):
+			if not landing_captured and effect.age>=0.08:
+				landing_captured = true
+				capture_landing.call_deferred()
 	if (launched and creature.is_on_floor() and creature.phase=="recover" and creature.clock>0.9) or frames>=240:
 		physics_frame.disconnect(control)
 		call_deferred("finish")
+func capture_landing() -> void:
+	await RenderingServer.frame_post_draw
+	var result := root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-creature-landing.png"))
+	print("CREATURE_LANDING_CAPTURE: ",result," / actual grounded transition, not a staged damage event")
+
 func finish() -> void:
 	for action in ["move_right","sprint"]: Input.action_release(action)
-	print("PHYSICAL_LEAP_REPLAY: live AI, normal lateral movement inputs; peak=",peak," landed=",creature.is_on_floor()," hunter_health=",hunter.combat.health,"; state-aware controller, no injected damage or health")
+	print("PHYSICAL_LEAP_REPLAY: live AI, normal lateral movement inputs; peak=",peak," landed=",creature.is_on_floor()," hunter_health=",hunter.combat.health," landing_capture=",landing_captured,"; state-aware controller, no injected damage or health")
 	world.queue_free()
 	await process_frame
 	await RenderingServer.frame_post_draw

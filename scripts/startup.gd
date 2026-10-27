@@ -59,6 +59,12 @@ func _ready() -> void:
 		hazard.global_position = location
 	var ghost: Node3D = load("res://scripts/visuals.gd").trident(effects,true)
 	ghost.global_position = location+Vector3(0,1,0)
+	var landing = load("res://scripts/creature_landing_feedback.gd").new()
+	landing.audio_enabled = false
+	landing.points = PackedVector3Array([location])
+	landing.normals = PackedVector3Array([Vector3.UP])
+	effects.add_child(landing)
+	landing.advance_visual(0.08)
 	# Warm the actual first-hit material and both damage-font sizes while paused.
 	# Include every digit and each outcome prefix without playing impact audio.
 	for variant in 4:

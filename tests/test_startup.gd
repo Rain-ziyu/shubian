@@ -34,6 +34,7 @@ func run() -> void:
 	check(world.hunter.combat.health==240 and world.hunter.combat.shadow_lifetimes.is_empty(),"preparation does not consume life or grant intent")
 	check(get_nodes_in_group("hazards").is_empty(),"temporary preparation hazards are removed before play")
 	check(get_nodes_in_group("hit_feedback").is_empty(),"temporary first-hit preparation objects are removed before play")
+	check(get_nodes_in_group("landing_feedback").is_empty(),"temporary landing preparation objects are removed before play")
 	if DisplayServer.get_name()=="headless": check(is_instance_valid(world.hunter.camera),"headless startup retains the normal camera node")
 	else: check(root.get_camera_3d()==world.hunter.camera,"normal player camera restored")
 	if DisplayServer.get_name()!="headless":

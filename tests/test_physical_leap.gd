@@ -74,6 +74,25 @@ func run() -> void:
 	check(m.is_on_floor() and not m.airborne_leap,"normal recovery lands and clears airborne state")
 	check(absf(m.global_position.y-baseline)<0.05,"normal leap returns body to ground")
 	check(p.combat.health==240,"late lateral escape still avoids damage")
+	var landings := get_nodes_in_group("landing_feedback")
+	check(landings.size()==1,"actual airborne-to-ground transition emits one landing effect")
+	if not landings.is_empty():
+		var effect = landings[0]
+		effect.set_process(false)
+		check(effect.points.size()==2 and effect.fragments.size()==16,"landing emits small fragments at both supporting feet")
+		var fitted := true
+		for point in effect.points:
+			var hit: Dictionary = m.foot_ground_sample(point)
+			fitted = fitted and not hit.is_empty() and point.distance_to(hit.get("position",Vector3.ZERO))<0.02
+		check(fitted,"landing contact points are fitted to actual terrain")
+		var health: float = p.combat.health
+		var phase: String = m.phase
+		var clock: float = m.clock
+		effect.advance_visual(0.10)
+		check(p.combat.health==health and m.phase==phase and m.clock==clock and effect.find_children("*","CollisionObject3D",true,false).is_empty(),"landing presentation changes no combat state or collision")
+		effect.advance_visual(0.5)
+		await process_frame
+		check(not is_instance_valid(effect),"landing effect releases its transient objects")
 	await launch()
 	for frame in 20: await physics_frame
 	m.receive_strike(1,p.global_position,"reply","body")
