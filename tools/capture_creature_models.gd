@@ -104,6 +104,14 @@ func run() -> void:
 			await RenderingServer.frame_post_draw
 			result = root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-reedclaw-side.png"))
 			if result!=OK: error = result
+			camera.position = holder.position+Vector3(size*1.1,size*0.75,size*0.20)
+			camera.look_at(holder.position+Vector3(size*0.18,size*0.63,0))
+			camera.fov = 35
+			title.text = "SHUBIAN / REEDCLAW / SKIN LIGHT RESPONSE"
+			for frame in 3: await process_frame
+			await RenderingServer.frame_post_draw
+			result = root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-reedclaw-skin-detail.png"))
+			if result!=OK: error = result
 		if data.species[index].id=="mossback":
 			camera.position = holder.position+Vector3(size*2.0,size*1.2,size*2.8)
 			camera.look_at(holder.position+Vector3(0,size*0.40,1.3))
