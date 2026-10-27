@@ -37,6 +37,9 @@ static func loft(parent: Node3D, label: String, rings: Array, color: Color, star
 			# The exposed elbow is closed by the deforming joint skin; an upper-arm
 			# end disk cuts across it when the forearm bends. Retain the shoulder cap.
 			if label.begins_with("UpperArmSurface") and row==rings.size()-1: continue
+			if label.begins_with("Bracer") and row==0:
+				bracer_lining(st,rings[0],segments)
+				continue
 			var ring: Vector4 = rings[row]
 			var center := Vector3(0,ring.x,ring.w)
 			for column in segments:
@@ -55,6 +58,25 @@ static func loft(parent: Node3D, label: String, rings: Array, color: Color, star
 	if label.begins_with("Bracer") or label.begins_with("BeltPouch"): finish_equipment(mesh,label)
 	parent.add_child(mesh)
 	return mesh
+
+static func bracer_lining(tool: SurfaceTool, ring: Vector4, segments: int) -> void:
+	# A real annular cuff and short inner wall replace the solid end disk.
+	for column in segments:
+		var angle := TAU*float(column)/segments
+		var next := TAU*float(column+1)/segments
+		var a := profile_point(ring,angle)
+		var b := profile_point(ring,next)
+		var inner := Vector4(ring.x,0.043,0.040,ring.w)
+		var c := profile_point(inner,angle)
+		var d := profile_point(inner,next)
+		tool.set_uv(Vector2(float(column)/segments,0))
+		MetalMesh.bevel_triangle(tool,a,b,c,Vector3.DOWN)
+		MetalMesh.bevel_triangle(tool,b,d,c,Vector3.DOWN)
+		var e := c+Vector3(0,0.16,0)
+		var f := d+Vector3(0,0.16,0)
+		var inward := -Vector3(sin(angle),0,cos(angle))
+		MetalMesh.bevel_triangle(tool,c,d,e,inward)
+		MetalMesh.bevel_triangle(tool,d,f,e,inward)
 
 static func equipment_shape(point: Vector3, label: String) -> Vector3:
 	if label.begins_with("BeltPouch"):

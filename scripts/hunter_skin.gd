@@ -1,6 +1,7 @@
 extends RefCounted
 ## Segmented skeletal skin with blended waist and flexible joint cloth.
 static func bind(rig: Dictionary) -> Dictionary:
+	fit_elbow_surfaces(rig)
 	var root: Node3D = rig.root
 	var sources: Array[MeshInstance3D] = []
 	collect(root,rig.weapon,sources)
@@ -86,6 +87,9 @@ static func bind(rig: Dictionary) -> Dictionary:
 		rendered.skeleton = NodePath("..")
 		skeleton.add_child(rendered)
 		rendered.skin = skin
+		# Continuous arm skin replaces these former visible joint fillers. Keep their
+		# bones as animation anchors, without drawing intersecting duplicate surfaces.
+		if str(source.name).begins_with("Elbow") or str(source.name).begins_with("JointClothElbow"): rendered.hide()
 		source.visible = false
 		bindings.append({"source":source,"bone":bone,"rendered":rendered})
 		indices[source.get_instance_id()] = bone
@@ -131,6 +135,25 @@ static func bind(rig: Dictionary) -> Dictionary:
 		var hand: int = indices[arm.hand.get_instance_id()]
 		for pair in [[upper,spine],[lower,upper],[hand,lower]]: parent_bone(skeleton,pair[0],pair[1],rests)
 		parent_bone(skeleton,indices[rig.shoulders[side].get_instance_id()],upper,rests)
+		# Carry the continuous exposed skin over the elbow into the forearm cuff.
+		# The shoulder stays rigid; only the distal rows blend across the hinge.
+		for binding in bindings:
+			if binding.source!=arm.upper: continue
+			var arrays: Array = binding.rendered.mesh.surface_get_arrays(0)
+			var originals: PackedVector3Array = arm.upper.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+			var bones := PackedInt32Array()
+			var weights := PackedFloat32Array()
+			var roles: PackedVector2Array = arm.upper.mesh.surface_get_arrays(0)[Mesh.ARRAY_TEX_UV2]
+			for index in originals.size():
+				var forearm_weight: float = roles[index].x
+				bones.append_array(PackedInt32Array([upper,lower,0,0]))
+				weights.append_array(PackedFloat32Array([1-forearm_weight,forearm_weight,0,0]))
+			arrays[Mesh.ARRAY_BONES] = bones
+			arrays[Mesh.ARRAY_WEIGHTS] = weights
+			var mesh := ArrayMesh.new()
+			mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+			binding.rendered.mesh = mesh
+
 		var leg: Dictionary = rig.legs[side]
 		var thigh: int = indices[leg.thigh.get_instance_id()]
 		var shin: int = indices[leg.shin.get_instance_id()]
@@ -183,6 +206,29 @@ static func bind(rig: Dictionary) -> Dictionary:
 	var pose_order := bindings.duplicate()
 	pose_order.sort_custom(func(a: Dictionary, b: Dictionary): return int(depths[a.bone])<int(depths[b.bone]))
 	return {"skeleton":skeleton,"skin":skin,"bindings":bindings,"pose_order":pose_order,"spine":spine,"pelvis":pelvis}
+
+static func fit_elbow_surfaces(rig: Dictionary) -> void:
+	for side in [-1,1]:
+		var arm: Dictionary = rig.arms[side]
+		var arrays: Array = arm.upper.mesh.surface_get_arrays(0)
+		var points: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		var roles := PackedVector2Array()
+		var into_upper: Transform3D = arm.upper.transform.affine_inverse()*arm.lower.transform
+		for index in points.size():
+			var point := points[index]
+			var weight := smoothstep(0.48,0.68,point.y)
+			# Equal-length arm segments share normalized axial coordinates at the hinge.
+			var seated := into_upper*Vector3(point.x,point.y-1.0,point.z)
+			points[index] = point.lerp(seated,weight)
+			roles.append(Vector2(weight,0))
+		arrays[Mesh.ARRAY_VERTEX] = points
+		arrays[Mesh.ARRAY_TEX_UV2] = roles
+		var fitted := ArrayMesh.new()
+		fitted.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+		var normals := SurfaceTool.new()
+		normals.create_from(fitted,0)
+		normals.generate_normals()
+		arm.upper.mesh = normals.commit()
 
 static func parent_bone(skeleton: Skeleton3D, child: int, parent: int, rests: Dictionary) -> void:
 	var local: Transform3D = rests[parent].affine_inverse()*rests[child]
