@@ -29,6 +29,8 @@ func run() -> void:
 	check_cape(collar_saved,"saved")
 	check_metal(rig.root,"runtime")
 	check_metal(collar_saved,"saved")
+	for instance in [rig.root,collar_saved]:
+		for side in [-1,1]: check_pouch(instance.get_node("Pelvis/BeltPouch"+str(side)))
 	check_face(rig.root,"runtime")
 	check_face(collar_saved,"saved")
 	for side in [-1,1]:
@@ -162,6 +164,35 @@ func run() -> void:
 	holder.queue_free()
 	await process_frame
 	quit(1 if failures else 0)
+
+func check_pouch(pouch: MeshInstance3D) -> void:
+	var arrays: Array = pouch.mesh.surface_get_arrays(0)
+	var points: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var colors: PackedColorArray = arrays[Mesh.ARRAY_COLOR]
+	var body := PackedVector3Array()
+	var threads := PackedVector3Array()
+	var edges := {}
+	for triangle in range(0,points.size(),3):
+		for corner in 3:
+			if colors[triangle].r>0.91: threads.append(points[triangle+corner])
+			else: body.append(points[triangle+corner])
+			var a := str(Vector3i((points[triangle+corner]*1000000).round()))
+			var b := str(Vector3i((points[triangle+(corner+1)%3]*1000000).round()))
+			var key := a+"|"+b if a<b else b+"|"+a
+			edges[key] = int(edges.get(key,0))+1
+	var closed := true
+	for count in edges.values(): closed = closed and count==2
+	check(closed,"leather pouch and individual stitch solids are closed")
+	var surface := TriangleMesh.new()
+	surface.create_from_faces(body)
+	var fitted := true
+	for point in threads:
+		var contact := surface.intersect_segment(Vector3(point.x,point.y,-1),Vector3(point.x,point.y,1))
+		fitted = fitted and not contact.is_empty()
+		if not contact.is_empty():
+			var gap: float = contact.position.z-point.z
+			fitted = fitted and gap> -0.0004 and gap<0.0015
+	check(threads.size()>50 and fitted,"actual stitches remain within the leather surface's millimetre envelope")
 
 func check_face(model: Node3D, context: String) -> void:
 	var head: MeshInstance3D = model.get_node("Torso/Head")

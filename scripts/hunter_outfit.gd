@@ -178,6 +178,45 @@ static func finish_equipment(part: MeshInstance3D, label: String) -> void:
 	part.material_override.vertex_color_use_as_albedo = true
 	part.material_override.roughness = 0.58 if label.begins_with("Bracer") else 0.86
 	part.material_override.metallic = 0.30 if label.begins_with("Bracer") else 0.0
+	if label.begins_with("BeltPouch"): pouch_stitches(part)
+
+static func pouch_stitches(part: MeshInstance3D) -> void:
+	var surface := part.mesh.generate_triangle_mesh()
+	var tool := SurfaceTool.new()
+	tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+	tool.append_from(part.mesh,0,Transform3D.IDENTITY)
+	var paths := [[Vector2(-0.040,0.960),Vector2(-0.042,0.940),Vector2(-0.042,0.895),Vector2(-0.032,0.884),Vector2(0.032,0.884),Vector2(0.042,0.895),Vector2(0.042,0.940),Vector2(0.040,0.960)],[Vector2(-0.040,0.982),Vector2(-0.020,0.986),Vector2(0.020,0.986),Vector2(0.040,0.982)]]
+	for path: Array in paths:
+		for segment in range(path.size()-1):
+			var a: Vector2 = path[segment]
+			var b: Vector2 = path[segment+1]
+			var steps := ceili(a.distance_to(b)/0.004)
+			var across := Vector2(-(b-a).y,(b-a).x).normalized()*0.00045
+			for step in steps:
+				var first := a.lerp(b,float(step)/steps)
+				var last := a.lerp(b,(step+0.58)/steps)
+				var corners: Array[Vector3] = []
+				for point: Vector2 in [first-across,first+across,last+across,last-across]:
+					var hit := surface.intersect_segment(Vector3(point.x,point.y,-1),Vector3(point.x,point.y,1))
+					assert(not hit.is_empty(),"Pouch stitching needs a real leather surface")
+					corners.append(hit.position+Vector3(0,0,-0.0006))
+				var back := Vector3(0,0,0.0008)
+				tool.set_color(Color("f1e5c6"))
+				tool.set_normal(Vector3.FORWARD)
+				MetalMesh.bevel_triangle(tool,corners[0],corners[1],corners[2],Vector3.FORWARD)
+				MetalMesh.bevel_triangle(tool,corners[0],corners[2],corners[3],Vector3.FORWARD)
+				tool.set_normal(Vector3.BACK)
+				MetalMesh.bevel_triangle(tool,corners[0]+back,corners[2]+back,corners[1]+back,Vector3.BACK)
+				MetalMesh.bevel_triangle(tool,corners[0]+back,corners[3]+back,corners[2]+back,Vector3.BACK)
+				var center := (corners[0]+corners[1]+corners[2]+corners[3])*0.25
+				for edge in 4:
+					var p := corners[edge]
+					var q := corners[(edge+1)%4]
+					var outward := Vector3((p.x+q.x)*0.5-center.x,(p.y+q.y)*0.5-center.y,0).normalized()
+					tool.set_normal(outward)
+					MetalMesh.bevel_triangle(tool,p,p+back,q,outward)
+					MetalMesh.bevel_triangle(tool,q,p+back,q+back,outward)
+	part.mesh = tool.commit()
 
 static func shoulder_ease(part: MeshInstance3D, label: String) -> void:
 	var arrays: Array = part.mesh.surface_get_arrays(0)
@@ -701,9 +740,14 @@ static func create(root: Node3D) -> Dictionary:
 		patch(pivot,"CoatPanel",[Vector3(-0.105,0,-0.018),Vector3(0.105,0,-0.018),Vector3(0.12,-0.25,-0.075),Vector3(-0.08,-0.29,-0.068)],Color("77725a"))
 		ribbon(pivot,"PanelTrim",[Vector3(side*0.09,-0.01,-0.021),Vector3(side*0.09,-0.23,-0.077)],0.015,red)
 		skirts[side] = pivot
-		var pouch := loft(root,"BeltPouch"+str(side),[Vector4(0.865,0.043,0.025,0),Vector4(0.875,0.055,0.034,0),Vector4(0.950,0.060,0.035,0),Vector4(0.960,0.057,0.032,0),Vector4(0.970,0.061,0.037,0),Vector4(0.992,0.061,0.037,0),Vector4(1.00,0.055,0.030,0)],Color("67644d"),0,TAU,12)
+		var pouch := loft(root,"BeltPouch"+str(side),[Vector4(0.865,0.043,0.025,0),Vector4(0.875,0.055,0.034,0),Vector4(0.950,0.060,0.035,0),Vector4(0.960,0.057,0.032,0),Vector4(0.970,0.061,0.037,0),Vector4(0.992,0.061,0.037,0),Vector4(1.00,0.055,0.030,0)],Color("67644d"),0,TAU,48)
 		pouch.position = Vector3(side*0.215,0,0.04)
-		V.piece(root,Vector3(side*0.215,0.96,-0.003),Vector3(0.035,0.045,0.015),Color("8b8b73"))
+		var clasp := V.piece(root,Vector3(side*0.215,0.96,-0.003),Vector3(0.035,0.045,0.015),Color("8b8b73"))
+		clasp.mesh = preload("res://scripts/equipment_box.gd").create(Vector3(0.035,0.045,0.015),0.002)
+		clasp.scale = Vector3.ONE
+		clasp.material_override.metallic = 0.45
+		clasp.material_override.roughness = 0.62
+		finish_metal(clasp)
 	back_mount(root)
 	create_head(root,skin)
 	var upper_parts: Array[MeshInstance3D] = []
