@@ -42,7 +42,11 @@ func _ready() -> void:
 	atmosphere.ambient_light_energy = 0.45
 	atmosphere.fog_enabled = true
 	atmosphere.fog_light_color = Color("879b9e")
-	atmosphere.fog_density = 0.014
+	# Keep close combat silhouettes clear; mist builds behind the fighting space.
+	atmosphere.fog_mode = Environment.FOG_MODE_DEPTH
+	atmosphere.fog_depth_begin = 12.0
+	atmosphere.fog_depth_end = 85.0
+	atmosphere.fog_depth_curve = 1.5
 	env.environment = atmosphere
 	add_child(env)
 	var sun := DirectionalLight3D.new()
