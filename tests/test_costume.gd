@@ -175,6 +175,14 @@ func check_face(model: Node3D, context: String) -> void:
 		if part.get_meta("source_part","")=="Head": visible_head = part.visible
 		if part.get_meta("source_part","")=="NoseBridge": duplicate_nose = part.visible
 	check(visible_head and not duplicate_nose,"visible skin draws the continuous face without the old intersecting nose: "+context)
+	for label in ["HairCap","HairKnot"]:
+		var hair: MeshInstance3D = model.get_node("Torso/"+label)
+		var material := hair.material_override as ShaderMaterial
+		check(material!=null and material.shader.resource_path=="res://shaders/hunter_hair.gdshader","hair fibers retain the scene-lit hair material: "+context+" "+label)
+		var uv: PackedVector2Array = hair.mesh.surface_get_arrays(0)[Mesh.ARRAY_TEX_UV]
+		var bounds := Rect2(uv[0],Vector2.ZERO)
+		for point in uv: bounds = bounds.expand(point)
+		check(bounds.size.x>0.99 and bounds.size.y>0.99,"hair flow UV survives export across the full scalp and knot: "+context+" "+label)
 
 func check_cape(model: Node3D, context: String) -> void:
 	for side in [-1,1]:

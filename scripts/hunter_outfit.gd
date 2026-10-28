@@ -847,46 +847,68 @@ static func create_hair(root: Node3D) -> void:
 		for column in segments:
 			var vertices := []
 			var colors := []
+			var uv := []
 			for pair in [[row,column],[row+1,column],[row,column+1],[row+1,column+1]]:
 				var fraction: float = float(pair[0])/rows
 				var angle: float = float(pair[1])/segments*TAU
-				var hairline := 1.69+0.10*pow((1-cos(angle))*0.5,2)+0.0015*sin(angle*9)
+				var front := smoothstep(0.1,0.8,-cos(angle))
+				var hairline := 1.69+0.10*pow((1-cos(angle))*0.5,2)+(1-front)*(0.0022*sin(angle*11+0.4)+0.0006*sin(angle*23+1.1))
+				hairline += front*(0.004*sin(angle*5+0.4)+0.002*sin(angle*11-0.7))
 				var height := lerpf(hairline,1.915,fraction)
 				var radius := 0.145
 				if height>1.79: radius = maxf(0.001,0.145*sqrt(maxf(0,1-pow((height-1.79)/0.125,2))))
-				var flow := angle*32+fraction*5+0.4*sin(angle*3+fraction*2)
-				radius += 0.0016*sin(flow)*sin(fraction*PI)
+				var flow := angle*18+fraction*3+0.7*sin(angle*3+fraction*2)
+				radius += 0.0012*sin(flow)*sin(fraction*PI)
+				var swept := angle+0.20*sin(angle-0.35)*sin(fraction*PI)
 				var nape := 0.016*(1-smoothstep(1.69,1.80,height))*maxf(0,cos(angle))
-				vertices.append(Vector3(sin(angle)*radius,height,cos(angle)*radius*0.95+0.015-nape))
+				vertices.append(Vector3(sin(swept)*radius,height,cos(swept)*radius*0.95+0.015-nape))
+				uv.append(Vector2(float(pair[1])/segments,fraction))
 				var strand := pow(0.5+0.5*cos(flow),6)
 				colors.append(hair_color.darkened(0.08).lerp(hair_color.lightened(0.055),strand))
 			for index in [0,1,2,2,1,3]:
 				st.set_color(colors[index])
+				st.set_uv(uv[index])
 				st.add_vertex(vertices[index])
 	st.set_color(hair_color)
 	for side in [-1,1]:
 		var centers := [Vector3(side*0.077,1.81,-0.089),Vector3(side*0.105,1.78,-0.090),Vector3(side*0.128,1.74,-0.075),Vector3(side*0.129,1.695,-0.060),Vector3(side*0.126,1.665,-0.050)]
 		var widths := [0.010,0.008,0.006,0.0035,0.0005]
 		var rings: Array[PackedVector3Array] = []
-		for index in centers.size():
-			var tangent: Vector3 = (centers[mini(index+1,centers.size()-1)]-centers[maxi(0,index-1)]).normalized()
+		var sampled: Array[Vector3] = []
+		var sampled_widths: Array[float] = []
+		for segment in range(centers.size()-1):
+			for step in 6:
+				var t := float(step)/6
+				sampled.append(Vector3(centers[segment]).cubic_interpolate(centers[segment+1],centers[maxi(0,segment-1)],centers[mini(centers.size()-1,segment+2)],t))
+				sampled_widths.append(lerpf(widths[segment],widths[segment+1],t))
+		sampled.append(centers[-1])
+		sampled_widths.append(widths[-1])
+		for index in sampled.size():
+			var tangent: Vector3 = (sampled[mini(index+1,sampled.size()-1)]-sampled[maxi(0,index-1)]).normalized()
 			var across := tangent.cross(Vector3.FORWARD).normalized()
 			var around := tangent.cross(across).normalized()
 			var ring := PackedVector3Array()
 			for column in 9:
 				var angle := float(column)/8*TAU
-				ring.append(centers[index]+(across*cos(angle)+around*sin(angle))*float(widths[index]))
+				ring.append(sampled[index]+(across*cos(angle)+around*sin(angle))*sampled_widths[index])
 			rings.append(ring)
 		for row in rings.size()-1:
 			for column in 8:
-				for cell in [Vector2i(row,column),Vector2i(row+1,column),Vector2i(row,column+1),Vector2i(row,column+1),Vector2i(row+1,column),Vector2i(row+1,column+1)]: st.add_vertex(rings[cell.x][cell.y])
+				for cell in [Vector2i(row,column),Vector2i(row+1,column),Vector2i(row,column+1),Vector2i(row,column+1),Vector2i(row+1,column),Vector2i(row+1,column+1)]:
+					st.set_uv(Vector2(float(cell.y)/8,float(cell.x)/(rings.size()-1)))
+					st.add_vertex(rings[cell.x][cell.y])
 	st.generate_normals()
 	var hair := MeshInstance3D.new()
 	hair.name = "HairCap"
 	hair.mesh = st.commit()
-	hair.material_override = V.mat(Color.WHITE)
-	hair.material_override.vertex_color_use_as_albedo = true
-	hair.material_override.roughness = 0.65
+	hair.material_override = hair_material(Color.WHITE)
 	root.add_child(hair)
-	loft(root,"HairKnot",[Vector4(1.80,0.05,0.045,0.13),Vector4(1.86,0.085,0.07,0.15),Vector4(1.93,0.065,0.055,0.15),Vector4(1.96,0.02,0.02,0.14)],Color("282e2a"),0,TAU,24)
+	var knot := loft(root,"HairKnot",[Vector4(1.80,0.05,0.045,0.13),Vector4(1.86,0.085,0.07,0.15),Vector4(1.93,0.065,0.055,0.15),Vector4(1.96,0.02,0.02,0.14)],Color("282e2a"),0,TAU,24)
+	knot.material_override = hair_material(Color("282e2a"))
 	loft(root,"HairTie",[Vector4(1.82,0.058,0.051,0.13),Vector4(1.835,0.06,0.052,0.13)],Color("71473b"),0,TAU,24)
+
+static func hair_material(tint: Color) -> ShaderMaterial:
+	var material := ShaderMaterial.new()
+	material.shader = preload("res://shaders/hunter_hair.gdshader")
+	material.set_shader_parameter("hair_tint",tint)
+	return material
