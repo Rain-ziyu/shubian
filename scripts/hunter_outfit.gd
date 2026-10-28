@@ -768,8 +768,8 @@ static func create_head(root: Node3D, skin: Color) -> void:
 	for side in [-1,1]:
 		blob(root,"Ear"+str(side),Vector3(side*0.138,1.685,0.005),Vector3(0.045,0.078,0.035),skin.darkened(0.04))
 		blob(root,"EyeWhite"+str(side),Vector3(side*0.056,1.712,-0.106),Vector3(0.042,0.014,0.008),Color("c4c1ac"))
-		blob(root,"Iris"+str(side),Vector3(side*0.056,1.713,-0.111),Vector3(0.013,0.013,0.004),Color("332d24"))
-		blob(root,"EyeGlint"+str(side),Vector3(side*0.053,1.716,-0.114),Vector3(0.003,0.003,0.002),Color("ddd7bd"))
+		blob(root,"Iris"+str(side),Vector3(side*0.056,1.713,-0.111),Vector3(0.016,0.013,0.004),Color("332d24"))
+		blob(root,"EyeGlint"+str(side),Vector3(side*0.053,1.716,-0.114),Vector3(0.0018,0.0018,0.0014),Color("ddd7bd"))
 		ribbon(root,"UpperLid"+str(side),[Vector3(side*0.033,1.713,-0.109),Vector3(side*0.056,1.720,-0.112),Vector3(side*0.079,1.714,-0.099)],0.0035,skin.darkened(0.18))
 		ribbon(root,"LowerLid"+str(side),[Vector3(side*0.034,1.709,-0.109),Vector3(side*0.056,1.705,-0.112),Vector3(side*0.076,1.709,-0.102)],0.0025,skin.darkened(0.06))
 		ribbon(root,"Brow"+str(side),[Vector3(side*0.025,1.744,-0.115),Vector3(side*0.039,1.747,-0.115),Vector3(side*0.054,1.748,-0.114),Vector3(side*0.069,1.745,-0.108),Vector3(side*0.086,1.739,-0.101)],0.005,Color("494036"))

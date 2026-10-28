@@ -47,6 +47,14 @@ func run() -> void:
 			var open: PackedVector3Array = mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
 			var closed: PackedVector3Array = mesh.mesh.surface_get_blend_shape_arrays(0)[0][Mesh.ARRAY_VERTEX]
 			check(vertical_span(closed)<vertical_span(open)*0.4,"closed shape physically narrows the white opening")
+		if str(mesh.get_meta("source_part","")).begins_with("Iris"):
+			var material := mesh.material_override as ShaderMaterial
+			check(material!=null and material.shader.resource_path=="res://shaders/hunter_iris.gdshader","exported iris retains pupil and filtered fiber shader")
+			var uv: PackedVector2Array = mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_TEX_UV]
+			var bounds := Rect2(uv[0],Vector2.ZERO)
+			for point in uv: bounds = bounds.expand(point)
+			# The 12-ring sphere samples just above/below the equator (3.65e-3 UV inset).
+			check(bounds.size.x>0.99 and bounds.size.y>0.99 and bounds.position.distance_to(Vector2.ZERO)<0.005,"iris planar UV spans the pupil and outer ring without wrapping: "+str(bounds))
 	check(saved_channels==10,"export preserves every eyelid channel")
 	var preview: AnimationPlayer = saved.get_node("AnimationPreview")
 	preview.play("hurt")

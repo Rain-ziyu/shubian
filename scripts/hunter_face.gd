@@ -31,9 +31,11 @@ static func seat_features(root: Node3D) -> void:
 		var side := -1.0 if label.ends_with("-1") else 1.0
 		var arrays: Array = (refine_patch(part.mesh) if brow or upper_lid or lower_lid else part.mesh).surface_get_arrays(0)
 		var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		var uv: PackedVector2Array = arrays[Mesh.ARRAY_TEX_UV].duplicate()
 		var inverse: Transform3D = part.transform.affine_inverse()
 		for index in vertices.size():
 			var original := vertices[index]
+			if iris: uv[index] = Vector2(original.x+0.5,0.5-original.y)
 			var local := original
 			if white:
 				# Taper the corners into an almond opening instead of an ellipsoid.
@@ -54,12 +56,18 @@ static func seat_features(root: Node3D) -> void:
 			point.z = hit.position.z+offset
 			vertices[index] = inverse*point
 		arrays[Mesh.ARRAY_VERTEX] = vertices
+		if iris: arrays[Mesh.ARRAY_TEX_UV] = uv
 		var projected := ArrayMesh.new()
 		projected.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
 		var tool := SurfaceTool.new()
 		tool.create_from(projected,0)
 		tool.generate_normals()
 		part.mesh = tool.commit()
+		if iris:
+			var eye_material := ShaderMaterial.new()
+			eye_material.shader = preload("res://shaders/hunter_iris.gdshader")
+			eye_material.set_shader_parameter("iris_tint",Color("6a503b"))
+			part.material_override = eye_material
 		if white or iris or glint or upper_lid or lower_lid: add_blink(part,surface,upper_lid or lower_lid)
 
 static func add_blink(part: MeshInstance3D, head: TriangleMesh, lid: bool) -> void:
