@@ -309,7 +309,11 @@ static func fitted_collar(parent: Node3D, label: String, points: Array, width: f
 				var point := center+across*width*(float(column)/4-0.5)
 				var local := coat.transform.affine_inverse()*point
 				var hit := triangles.intersect_segment(Vector3(local.x,local.y,-1),Vector3(local.x,local.y,1))
-				if not hit.is_empty(): point = coat.transform*hit.position-Vector3(0,0,0.004 if label=="CrossedCollar" else 0.007)
+				if not hit.is_empty():
+					var across_t := float(column)/4
+					var rolled_edge := 0.001*pow(absf(across_t*2-1),3)
+					var layer_gap := 0.0065 if label=="CrossedCollar" else 0.0035
+					point = coat.transform*hit.position-Vector3(0,0,layer_gap+rolled_edge)
 				row.append(point)
 			rows.append(row)
 	for row in range(rows.size()-1):
@@ -656,8 +660,8 @@ static func create(root: Node3D) -> Dictionary:
 	],dark)
 	loft(root,"Neck",[Vector4(1.46,0.055,0.052,0),Vector4(1.58,0.054,0.052,0)],skin)
 	loft(root,"Collar",[Vector4(1.43,0.10,0.076,0),Vector4(1.52,0.076,0.065,0)],Color("3b463a"))
-	ribbon(root,"CrossedCollar",[Vector3(-0.07,1.47,-0.067),Vector3(0.02,1.40,-0.13),Vector3(0.17,1.27,-0.094)],0.045,hem)
-	ribbon(root,"InnerCollar",[Vector3(0.07,1.47,-0.075),Vector3(-0.01,1.39,-0.139),Vector3(-0.15,1.30,-0.106)],0.026,Color("656b59"))
+	ribbon(root,"CrossedCollar",[Vector3(-0.07,1.47,-0.067),Vector3(0,1.40,-0.13),Vector3(0.10,1.32,-0.106)],0.030,Color("666952"))
+	ribbon(root,"InnerCollar",[Vector3(0.07,1.47,-0.075),Vector3(0.012,1.412,-0.139),Vector3(-0.012,1.392,-0.132)],0.024,Color("454e41"))
 	loft(root,"WaistSash",[Vector4(0.94,0.181,0.123,0),Vector4(1.025,0.177,0.12,0)],red)
 	loft(root,"Belt",[Vector4(0.982,0.188,0.131,0),Vector4(1.012,0.184,0.127,0)],Color("34322b"))
 	V.piece(root,Vector3(0.055,0.997,-0.133),Vector3(0.07,0.044,0.013),Color("928d74"))
