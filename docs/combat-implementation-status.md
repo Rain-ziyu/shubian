@@ -1644,3 +1644,11 @@ EyeRidge从单独眉脊改成同一网格内的上下眼缘：各纵向剖面的
 - 新增 `capture_creature_models.gd -- --no-export --feet`，已查看苔甲龙与迅龙足部近景 `D:/vscode/Shubian/outputs/Shubian-creature-mossback-feet.png`、`Shubian-creature-reedclaw-feet.png`；原全身对照 `verification/curved-claws-mossback-before.png`。
 - 30 秒原生五 AI 活跃部分场景采样，两秒后平均 6.844 ms、P99 13.379 ms、最大 124.689 ms，有 1 帧超过 33 ms，因此性能门槛未通过。峰值记录主要位于 after_draw 墙钟分区，不能由此归因新几何/CPU/GPU。日志 `D:/vscode/Shubian/outputs/verification/curved-claws-performance-30s.log`，数据文件 `forest-performance-1793156080-87416.json`。报告写完后进程未正常退出，检查仍活跃后关闭本次专属进程（退出码 1），未重启覆盖数据；不作为正常退出或完整性能证明。
 - 整体模型/视角精细化及长时间性能目标仍未完成。
+
+
+### 2026-10-28 慢帧线索核对与短采样正常退出
+
+- 按 investigate-first 流程先核对证据，未修改产品可见性逻辑。运行当前可见性组件 CPU 独立场景：十个物种/视角组合的稳定调用均值约 0.421–0.929 ms，首次调用约 0.486–4.875 ms，日志 `D:/vscode/Shubian/outputs/verification/visibility-cost-current.log`。此夹具不覆盖实际狩猎全部状态，不能单独解释此前 124.689 ms 墙钟慢帧；主因仍未知。
+- 短采样工具写完报告并释放 world 后仍无限等待 frame_post_draw。移除这处无需参与采样指标的退出等待，保留原报告写入、资源释放及两个 process_frame。原挂起可能涉及无后续绘制信号，尚未证明原进程具体阻塞栈，不将该推断当作慢帧根因。
+- 修改后的 10 秒原生采样完整报告并正常退出，退出码 0，随后查询无残留 Godot 进程。日志 `D:/vscode/Shubian/outputs/verification/benchmark-exit-10s.log`，记录 simulation=10.000 s、wall=10.225 s，无运行错误。
+- 该次两秒后均值 10.624 ms、P99 33.213 ms、最大 35.107 ms，超过 33 ms 共 8 帧，仍未达到性能门槛。退出修正位于报告写入之后，不能视为性能改善；无同条件对照。整体精细化与稳定帧耗时目标仍未完成。

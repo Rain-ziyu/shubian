@@ -193,7 +193,8 @@ func finish() -> void:
 		world.queue_free()
 		await process_frame
 		await process_frame
-		await RenderingServer.frame_post_draw
+		# The report is already flushed and the world has been removed. An
+		# empty/minimized viewport may never emit another post-draw signal.
 		quit(0)
 		return
 	super.finish()
