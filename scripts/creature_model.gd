@@ -230,7 +230,6 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 			plate.position = Vector3(0,y+s*0.045,(i-2)*s*0.18)
 			preload("res://scripts/creature_armor_shell.gd").fit(plate,body,trunk_surface,s)
 			plate.set_meta("body_bind",body.transform.affine_inverse()*plate.transform)
-			plate.material_override.cull_mode = BaseMaterial3D.CULL_DISABLED
 	elif data.id=="thornhorn":
 		for side in [-1,1]:
 			var horn := Surface.profile(neck,"BrowHorn"+str(side),[Vector4(-0.70,0.003,0.003,0.69),Vector4(-0.61,0.018,0.025,0.58),Vector4(-0.49,0.045,0.05,0.43),Vector4(-0.34,0.067,0.065,0.29)],s,Color("c4b89a"))

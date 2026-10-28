@@ -150,6 +150,28 @@ func run() -> void:
 			root.size = Vector2i(1280,720)
 			root.content_scale_size = Vector2i(1280,720)
 		if data.species[index].id=="mossback":
+			if "--armor" in OS.get_cmdline_user_args():
+				root.size = Vector2i(800,600)
+				root.content_scale_size = Vector2i(800,600)
+				var sheet := Image.create(2400,600,false,Image.FORMAT_RGB8)
+				var poses := [["idle",0.0],["windup",0.85],["active",0.20]]
+				for pose_index in poses.size():
+					var sample: Array = poses[pose_index]
+					Model.animate(holder.get_node("CreatureMesh"),data.species[index],0,sample[0],sample[1],0)
+					camera.position = holder.position+Vector3(size*1.4,size*1.5,size*0.55)
+					camera.look_at(holder.position+Vector3(0,size*0.72,0))
+					camera.fov = 35
+					title.text = "MOSSBACK / ARMOR / "+str(sample[0]).to_upper()
+					for frame in 3: await process_frame
+					await RenderingServer.frame_post_draw
+					var frame := root.get_texture().get_image()
+					frame.convert(Image.FORMAT_RGB8)
+					sheet.blit_rect(frame,Rect2i(0,0,800,600),Vector2i(pose_index*800,0))
+				result = sheet.save_png(ProjectSettings.globalize_path("res://../Shubian-mossback-armor-study.png"))
+				if result!=OK: error = result
+				Model.animate(holder.get_node("CreatureMesh"),data.species[index],0,"idle",0,0)
+				root.size = Vector2i(1280,720)
+				root.content_scale_size = Vector2i(1280,720)
 			camera.position = holder.position+Vector3(size*2.0,size*1.2,size*2.8)
 			camera.look_at(holder.position+Vector3(0,size*0.40,1.3))
 			title.text = "SHUBIAN / MOSSBACK / FLEXIBLE ROOT - BONE CLUB"

@@ -15,7 +15,20 @@ func run() -> void:
 		var surface := body.mesh.generate_triangle_mesh()
 		for index in 5:
 			var plate: MeshInstance3D = model.get_node("ArmorPlate"+str(index))
-			var points: PackedVector3Array = plate.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+			var points: PackedVector3Array = plate.mesh.get_faces()
+			var edges := {}
+			for triangle in range(0,points.size(),3):
+				for edge in 3:
+					var a := str(Vector3i((points[triangle+edge]*1000000).round()))
+					var b := str(Vector3i((points[triangle+(edge+1)%3]*1000000).round()))
+					var key := a+"|"+b if a<b else b+"|"+a
+					edges[key] = int(edges.get(key,0))+1
+			var closed := true
+			for count in edges.values(): closed = closed and count==2
+			checks += 1
+			if not closed:
+				failures += 1
+				printerr("FAIL: Armor shell must have a closed top, underside and rim")
 			var samples := points.duplicate()
 			for triangle in range(0,points.size(),3):
 				samples.append((points[triangle]+points[triangle+1]+points[triangle+2])/3)
