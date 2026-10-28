@@ -245,16 +245,29 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 			var colors := PackedColorArray()
 			var sac_base := Color("8d9e79")
 			var attachment := Color(c.r/sac_base.r,c.g/sac_base.g,c.b/sac_base.b)
-			for point in vertices:
+			for vertex_index in vertices.size():
+				var point := vertices[vertex_index]
 				var local := point/s
 				var angle := atan2(local.x,local.y+0.010)
 				var fold := pow(0.5+0.5*cos(angle*7+local.z*8),10)
 				var root_blend := smoothstep(0.045,0.115,absf(local.z))
+				var envelope := pow(sin(clampf((local.z+0.125)/0.25,0,1)*PI),2)
+				var radial := Vector3(local.x,local.y+0.010,0).normalized()
+				local += radial*(0.004*fold-0.001)*envelope
+				# Continuous sac ends tuck into the throat instead of ending as
+				# a separate hanging sphere. Expansion draws the roots farther in.
+				local.x -= side*0.065*root_blend
+				local.y += 0.075*root_blend
+				vertices[vertex_index] = local*s
 				colors.append(Color.WHITE.lerp(attachment,root_blend*0.85).darkened(0.06+0.12*fold))
 			arrays[Mesh.ARRAY_COLOR] = colors
+			arrays[Mesh.ARRAY_VERTEX] = vertices
 			var membrane := ArrayMesh.new()
 			membrane.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
-			sac.mesh = membrane
+			var membrane_normals := SurfaceTool.new()
+			membrane_normals.create_from(membrane,0)
+			membrane_normals.generate_normals()
+			sac.mesh = membrane_normals.commit()
 			sac.material_override.albedo_color = Color("8d9e79")
 			sac.set_meta("rest_scale",sac.scale)
 	elif data.id=="stormcrest":

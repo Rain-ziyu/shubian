@@ -131,8 +131,10 @@ func run() -> void:
 					var sac: MeshInstance3D = instance.get_node("Neck/MistSac"+str(side))
 					Model.animate(instance,data,0,"idle",0,0)
 					var resting := sac.scale
+					check_sac_roots(instance,float(data.size),side,"idle")
 					Model.animate(instance,data,0,"windup",data.windup,0)
 					var inflated := sac.scale
+					check_sac_roots(instance,float(data.size),side,"windup")
 					check(inflated.x>resting.x*1.3 and inflated.y>resting.y*1.2,"live and saved throat sac visibly inflates during mist warning")
 					Model.animate(instance,data,0,"active",0,0)
 					check(sac.scale.is_equal_approx(inflated),"mist release begins from the inflated sac without a pose jump")
@@ -221,3 +223,19 @@ func check_orbital_opening(model: Node3D, size: float) -> void:
 		var opening := geometry.intersect_segment(Vector3(side*size,pupil.position.y,pupil.position.z),Vector3(0,pupil.position.y,pupil.position.z))
 		check(opening.is_empty(),"eyelids preserve a real aperture in front of the pupil")
 		check(eye.scale.x<=size*0.021 and pupil.scale.y<=size*0.0141,"eye globe and pupil fit the compact socket instead of protruding as a large ball")
+
+func check_sac_roots(model: Node3D, size: float, side: int, phase: String) -> void:
+	var skull: MeshInstance3D = model.get_node("Neck/HeadSurface")
+	var sac: MeshInstance3D = model.get_node("Neck/MistSac"+str(side))
+	var surface := skull.mesh.generate_triangle_mesh()
+	var embedded := true
+	var samples := 0
+	for vertex: Vector3 in sac.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+		if absf(vertex.z)<size*0.1249: continue
+		var point := skull.to_local(sac.to_global(vertex))
+		var top := surface.intersect_segment(Vector3(point.x,size*2,point.z),Vector3(point.x,-size*2,point.z))
+		var bottom := surface.intersect_segment(Vector3(point.x,-size*2,point.z),Vector3(point.x,size*2,point.z))
+		embedded = embedded and not top.is_empty() and not bottom.is_empty()
+		if not top.is_empty() and not bottom.is_empty(): embedded = embedded and point.y<top.position.y-size*0.001 and point.y>bottom.position.y+size*0.001
+		samples += 1
+	check(samples>100 and embedded,"both closed sac attachment caps stay inside the actual throat during "+phase)

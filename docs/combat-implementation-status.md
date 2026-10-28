@@ -1586,3 +1586,11 @@ EyeRidge从单独眉脊改成同一网格内的上下眼缘：各纵向剖面的
 - 已查看当前怪物渲染与冲锋低头直接姿态研究 `D:/vscode/Shubian/outputs/Shubian-charge-windup-after.png`。对照 `verification/horn-growth-before.png`；不是 live AI 战斗或最终美术验收。
 - 七组原生回归 609 项通过：冲锋/扑跃承诺 54、头阻挡 28、材质 44、表面/角根全帽嵌入 332、扑跃表面 5、近战部位 28、投射物部位 18。报告 `D:/vscode/Shubian/outputs/verification/regressions-20261027-114711-34e6d8/summary.json`。
 - 同步保存上一轮背棘发光遮罩的 Godot 导入设置，并开启 mipmaps，避免远距离细纹无预过滤；实际导入与此次材质检查通过。未进行新的长时间性能测试，整体精细化目标未完成。
+
+
+### 2026-10-28 雾囊冠龙喉囊连接与褶皱
+
+- 将两侧喉囊两端向内上方收束并埋入头颈，减少独立圆球感；中段增加实际几何褶皱并重算法线，环向截面 28 增至 56。保留原节点、膨胀倍率、颜色提示、弱点和喷雾时序。导出 125 个内嵌资源 ID、20 个牙齿节点名稳定。
+- 新增运行/保存模型两侧喉囊在 idle/windup 下的完整闭合端帽嵌入检查（8 项），用头部实际三角形双向射线检验，不改变原有膨胀/恢复要求。
+- 中断前的六组原生验证已正常结束，共 467 项全部通过：头阻挡 28、材质 44、表面/喉囊根部 340、雾区 9、近战部位 28、投射物部位 18。报告 `D:/vscode/Shubian/outputs/verification/regressions-20261027-115802-734837/summary.json`。恢复工作时确认原进程不存在、报告完整，六个测试文件哈希与报告一致，未重复启动该测试批次。
+- 已查看模型膨胀图及恢复后的当前源码默认战斗相机渲染：`D:/vscode/Shubian/outputs/Shubian-mistfrill-windup.png`、`Shubian-camera-mistfrill.png`；对照 `verification/mist-sac-root-before.png`。战斗图仍为冻结姿态，不能替代人工实战和最终美术验收。整体精细化目标继续保留，未重测长时间性能。
