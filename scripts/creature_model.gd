@@ -5,6 +5,7 @@ const Surface = preload("res://scripts/creature_surface.gd")
 const TailSkin = preload("res://scripts/creature_tail_skin.gd")
 const MouthSkin = preload("res://scripts/creature_mouth_skin.gd")
 const LegSkin = preload("res://scripts/creature_leg_skin.gd")
+const NeckSkin = preload("res://scripts/creature_neck_skin.gd")
 const EYE_SHADER = preload("res://shaders/creature_eye.gdshader")
 const IRIS_COLORS := {"sweep":"bc954d","charge":"b77943","mist":"83a497","leap":"c0ad68","pulse":"94a7b5"}
 const GAIT_PER_METER := 4.2
@@ -313,6 +314,7 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 			crest.material_override.emission_operator = BaseMaterial3D.EMISSION_OP_MULTIPLY
 			crest.material_override.roughness = 0.72
 	preload("res://scripts/creature_skin_material.gd").apply(root,data)
+	if data.id=="stormcrest": NeckSkin.bind(body,neck,s)
 	TailSkin.bind(tail)
 	for side in [-1,1]:
 		for label in ["Front","Hind"]:
@@ -477,6 +479,7 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 		# A delayed counter-swing balances the head without moving planted feet.
 		var balance := smoothstep(0.025,0.09,impact_age)*(1-smoothstep(0.09,0.26,impact_age))
 		tail.rotation.y -= impulse.y*0.65*balance
+	if data.id=="stormcrest": NeckSkin.animate(root)
 	if data.id in ["mossback","stormcrest"]:
 		var trunk: MeshInstance3D = root.get_node("BodySurface")
 		for index in 5:

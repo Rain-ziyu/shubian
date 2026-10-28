@@ -8,6 +8,8 @@ uniform vec4 ventral_tint : source_color = vec4(0.55,0.56,0.43,1.0);
 instance uniform float ventral_weight : hint_range(0.0,1.0) = 0.0;
 // Facial skin carries finer contrast so the eyes and attack direction stay legible.
 instance uniform float fine_scale_weight : hint_range(0.0,1.0) = 1.0;
+// Only a fitted torso skin supplies UV2.x as its continuous head transition.
+instance uniform float neck_transition : hint_range(0.0,1.0) = 0.0;
 float hash(vec2 p) { return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
 float noise(vec2 p) {
 	vec2 cell = floor(p);
@@ -37,6 +39,9 @@ vec3 scute_relief(vec2 uv) {
 	return vec3(height,slope*count*(-6.0*t*(1.0-t)/0.25)*rise);
 }
 void fragment() {
+	float neck_blend = clamp(UV2.x*neck_transition,0.0,1.0);
+	float fine_weight = mix(fine_scale_weight,0.35,neck_blend);
+	float ventral_blend = mix(ventral_weight,0.70,neck_blend);
 	vec2 wrapped = vec2(sin(UV.x*6.2831853),cos(UV.x*6.2831853));
 	float mottling = noise(wrapped*2.3+UV.y*pattern_count);
 	float pattern = smoothstep(0.35,0.75,mottling);
@@ -53,6 +58,7 @@ void fragment() {
 		pattern = 1.0-smoothstep(0.16,0.34,length(fract(spots)-0.5));
 	}
 	float end_fade = smoothstep(0.02,0.10,UV.y)*(1.0-smoothstep(0.90,0.98,UV.y));
+	end_fade = mix(end_fade,UV2.y,neck_transition);
 	vec2 scales = UV*vec2(72.0,60.0);
 	float footprint = max(length(dFdx(scales)),length(dFdy(scales)));
 	float detail = 1.0-smoothstep(0.15,0.45,footprint);
@@ -73,15 +79,15 @@ void fragment() {
 	float medium_footprint = max(length(dFdx(medium_cells)),length(dFdy(medium_cells)));
 	float medium_detail = 1.0-smoothstep(0.20,0.65,medium_footprint);
 	vec3 scute = scute_relief(UV);
-	float medium_weight = mix(0.30,1.0,fine_scale_weight);
-	float grain = ((plate-0.5)*0.03*detail*fine_scale_weight+(scute.x-0.5)*0.075*medium_detail*medium_weight)*end_fade;
+	float medium_weight = mix(0.30,1.0,fine_weight);
+	float grain = ((plate-0.5)*0.03*detail*fine_weight+(scute.x-0.5)*0.075*medium_detail*medium_weight)*end_fade;
 	// Broad countershading makes the jaw and underside readable through turns.
 	float underside = 1.0-smoothstep(-0.65,0.15,wrapped.y);
 	float skin_variation = mix(0.92,1.05,mottling);
-	vec3 skin_color = mix(COLOR.rgb,ventral_tint.rgb*skin_variation,underside*ventral_weight);
+	vec3 skin_color = mix(COLOR.rgb,ventral_tint.rgb*skin_variation,underside*ventral_blend);
 	ALBEDO = skin_color*(1.0-pattern*pattern_strength*end_fade+grain);
 	float seam_fade = smoothstep(0.0,0.02,UV.x)*(1.0-smoothstep(0.98,1.0,UV.x));
-	float height_strength = 0.0006*detail*detail*end_fade*seam_fade*fine_scale_weight;
+	float height_strength = 0.0006*detail*detail*end_fade*seam_fade*fine_weight;
 	float bevel_t = clamp((plate_edge-0.32)/0.16,0.0,1.0);
 	vec2 height_slope = edge_slope*vec2(72.0,60.0)*(-6.0*bevel_t*(1.0-bevel_t)/0.16)*height_strength;
 	height_slope += scute.yz*(0.003*medium_detail*medium_detail*medium_weight*end_fade*seam_fade);
@@ -97,6 +103,6 @@ void fragment() {
 	vec3 bump = gradient/max(abs(determinant),0.00000001);
 	bump *= min(1.0,0.20/max(length(bump),0.00001));
 	NORMAL = normalize(normal-bump);
-	ROUGHNESS = clamp(0.78+(1.0-plate)*0.07*detail*fine_scale_weight+(1.0-scute.x)*0.06*medium_detail,0.0,1.0);
+	ROUGHNESS = clamp(0.78+(1.0-plate)*0.07*detail*fine_weight+(1.0-scute.x)*0.06*medium_detail,0.0,1.0);
 	SPECULAR = 0.25;
 }
