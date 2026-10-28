@@ -29,6 +29,8 @@ func run() -> void:
 	check_cape(collar_saved,"saved")
 	check_metal(rig.root,"runtime")
 	check_metal(collar_saved,"saved")
+	check_face(rig.root,"runtime")
+	check_face(collar_saved,"saved")
 	for side in [-1,1]:
 		for path in ["Bracer"+str(side),"Pelvis/BeltPouch"+str(side)]:
 			var live: MeshInstance3D = rig.root.get_node(path)
@@ -158,6 +160,21 @@ func run() -> void:
 	holder.queue_free()
 	await process_frame
 	quit(1 if failures else 0)
+
+func check_face(model: Node3D, context: String) -> void:
+	var head: MeshInstance3D = model.get_node("Torso/Head")
+	var surface := head.mesh.generate_triangle_mesh()
+	var tip := surface.intersect_segment(Vector3(0,1.670,-0.30),Vector3(0,1.670,0))
+	var cheek := surface.intersect_segment(Vector3(0.030,1.670,-0.30),Vector3(0.030,1.670,0))
+	var rise: float = cheek.position.z-tip.position.z if not tip.is_empty() and not cheek.is_empty() else 0
+	check(rise>0.012 and rise<0.04,"nose tip is part of the continuous facial surface: "+context)
+	var visible_head := false
+	var duplicate_nose := false
+	for part in model.get_node("Skeleton3D").get_children():
+		if not part is MeshInstance3D: continue
+		if part.get_meta("source_part","")=="Head": visible_head = part.visible
+		if part.get_meta("source_part","")=="NoseBridge": duplicate_nose = part.visible
+	check(visible_head and not duplicate_nose,"visible skin draws the continuous face without the old intersecting nose: "+context)
 
 func check_cape(model: Node3D, context: String) -> void:
 	for side in [-1,1]:

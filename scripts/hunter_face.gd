@@ -11,6 +11,11 @@ static func sculpt(point: Vector3) -> Vector3:
 	var mouth := exp(-pow(x/0.038,2)-pow((point.y-1.637)/0.018,2))
 	var chin := exp(-pow(x/0.050,2)-pow((point.y-1.579)/0.019,2))
 	point.z += front*(0.0015*orbit-0.0045*cheek-0.0025*hood-0.004*bridge-0.003*mouth-0.005*chin)
+	# The nose grows from the face instead of intersecting it as a separate solid.
+	var nose_bridge := 0.010*exp(-pow(x/0.012,2)-pow((point.y-1.702)/0.030,2))
+	var tip := 0.020*exp(-pow(x/0.015,2)-pow((point.y-1.670)/0.012,2))
+	var wing := 0.005*exp(-pow((x-0.013)/0.008,2)-pow((point.y-1.663)/0.007,2))
+	point.z -= front*(nose_bridge+tip+wing)
 	return point
 
 static func seat_features(root: Node3D) -> void:

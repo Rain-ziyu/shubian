@@ -90,6 +90,9 @@ static func bind(rig: Dictionary) -> Dictionary:
 		# Continuous arm skin replaces these former visible joint fillers. Keep their
 		# bones as animation anchors, without drawing intersecting duplicate surfaces.
 		if str(source.name).begins_with("Elbow") or str(source.name).begins_with("JointClothElbow"): rendered.hide()
+		# Keep the former nose bone/mesh for saved clips; the visible nose is now
+		# sculpted into Head, so it has no overlap seam or underside end disk.
+		if source.name=="NoseBridge": rendered.hide()
 		source.visible = false
 		bindings.append({"source":source,"bone":bone,"rendered":rendered})
 		indices[source.get_instance_id()] = bone
