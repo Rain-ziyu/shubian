@@ -176,7 +176,7 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 				var claw := H.tapered(leg,Vector3(toe*s*0.055,foot_y+s*0.015,-s*0.25),s*0.001,s*0.017,s*(0.20 if data.id=="reedclaw" else 0.14),Color("b6ba9b"))
 				claw.rotation.x = -PI/2
 				claw.name = "Claw"+str(toe)
-				preload("res://scripts/creature_claw.gd").finish(claw,s,data.id=="reedclaw")
+				preload("res://scripts/creature_claw.gd").finish(claw,s,data.id=="reedclaw",c.darkened(0.25))
 		if not quad:
 			var arm := Surface.profile(root,"Forelimb"+str(side),[Vector4(-0.24,0.02,0.03,-0.13),Vector4(-0.12,0.045,0.055,-0.10),Vector4(0.02,0.055,0.07,0)],s,c)
 			arm.position = Vector3(side*s*0.28,y,-s*0.35)

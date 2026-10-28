@@ -2,7 +2,7 @@ extends RefCounted
 ## Closed curved keratin surfaces in the original cylindrical claw frame.
 const Triangles = preload("res://scripts/trident_mesh.gd")
 
-static func finish(claw: MeshInstance3D, size: float, leaper: bool) -> void:
+static func finish(claw: MeshInstance3D, size: float, leaper: bool, foot_color: Color) -> void:
 	var length := size*(0.20 if leaper else 0.14)
 	var bend := size*(0.055 if leaper else 0.050)
 	var tool := SurfaceTool.new()
@@ -36,6 +36,21 @@ static func finish(claw: MeshInstance3D, size: float, leaper: bool) -> void:
 			Triangles.bevel_triangle(tool,centers[row],rows[row][segment],rows[row][(segment+1)%24],Vector3.DOWN if row==0 else Vector3(0,length,-2*bend).normalized())
 	tool.generate_normals()
 	claw.mesh = tool.commit()
+	# Match the pad at the buried root, then reveal keratin along the visible claw.
+	# Normalize the authored vertex tint against the existing material albedo.
+	var base: Color = claw.material_override.albedo_color
+	var skin := foot_color
+	var root_tint := Color(skin.r/base.r,skin.g/base.g,skin.b/base.b)
+	var arrays: Array = claw.mesh.surface_get_arrays(0)
+	var points: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var colors: PackedColorArray = arrays[Mesh.ARRAY_COLOR]
+	for index in points.size():
+		var t := clampf(points[index].y/length+0.5,0,1)
+		colors[index] = root_tint.lerp(colors[index],smoothstep(0.15,0.60,t))
+	arrays[Mesh.ARRAY_COLOR] = colors
+	var transitioned := ArrayMesh.new()
+	transitioned.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+	claw.mesh = transitioned
 	claw.material_override.vertex_color_use_as_albedo = true
 	claw.material_override.roughness = 0.72
 	claw.material_override.metallic_specular = 0.25

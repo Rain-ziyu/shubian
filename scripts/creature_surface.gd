@@ -382,8 +382,8 @@ static func finish_horn(horn: MeshInstance3D, side: int, size: float) -> void:
 static func shape_foot(foot: MeshInstance3D) -> void:
 	# One continuous pad with three toe lobes; keep its sole and ankle frame.
 	var primitive := SphereMesh.new()
-	primitive.radial_segments = 48
-	primitive.rings = 16
+	primitive.radial_segments = 64
+	primitive.rings = 24
 	var arrays: Array = primitive.surface_get_arrays(0)
 	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 	var colors := PackedColorArray()
@@ -391,10 +391,19 @@ static func shape_foot(foot: MeshInstance3D) -> void:
 		var point := vertices[index]
 		var front := 1-smoothstep(-0.35,-0.05,point.z)
 		var valley := 0.5-0.5*cos(TAU*point.x/0.262)
+		var toe_center := clampf(roundf(point.x/0.262),-1,1)*0.262
+		var digit := exp(-pow((point.x-toe_center)/0.085,2))
+		var knuckle := digit*exp(-pow((point.z+0.22)/0.13,2))
+		var crease := digit*exp(-pow((point.z+0.10)/0.025,2))
+		var upper := smoothstep(0.0,0.25,point.y)
+		var underside := 1-smoothstep(-0.40,-0.12,point.y)
+		point.y += upper*(0.060*knuckle-0.022*crease)
+		# A broad load-bearing pad retains the original lowest sole and ankle frame.
+		if point.y< -0.20: point.y = lerpf(-0.5,point.y,smoothstep(-0.45,-0.20,point.y))
 		point.z += 0.20*valley*front
 		point.x *= 1-0.20*smoothstep(0.05,0.40,point.z)
 		vertices[index] = point
-		colors.append(Color.WHITE.darkened(0.18*valley*front*smoothstep(-0.1,0.25,point.y)))
+		colors.append(Color.WHITE.darkened(0.15*valley*front*upper+0.14*crease*upper+0.18*underside).lightened(0.06*knuckle*upper))
 	arrays[Mesh.ARRAY_VERTEX] = vertices
 	arrays[Mesh.ARRAY_COLOR] = colors
 	var shaped := ArrayMesh.new()

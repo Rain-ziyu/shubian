@@ -25,6 +25,8 @@ func run() -> void:
 		holder.add_child(saved)
 		check_claw(model.get_node("Hind1/Claw0"),float(species.size),"runtime")
 		check_claw(saved.get_node("Hind1/Claw0"),float(species.size),"saved")
+		check_foot(model.get_node("Hind1/Foot"),"runtime")
+		check_foot(saved.get_node("Hind1/Foot"),"saved")
 		for side in [-1,1]:
 			var saved_leg: Node3D = saved.get_node("Hind"+str(side))
 			var skeleton := saved_leg.get_node_or_null("LegSkeleton") as Skeleton3D
@@ -92,6 +94,18 @@ func run() -> void:
 	holder.queue_free()
 	await process_frame
 	quit(1 if failures else 0)
+
+func check_foot(foot: MeshInstance3D, context: String) -> void:
+	var points: PackedVector3Array = foot.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+	var lower := Vector2(INF,INF)
+	var upper := Vector2(-INF,-INF)
+	var above_floor := true
+	for point in points:
+		above_floor = above_floor and point.y>= -0.50001
+		if absf(point.y+0.5)>0.00001: continue
+		lower = lower.min(Vector2(point.x,point.z))
+		upper = upper.max(Vector2(point.x,point.z))
+	check(above_floor and upper.x-lower.x>0.2 and upper.y-lower.y>0.2,"foot has a broad sole rather than a single contact pole: "+context)
 
 func check_claw(claw: MeshInstance3D, size: float, context: String) -> void:
 	var points: PackedVector3Array = claw.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
