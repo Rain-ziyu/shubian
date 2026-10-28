@@ -80,7 +80,10 @@ static func profile(parent: Node3D, label: String, profiles: Array, scale: float
 	if label.begins_with("BrowHorn"): profiles = smooth_profiles(profiles)
 	if label in ["BodySurface","TailSurface","HeadSurface","Jaw","Palm","Finger","Talon"] or label.begins_with("Forelimb") or label.begins_with("EyeRidge") or label.begins_with("BrowHorn") or label.begins_with("MistSac") or label.begins_with("ArmorPlate") or label.begins_with("Crest"): profiles = smooth_profiles(profiles)
 	for ring: Vector4 in profiles: rings.append(ring*scale)
-	return surface(parent,label,rings,color,start,end,56 if label.begins_with("ArmorPlate") or label.begins_with("MistSac") else 28,caps)
+	# Refine the broad torso silhouette without increasing the head convex hull.
+	# Keep the authored profiles, UV layout, attachment frames and end caps.
+	var segments := 56 if label=="BodySurface" or label.begins_with("ArmorPlate") or label.begins_with("MistSac") else 28
+	return surface(parent,label,rings,color,start,end,segments,caps)
 
 ## Broad anatomical planes belong to the continuous skin, not floating detail meshes.
 ## Work in species-size coordinates so muscle relief has a consistent visual scale.
