@@ -1626,3 +1626,11 @@ EyeRidge从单独眉脊改成同一网格内的上下眼缘：各纵向剖面的
 - 第一版固定粗 mip 过滤使近景过度模糊，未保留；最终采用较细纹理尺度和自动距离过滤。实际对照 `D:/vscode/Shubian/outputs/verification/canvas-density-before.png` 与 `D:/vscode/Shubian/outputs/Shubian-fabric-detail.png`，并查看默认战斗相机。未改模型、UV、骨骼或相机参数。
 - 服装/蒙皮/材质 381 项检查通过（`regressions-20261028-023439-00d56e`）；最终尺度调整后材质 72 项再次通过（`regressions-20261028-023612-665de5`），实际渲染无着色器错误。
 - 默认 Compatibility、1280×720、五 AI 活跃的 30 秒部分场景采样，两秒后 5594 帧：平均 4.989 ms、P99 10.916 ms、最大 18.395 ms、超过 33 ms 为 0，日志无错误。日志 `D:/vscode/Shubian/outputs/verification/canvas-density-performance-30s.log`。无同条件旧版性能对照，不证明开销降低或既有长时间卡顿已消除。整体精细化目标继续保留。
+
+
+### 2026-10-28 玩家护甲表面磨损与粗糙度
+
+- 为肩/膝/胫/前臂护板增加原创 256×256 灰度色泽及粗糙度图，保持原苔灰金属基色，只提供细小擦痕、不均匀磨光和轻微氧化变化。使用约 20 cm 投影 UV 尺度，前臂局部纵向按 0.39 的物理缩放换算；不增加法线贴图或修改动画几何。
+- 纹理由 `tools/generate_ranger_metal.py` 可复现生成，导入设置启用 mipmaps。新增 UV 在肩甲转向前生成，固定带并网后重新补全。固定带仍与护甲共享反射材质，最终皮革拆分尚未完成。
+- 原生服装/蒙皮/织物/手部 444 项通过（`regressions-20261028-024148-89292f`）。新增运行/保存模型 16 项贴图、UV 非退化与 mip/粗糙度通道检查后，服装 75 项通过（`regressions-20261028-024430-647f69`）；中间新增测试的类型推导错误已修正，失败日志保留。
+- 已查看实际近景 `D:/vscode/Shubian/outputs/Shubian-shoulder-detail.png`、`Shubian-boots-detail.png`，对照 `verification/metal-finish-shoulder-before.png`。导出 254 个资源 ID 稳定，新增贴图作为外部资产引用；不是最终美术或长时间性能验收，整体目标继续保留。

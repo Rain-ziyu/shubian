@@ -99,6 +99,7 @@ static func bracer_plate(parent: MeshInstance3D) -> MeshInstance3D:
 	result.material_override.vertex_color_use_as_albedo = true
 	result.material_override.metallic = 0.45
 	result.material_override.roughness = 0.62
+	finish_metal(result,Vector2(0.20,0.20),Vector3(1,0.39,1))
 	return result
 
 static func bracer_wrist_lining(tool: SurfaceTool, ring: Vector4, segments: int) -> void:
@@ -383,6 +384,19 @@ static func thicken_plate(surface: ArrayMesh, thickness: float) -> ArrayMesh:
 		MetalMesh.bevel_triangle(st,b,d,c,outward)
 	return st.commit()
 
+static func finish_metal(part: MeshInstance3D, tile := Vector2(0.20,0.20), physical_scale := Vector3.ONE) -> void:
+	var arrays: Array = part.mesh.surface_get_arrays(0)
+	var uv := PackedVector2Array()
+	for point: Vector3 in arrays[Mesh.ARRAY_VERTEX]:
+		uv.append(Vector2(point.x*physical_scale.x/tile.x,point.y*physical_scale.y/tile.y)+Vector2(0.5,0.5))
+	arrays[Mesh.ARRAY_TEX_UV] = uv
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+	part.mesh = mesh
+	part.material_override.albedo_texture = preload("res://assets/textures/armor/ranger-metal-albedo.png")
+	part.material_override.roughness_texture = preload("res://assets/textures/armor/ranger-metal-roughness.png")
+	part.material_override.roughness_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_RED
+
 static func armor_plate(parent: Node3D, label: String, points: Array, color: Color) -> MeshInstance3D:
 	var center := Vector3.ZERO
 	for point: Vector3 in points: center += point
@@ -425,6 +439,7 @@ static func armor_plate(parent: Node3D, label: String, points: Array, color: Col
 	result.material_override.vertex_color_use_as_albedo = true
 	result.material_override.metallic = 0.45
 	result.material_override.roughness = 0.62
+	finish_metal(result)
 	parent.add_child(result)
 	return result
 
@@ -465,6 +480,7 @@ static func shin_straps(plate: MeshInstance3D, cloth: MeshInstance3D) -> void:
 	# Preserve the already generated plate normals; only the new strips need
 	# explicit flat normals, emitted by bevel_triangle.
 	plate.mesh = tool.commit()
+	finish_metal(plate)
 
 static func blob(parent: Node3D, label: String, center: Vector3, size: Vector3, color: Color) -> MeshInstance3D:
 	var result := V.piece(parent,center,size,color,true)
@@ -537,6 +553,7 @@ static func shoulder_fasteners(plate: MeshInstance3D) -> void:
 			MetalMesh.bevel_triangle(tool,rivet+Vector3(0,0,-0.0015),a,b,Vector3.FORWARD)
 			MetalMesh.bevel_triangle(tool,rivet+Vector3(0,0,0.001),b,a,Vector3.BACK)
 	plate.mesh = tool.commit()
+	finish_metal(plate)
 
 static func boot_shape(point: Vector3) -> Vector3:
 	# A narrower heel and fuller forefoot read as footwear, rather than a tube.

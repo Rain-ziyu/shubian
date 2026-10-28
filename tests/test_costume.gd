@@ -27,6 +27,8 @@ func run() -> void:
 	root.add_child(collar_saved)
 	check_collars(collar_saved.get_node("Torso"),"saved")
 	check_cape(collar_saved,"saved")
+	check_metal(rig.root,"runtime")
+	check_metal(collar_saved,"saved")
 	for side in [-1,1]:
 		for path in ["Bracer"+str(side),"Pelvis/BeltPouch"+str(side)]:
 			var live: MeshInstance3D = rig.root.get_node(path)
@@ -225,3 +227,20 @@ func check_collars(torso: Node3D, context: String) -> void:
 			maximum = maxf(maximum,gap)
 		check(supported and minimum>=0.0015 and maximum<=0.010,"continuous collar stays outside the actual undercoat surface: "+context+" / "+collar_label)
 		print("COLLAR_CLEARANCE: ",collar_label," min=",minimum," max=",maximum)
+
+func check_metal(model: Node3D, context: String) -> void:
+	for side in [-1,1]:
+		var parts: Array[MeshInstance3D] = [model.get_node("ShoulderPlate"+str(side)),model.get_node("Leg"+str(side)+"/Knee/KneePlate"),model.get_node("Leg"+str(side)+"/Knee/ShinPlate"),model.get_node("Bracer"+str(side)).get_child(0)]
+		for part in parts:
+			var material := part.material_override as StandardMaterial3D
+			var arrays: Array = part.mesh.surface_get_arrays(0)
+			var uv: PackedVector2Array = arrays[Mesh.ARRAY_TEX_UV]
+			var low := Vector2(INF,INF)
+			var high := Vector2(-INF,-INF)
+			for point in uv:
+				low = low.min(point)
+				high = high.max(point)
+			var mapped: bool = uv.size()==arrays[Mesh.ARRAY_VERTEX].size() and high.x-low.x>0.1 and high.y-low.y>0.1
+			var textures: bool = material!=null and material.albedo_texture!=null and material.roughness_texture!=null
+			if textures: textures = material.albedo_texture.get_image().has_mipmaps() and material.roughness_texture.get_image().has_mipmaps() and material.roughness_texture_channel==BaseMaterial3D.TEXTURE_CHANNEL_RED
+			check(mapped and textures,"metal maps retain nondegenerate UV and filtered roughness: "+context+" / "+str(part.name))
