@@ -13,21 +13,23 @@ static func geometry(side: int, opened: bool) -> Array:
 	var points: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 	var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
 	for index in indices:
-		st.set_color(Color("485247"))
+		st.set_color(Color("353e35").lerp(Color("485247"),smoothstep(-0.1,0.4,points[index].x)))
 		st.add_vertex(points[index]*Vector3(0.045,0.10,0.065)+Vector3(0.057,0,0))
 	for digit in 4:
 		var path: Array[Vector3] = []
 		for step in 13:
-			var angle := lerpf(-0.55,4.0,float(step)/12)
+			var end_angle: float = [2.25,2.35,2.20,1.95][digit]
+			var angle := lerpf(-0.55,end_angle,float(step)/12)
 			var closed := Vector3(cos(angle)*0.043,(digit-1.5)*0.023,sin(angle)*0.043)
-			var straight := Vector3(lerpf(0.04,-0.075,float(step)/12),(digit-1.5)*0.025,0.012*sin(PI*step/12.0))
+			var length: float = [0.105,0.115,0.108,0.085][digit]
+			var straight := Vector3(lerpf(0.04,0.04-length,float(step)/12),(digit-1.5)*0.025,0.012*sin(PI*step/12.0))
 			path.append(straight if opened else closed)
-		tube(st,path,0.010,Color("6d7566"))
+		tube(st,path,0.010,Color("4b5548"))
 	var thumb: Array[Vector3] = [Vector3(0.057,-0.047,0.018),Vector3(0.035,-0.058,0.040),Vector3(0,-0.055,0.047),Vector3(-0.034,-0.043,0.030)]
 	if opened: thumb = [Vector3(0.057,-0.047,0.018),Vector3(0.035,-0.065,0.030),Vector3(0.01,-0.08,0.027),Vector3(-0.014,-0.088,0.02)]
 	if side==1:
 		for i in thumb.size(): thumb[i].y = -thumb[i].y
-	tube(st,thumb,0.012,Color("57614f"))
+	tube(st,smooth_path(thumb),0.012,Color("48513f"))
 	st.generate_normals()
 	return st.commit_to_arrays()
 static func create(parent: Node3D, side: int) -> MeshInstance3D:
@@ -57,20 +59,37 @@ static func tube(st: SurfaceTool, path: Array[Vector3], radius: float, color: Co
 		var u := tangent.cross(Vector3.UP).normalized()
 		var v := tangent.cross(u).normalized()
 		var ring := PackedVector3Array()
-		for j in 10: ring.append(path[i]+radius*(u*cos(TAU*j/10)+v*sin(TAU*j/10)))
+		var t := float(i)/maxi(1,path.size()-1)
+		var taper := 1-0.65*smoothstep(0.80,1.0,t)
+		for j in 10: ring.append(path[i]+radius*taper*(u*cos(TAU*j/10)+v*sin(TAU*j/10)))
 		rings.append(ring)
 	for i in path.size()-1:
 		for j in 10:
 			var k := (j+1)%10
-			for point in [rings[i][j],rings[i][k],rings[i+1][j],rings[i][k],rings[i+1][k],rings[i+1][j]]:
-				st.set_color(color)
-				st.add_vertex(point)
+			for item in [[rings[i][j],i],[rings[i][k],i],[rings[i+1][j],i+1],[rings[i][k],i],[rings[i+1][k],i+1],[rings[i+1][j],i+1]]:
+				var t: float = float(item[1])/maxi(1,path.size()-1)
+				st.set_color(digit_color(color,t))
+				st.add_vertex(item[0])
 	for row in [0,path.size()-1]:
 		for j in 10:
 			var k := (j+1)%10
 			for point in ([path[row],rings[row][k],rings[row][j]] if row==0 else [path[row],rings[row][j],rings[row][k]]):
-				st.set_color(color)
+				st.set_color(digit_color(color,float(row)/maxi(1,path.size()-1)))
 				st.add_vertex(point)
+static func smooth_path(points: Array[Vector3]) -> Array[Vector3]:
+	var result: Array[Vector3] = []
+	for index in points.size()-1:
+		for step in 4:
+			result.append(points[index].cubic_interpolate(points[index+1],points[maxi(0,index-1)],points[mini(points.size()-1,index+2)],float(step)/4))
+	result.append(points[-1])
+	return result
+
+static func digit_color(glove: Color, t: float) -> Color:
+	var skin := preload("res://scripts/hunter_outfit.gd").SKIN_TONE
+	if t>0.55: return skin
+	if t>0.47: return glove.darkened(0.30)
+	return glove
+
 static func orient(hand: MeshInstance3D, elbow: Vector3, grip_axis: Vector3, grip := 1.0, finger_release := 0.0) -> void:
 	hand.basis = basis_for(hand.position,elbow,Vector3.RIGHT).slerp(basis_for(hand.position,elbow,grip_axis),grip)
 	hand.set_blend_shape_value(0,1-grip*(1-finger_release))

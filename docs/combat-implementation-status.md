@@ -1602,3 +1602,11 @@ EyeRidge从单独眉脊改成同一网格内的上下眼缘：各纵向剖面的
 - 宽披肩遮住了原肩甲大部分表面，因此将肩甲网格在原肩部锚点外侧的偏移从 80 mm 调整至 115 mm；最终近景可见护甲表面及固定带。运行锚点、举枪和格挡逻辑不变。带体仍共享护甲反射材质，尚非最终独立皮革材质。
 - 新增 `capture_character_turnaround.gd -- --shoulder` 实际近景输出 `D:/vscode/Shubian/outputs/Shubian-shoulder-detail.png`，已查看三视图与近景。初期类型推导及离树全局坐标导出错误均已排除，最终导出日志无错误；未保留尝试中的全局坐标贴合代码。
 - 最终五组原生回归 477 项全部通过：服装 59、反击衣料 41、装备切换 80、关节衣料 47、蒙皮 250。报告 `D:/vscode/Shubian/outputs/verification/regressions-20261028-021413-f70dfe/summary.json`。导出 254 个资源 ID 稳定。未做新的长时间性能/人工战斗验收，整体精细化目标仍保留。
+
+
+### 2026-10-28 玩家露指手套与握持外形
+
+- 对齐概念图露指手套：区分掌部深浅护层、手套端缘与肤色指端。四指闭合弧长从同一过长绕杆轨迹缩短，并区分各指长度，指端收圆；拇指路径增加平滑采样，减轻原少截面造成的尖锥感。原手部节点、握点、枪杆、手部坐标系和 OpenHand 通道名称不变。
+- 新增 `capture_character_turnaround.gd -- --hand`，生成闭合/释放直接姿态研究 `D:/vscode/Shubian/outputs/Shubian-hand-grip-study.png`；旧图 `verification/fingerless-hand-before.png`。已查看两种状态，近景仍可见简化截面与护腕关系，不能视为最终写实手部完成。
+- 最终五组原生回归 512 项通过：基础派生 109、装备切换 80、手部握持/枪杆间隙 55、蒙皮 250、历史交接兼容 18。报告 `D:/vscode/Shubian/outputs/verification/regressions-20261028-022125-7e9a25/summary.json`。旧交接测试不表示恢复已移除的投枪输入。
+- 导出仍为 254 个内嵌资源，稳定 ID 已归一。新增拇指采样保持闭/开形态顶点一一对应；未做人工实战或长时间性能验收，整体模型/视角精细化目标仍未完成。

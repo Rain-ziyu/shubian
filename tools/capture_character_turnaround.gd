@@ -99,6 +99,27 @@ func run() -> void:
 		for frame in 3: await process_frame
 		await RenderingServer.frame_post_draw
 		error = root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-equipment-armed-rear-detail.png" if armed else "res://../Shubian-equipment-rear-detail.png"))
+	if "--hand" in OS.get_cmdline_user_args():
+		layer.hide()
+		for index in [1,2]: holders[index].hide()
+		root.size = Vector2i(800,800)
+		root.content_scale_size = Vector2i(800,800)
+		rigs[0].weapon.position = Vector3(0.32,1.20,-0.32)
+		rigs[0].weapon.rotation = Vector3(-PI/2,0.40,-0.15)
+		var sheet := Image.create(1600,800,false,Image.FORMAT_RGB8)
+		for sample in 2:
+			Model.pose_arms(rigs[0],true,0,1.0,-1.0,float(sample))
+			var hand: Node3D = rigs[0].arms[1].hand
+			camera.position = hand.global_position+hand.global_basis*Vector3(0.22,0.18,0.30)
+			camera.look_at(hand.global_position+hand.global_basis.x*0.02)
+			camera.fov = 28
+			for frame in 3: await process_frame
+			await RenderingServer.frame_post_draw
+			var shot := root.get_texture().get_image()
+			shot.convert(Image.FORMAT_RGB8)
+			sheet.blit_rect(shot,Rect2i(0,0,800,800),Vector2i(sample*800,0))
+		error = sheet.save_png(ProjectSettings.globalize_path("res://../Shubian-hand-grip-study.png"))
+		print("CHARACTER_HAND_CAPTURE: ",error," / closed and released direct poses")
 	if "--shoulder" in OS.get_cmdline_user_args():
 		layer.hide()
 		for index in [1,2]: holders[index].hide()
