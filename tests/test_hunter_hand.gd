@@ -29,6 +29,19 @@ func run() -> void:
 		for side in [-1,1]:
 			var hand: MeshInstance3D = rig.arms[side].hand
 			check(hand.basis.y.dot(rig.weapon.basis.y)>0.999,"fingers align with shaft through rotation")
+			var forearm: MeshInstance3D = rig.arms[side].lower
+			var cuff_y := forearm.mesh.get_aabb().end.y
+			var axis: Vector3 = (rig.arms[side].elbow.position-hand.position).normalized()
+			var palm_clearance := INF
+			for point: Vector3 in forearm.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+				if absf(point.y-cuff_y)>0.00001: continue
+				palm_clearance = minf(palm_clearance,(forearm.to_global(point)-hand.global_position).dot(axis))
+			var local_axis := hand.global_basis.inverse()*axis
+			# Exact support of the palm ellipsoid in the forearm direction.
+			# The grip frame intentionally bends the wrist relative to this axis.
+			var palm_extent := Vector3(0.057,0,0).dot(local_axis)+Vector3(local_axis.x*0.0225,local_axis.y*0.05,local_axis.z*0.0325).length()
+			print("WRIST_CLEARANCE: ",side," cuff=",palm_clearance," palm=",palm_extent)
+			check(palm_clearance-palm_extent>0.005 and palm_clearance<0.12,"forearm cuff clears the palm through weapon rotation")
 			check(hand.basis.is_finite() and absf(hand.basis.determinant()-1)<0.001,"grip frame remains finite and right handed")
 			var label := "LeftHand" if side==-1 else "RightHand"
 			var bone: int = rig.skinning.skeleton.find_bone(label)

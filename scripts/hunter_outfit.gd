@@ -40,6 +40,9 @@ static func loft(parent: Node3D, label: String, rings: Array, color: Color, star
 			if label.begins_with("Bracer") and row==0:
 				bracer_lining(st,rings[0],segments)
 				continue
+			if label.begins_with("Bracer") and row==rings.size()-1:
+				bracer_wrist_lining(st,rings[row],segments)
+				continue
 			var ring: Vector4 = rings[row]
 			var center := Vector3(0,ring.x,ring.w)
 			for column in segments:
@@ -63,7 +66,7 @@ static func bracer_plate(parent: MeshInstance3D) -> MeshInstance3D:
 	# Keep the existing attachment and child order so saved skeletal clips remain valid.
 	var result := V.piece(parent,Vector3(0,-0.06,-0.063),Vector3(0.065,0.28,0.012),Color("626d61"))
 	result.scale = Vector3.ONE
-	var outline := [Vector2(-0.028,-0.36),Vector2(0.028,-0.36),Vector2(0.043,-0.27),Vector2(0.035,0.26),Vector2(0.022,0.36),Vector2(-0.022,0.36),Vector2(-0.035,0.26),Vector2(-0.043,-0.27)]
+	var outline := [Vector2(-0.028,-0.36),Vector2(0.028,-0.36),Vector2(0.043,-0.27),Vector2(0.035,0.22),Vector2(0.022,0.292),Vector2(-0.022,0.292),Vector2(-0.035,0.22),Vector2(-0.043,-0.27)]
 	var shell := parent.mesh.generate_triangle_mesh()
 	var edge: Array[Vector3] = []
 	for point: Vector2 in outline:
@@ -97,6 +100,25 @@ static func bracer_plate(parent: MeshInstance3D) -> MeshInstance3D:
 	result.material_override.metallic = 0.45
 	result.material_override.roughness = 0.62
 	return result
+
+static func bracer_wrist_lining(tool: SurfaceTool, ring: Vector4, segments: int) -> void:
+	# A hollow wrist cuff leaves the glove connector inside its visible rim.
+	var inner := Vector4(ring.x,0.039,0.036,ring.w)
+	for column in segments:
+		var angle := TAU*float(column)/segments
+		var next := TAU*float(column+1)/segments
+		var a := profile_point(ring,angle)
+		var b := profile_point(ring,next)
+		var c := profile_point(inner,angle)
+		var d := profile_point(inner,next)
+		tool.set_uv(Vector2(float(column)/segments,1))
+		MetalMesh.bevel_triangle(tool,a,c,b,Vector3.UP)
+		MetalMesh.bevel_triangle(tool,b,c,d,Vector3.UP)
+		var e := c-Vector3(0,0.08,0)
+		var f := d-Vector3(0,0.08,0)
+		var inward := -Vector3(sin(angle),0,cos(angle))
+		MetalMesh.bevel_triangle(tool,c,e,d,inward)
+		MetalMesh.bevel_triangle(tool,d,e,f,inward)
 
 static func bracer_lining(tool: SurfaceTool, ring: Vector4, segments: int) -> void:
 	# A real annular cuff and short inner wall replace the solid end disk.
@@ -132,7 +154,7 @@ static func finish_equipment(part: MeshInstance3D, label: String) -> void:
 	for point: Vector3 in arrays[Mesh.ARRAY_VERTEX]:
 		var shade := Color.WHITE
 		if label.begins_with("Bracer"):
-			var cuff := absf(point.y)>0.40
+			var cuff := point.y< -0.40 or point.y>0.16
 			shade = Color("c75f47") if cuff else Color("d6dfd5")
 			var panel := smoothstep(0.015,0.045,-point.z)*(1-smoothstep(0.38,0.45,absf(point.y)))
 			shade = shade.lerp(Color("79877f"),panel*0.65)

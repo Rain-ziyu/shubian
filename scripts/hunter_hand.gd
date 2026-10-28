@@ -15,6 +15,7 @@ static func geometry(side: int, opened: bool) -> Array:
 	for index in indices:
 		st.set_color(Color("353e35").lerp(Color("485247"),smoothstep(-0.1,0.4,points[index].x)))
 		st.add_vertex(points[index]*Vector3(0.045,0.10,0.065)+Vector3(0.057,0,0))
+	wrist(st)
 	for digit in 4:
 		var path: Array[Vector3] = []
 		for step in 13:
@@ -32,6 +33,16 @@ static func geometry(side: int, opened: bool) -> Array:
 	tube(st,smooth_path(thumb),0.012,Color("48513f"))
 	st.generate_normals()
 	return st.commit_to_arrays()
+static func wrist(tool: SurfaceTool) -> void:
+	var rings := [Vector3(0.062,0.037,0.023),Vector3(0.075,0.037,0.027),Vector3(0.090,0.034,0.028),Vector3(0.110,0.030,0.027),Vector3(0.125,0.026,0.025)]
+	tool.set_color(Color("353e35"))
+	for row in rings.size()-1:
+		for segment in 20:
+			for item in [Vector2i(row,segment),Vector2i(row+1,segment),Vector2i(row,segment+1),Vector2i(row,segment+1),Vector2i(row+1,segment),Vector2i(row+1,segment+1)]:
+				var ring: Vector3 = rings[item.x]
+				var angle := TAU*float(item.y)/20
+				tool.add_vertex(Vector3(ring.x,sin(angle)*ring.y,cos(angle)*ring.z))
+
 static func create(parent: Node3D, side: int) -> MeshInstance3D:
 	var closed := geometry(side,false)
 	var opened := geometry(side,true)
