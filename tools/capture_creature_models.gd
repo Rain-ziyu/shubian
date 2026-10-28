@@ -89,6 +89,21 @@ func run() -> void:
 		await RenderingServer.frame_post_draw
 		var result := root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-creature-"+str(data.species[index].id)+".png"))
 		if result!=OK: error = result
+		if "--feet" in OS.get_cmdline_user_args():
+			var quad: bool = "quadruped" in data.species[index].body
+			var foot_z := size*(-0.41 if quad else 0.18)
+			camera.position = holder.position+Vector3(size*0.70,size*0.30,foot_z-size*0.60)
+			camera.look_at(holder.position+Vector3(size*0.29,size*0.06,foot_z-size*0.10))
+			camera.fov = 28
+			title.text = "SHUBIAN / "+str(data.species[index].name)+" / FOOT STUDY"
+			for frame in 3: await process_frame
+			await RenderingServer.frame_post_draw
+			result = root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-creature-"+str(data.species[index].id)+"-feet.png"))
+			if result!=OK: error = result
+			camera.position = holder.position+Vector3(size*2.2,size*1.5,-size*3)
+			camera.look_at(holder.position+Vector3(0,size*0.60,0))
+			camera.fov = 35
+			title.text = "SHUBIAN / "+str(data.species[index].name)
 		if data.species[index].id=="mistfrill":
 			Model.animate(holder.get_node("CreatureMesh"),data.species[index],0,"windup",data.species[index].windup,0)
 			title.text = "SHUBIAN / MISTFRILL / LOADED THROAT SACS"

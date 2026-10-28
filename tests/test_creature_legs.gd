@@ -23,6 +23,8 @@ func run() -> void:
 		var model := Model.create(holder,species)
 		var saved = load("res://assets/models/"+str(species.id)+"-v1.tscn").instantiate()
 		holder.add_child(saved)
+		check_claw(model.get_node("Hind1/Claw0"),float(species.size),"runtime")
+		check_claw(saved.get_node("Hind1/Claw0"),float(species.size),"saved")
 		for side in [-1,1]:
 			var saved_leg: Node3D = saved.get_node("Hind"+str(side))
 			var skeleton := saved_leg.get_node_or_null("LegSkeleton") as Skeleton3D
@@ -54,6 +56,11 @@ func run() -> void:
 				var foot: MeshInstance3D = leg.get_node("Foot")
 				var sole := leg.to_global(skeleton.get_bone_global_pose(2)*skeleton.get_bone_global_rest(2).affine_inverse()*(foot.transform*Vector3(0,-0.5,0)))
 				check(absf(sole.y)<0.002,"idle or lowered charging torso keeps planted feet on flat floor")
+				var claw: MeshInstance3D = skeleton.get_node("Skin_Claw0")
+				var claw_arrays: Array = claw.mesh.surface_get_arrays(0)
+				var lowest := INF
+				for vertex in claw_arrays[Mesh.ARRAY_VERTEX].size(): lowest = minf(lowest,skinned_point(skeleton,claw_arrays,vertex).y)
+				check(lowest>= -0.002 and lowest<float(species.size)*0.04,"curved claw stays near the floor without piercing it during "+phase)
 		for leg_name in ["Hind-1","Hind1","Front-1","Front1"]:
 			var leg := model.get_node_or_null(leg_name) as Node3D
 			if not leg: continue
@@ -85,3 +92,16 @@ func run() -> void:
 	holder.queue_free()
 	await process_frame
 	quit(1 if failures else 0)
+
+func check_claw(claw: MeshInstance3D, size: float, context: String) -> void:
+	var points: PackedVector3Array = claw.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+	var edges := {}
+	for triangle in range(0,points.size(),3):
+		for edge in 3:
+			var a := str(Vector3i((points[triangle+edge]*1000000).round()))
+			var b := str(Vector3i((points[triangle+(edge+1)%3]*1000000).round()))
+			var key := a+"|"+b if a<b else b+"|"+a
+			edges[key] = int(edges.get(key,0))+1
+	var closed := true
+	for count in edges.values(): closed = closed and count==2
+	check(closed and points.size()>1000 and claw.mesh.get_aabb().position.z< -size*0.045,"closed keratin claw has a genuinely curved tip: "+context)

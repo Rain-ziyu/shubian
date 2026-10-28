@@ -1634,3 +1634,13 @@ EyeRidge从单独眉脊改成同一网格内的上下眼缘：各纵向剖面的
 - 纹理由 `tools/generate_ranger_metal.py` 可复现生成，导入设置启用 mipmaps。新增 UV 在肩甲转向前生成，固定带并网后重新补全。固定带仍与护甲共享反射材质，最终皮革拆分尚未完成。
 - 原生服装/蒙皮/织物/手部 444 项通过（`regressions-20261028-024148-89292f`）。新增运行/保存模型 16 项贴图、UV 非退化与 mip/粗糙度通道检查后，服装 75 项通过（`regressions-20261028-024430-647f69`）；中间新增测试的类型推导错误已修正，失败日志保留。
 - 已查看实际近景 `D:/vscode/Shubian/outputs/Shubian-shoulder-detail.png`、`Shubian-boots-detail.png`，对照 `verification/metal-finish-shoulder-before.png`。导出 254 个资源 ID 稳定，新增贴图作为外部资产引用；不是最终美术或长时间性能验收，整体目标继续保留。
+
+
+### 2026-10-28 五种怪物弯曲足爪
+
+- 足部直圆锥替换为闭合弯曲角质爪，13 个纵向截面、24 个环向段，保留根部、节点变换、足底与关节位置；爪尖向地面弯曲并保留间隙。迅龙保留原较长爪长，其他物种保留原长度。角质颜色由根部到尖部轻微变化。
+- 五个导出模型保持原资源数量和 ID；严格仅允许两种四足类各 12 个、三种双足类各 6 个 CylinderMesh→ArrayMesh 类型替换，其他资源类型/顺序不变，并保留旧牙齿节点名。
+- 六组原生回归 784 项通过：冲锋/扑跃承诺 54、足底锁定 40、腿部 304、表面 340、近战部位 28、投射物部位 18，报告 `regressions-20261028-024949-abf23b`。新增闭合曲爪及 idle/windup 实际蒙皮爪尖不穿地检查后，腿部 334 项通过，报告 `regressions-20261028-025233-95c1ed`。平地限定验证，不宣称覆盖所有坡地。
+- 新增 `capture_creature_models.gd -- --no-export --feet`，已查看苔甲龙与迅龙足部近景 `D:/vscode/Shubian/outputs/Shubian-creature-mossback-feet.png`、`Shubian-creature-reedclaw-feet.png`；原全身对照 `verification/curved-claws-mossback-before.png`。
+- 30 秒原生五 AI 活跃部分场景采样，两秒后平均 6.844 ms、P99 13.379 ms、最大 124.689 ms，有 1 帧超过 33 ms，因此性能门槛未通过。峰值记录主要位于 after_draw 墙钟分区，不能由此归因新几何/CPU/GPU。日志 `D:/vscode/Shubian/outputs/verification/curved-claws-performance-30s.log`，数据文件 `forest-performance-1793156080-87416.json`。报告写完后进程未正常退出，检查仍活跃后关闭本次专属进程（退出码 1），未重启覆盖数据；不作为正常退出或完整性能证明。
+- 整体模型/视角精细化及长时间性能目标仍未完成。
