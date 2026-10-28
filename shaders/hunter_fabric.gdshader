@@ -11,7 +11,7 @@ float fabric_noise(vec2 p) {
     return mix(mix(hash21(cell),hash21(cell+vec2(1.0,0.0)),f.x),mix(hash21(cell+vec2(0.0,1.0)),hash21(cell+vec2(1.0)),f.x),f.y);
 }
 void fragment() {
-    vec2 yarn = UV*vec2(90.0,120.0);
+    vec2 yarn = UV*vec2(360.0,480.0);
     float detail = 1.0-smoothstep(0.25,0.85,max(fwidth(yarn.x),fwidth(yarn.y)));
     float weave = sin(yarn.x*6.283185)*sin(yarn.y*6.283185)*detail;
     float damp = fabric_noise(UV*6.0+vec2(pattern_seed));
@@ -23,17 +23,19 @@ void fragment() {
     if (canvas_weight>0.0) {
         // Mirrored boundaries are continuous even when the generated source
         // is not pixel-perfect tileable. Keep the authored garment hue.
-        vec2 material_uv = UV*vec2(1.25,0.85)+vec2(pattern_seed*0.13,pattern_seed*0.07);
+        vec2 material_uv = UV*vec2(3.75,2.55)+vec2(pattern_seed*0.13,pattern_seed*0.07);
         material_uv = 1.0-abs(fract(material_uv*0.5)*2.0-1.0);
+        // Keep the photographed weave physically fine; the mipmapped
+        // anisotropic sampler handles distance instead of a fixed blur level.
         float canvas = dot(texture(canvas_map,material_uv).rgb,vec3(0.2126,0.7152,0.0722));
         float canvas_mid = OUTPUT_IS_SRGB ? 0.33 : 0.0984;
-        weathering = mix(1.0,clamp(canvas/canvas_mid,0.70,1.30),canvas_weight);
+        weathering = mix(1.0,clamp(canvas/canvas_mid,0.85,1.15),canvas_weight);
     }
     ALBEDO = base_color.rgb*shade*weathering;
     // Millimetre-scale relief in view space; derivatives also work on meshes
     // without tangents. Filtered yarn fades before it can shimmer at distance.
     float fold = sin(UV.x*25.13274+fabric_noise(UV*3.0+vec2(pattern_seed))*1.8);
-    float relief = weave*0.00018+fold*0.0007+damp*0.00035;
+    float relief = weave*0.00005+fold*0.0007+damp*0.00035;
     vec3 dx = dFdx(VERTEX);
     vec3 dy = dFdy(VERTEX);
     vec3 normal = normalize(NORMAL);
@@ -41,7 +43,9 @@ void fragment() {
     vec3 across_x = cross(normal,dx);
     float determinant = dot(dx,across_y);
     vec3 gradient = sign(determinant)*(dFdx(relief)*across_y+dFdy(relief)*across_x);
-    NORMAL = normalize(normal-gradient/max(abs(determinant),0.00000001));
+    vec3 bump = gradient/max(abs(determinant),0.00000001);
+    bump *= min(1.0,0.12/max(length(bump),0.00001));
+    NORMAL = normalize(normal-bump);
     ROUGHNESS = clamp(0.92-wetness*0.16+weave*0.025+(weathering-1.0)*0.08,0.74,0.97);
     SPECULAR = 0.22;
 }

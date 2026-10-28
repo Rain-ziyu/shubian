@@ -1618,3 +1618,11 @@ EyeRidge从单独眉脊改成同一网格内的上下眼缘：各纵向剖面的
 - 首次护板尖端恰在新袖口边界产生空射线命中，退至袖口内 3.1 mm 后最终导出正常，254 个资源 ID 保持稳定。
 - 六组相关检查中的派生/服装/肘部/装备/蒙皮共 640 项通过，报告 `regressions-20261028-022904-9f1af9`；该报告保留最初新增手部断言的 8 项失败。新增断言最初误用了相对握杆方向弯折的手掌 X 轴，现改为前臂方向，使用掌部椭球精确支撑长度检验。最终手部 63 项通过，报告 `regressions-20261028-023026-02d92b`；八种握姿测得袖口距离握点 101.4 mm，掌部沿该方向最大约 81.1 mm，净距至少约 20 mm。原手部检查要求未放宽。
 - 查看完整手部与持枪装备近景 `D:/vscode/Shubian/outputs/Shubian-hand-grip-study.png`、`Shubian-equipment-armed-detail.png`；旧对照 `verification/wrist-clearance-before.png`。近景仍可见简化掌形，未视为最终美术验收。未重测长时间性能，整体目标继续保留。
+
+
+### 2026-10-28 防雨帆布织纹尺度
+
+- 近景织纹过粗，类似厚针织物。将源纹理密度提高三倍、明暗偏差范围从 0.70–1.30 收窄至 0.85–1.15；程序织纹密度提高四倍、微起伏从 0.18 mm 降至 0.05 mm，并限制法线偏转。保留原蜡布图、苔绿基色、接缝、潮湿响应及 mip/各向异性过滤。
+- 第一版固定粗 mip 过滤使近景过度模糊，未保留；最终采用较细纹理尺度和自动距离过滤。实际对照 `D:/vscode/Shubian/outputs/verification/canvas-density-before.png` 与 `D:/vscode/Shubian/outputs/Shubian-fabric-detail.png`，并查看默认战斗相机。未改模型、UV、骨骼或相机参数。
+- 服装/蒙皮/材质 381 项检查通过（`regressions-20261028-023439-00d56e`）；最终尺度调整后材质 72 项再次通过（`regressions-20261028-023612-665de5`），实际渲染无着色器错误。
+- 默认 Compatibility、1280×720、五 AI 活跃的 30 秒部分场景采样，两秒后 5594 帧：平均 4.989 ms、P99 10.916 ms、最大 18.395 ms、超过 33 ms 为 0，日志无错误。日志 `D:/vscode/Shubian/outputs/verification/canvas-density-performance-30s.log`。无同条件旧版性能对照，不证明开销降低或既有长时间卡顿已消除。整体精细化目标继续保留。
