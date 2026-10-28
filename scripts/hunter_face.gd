@@ -16,7 +16,16 @@ static func sculpt(point: Vector3) -> Vector3:
 	var tip := 0.020*exp(-pow(x/0.015,2)-pow((point.y-1.670)/0.012,2))
 	var wing := 0.005*exp(-pow((x-0.013)/0.008,2)-pow((point.y-1.663)/0.007,2))
 	point.z -= front*(nose_bridge+tip+wing)
+	var lips := lip_weights(point)
+	point.z -= front*(0.0009*lips.x+0.0015*lips.y-0.0004*lips.z)
 	return point
+
+static func lip_weights(point: Vector3) -> Vector3:
+	var x := absf(point.x)
+	var envelope := 1-smoothstep(0.018,0.030,x)
+	var bow := 1.634+0.0012*exp(-pow((x-0.009)/0.006,2))
+	var seam := 1.631-0.0005*pow(clampf(x/0.026,0,1),2)
+	return Vector3(exp(-pow((point.y-bow)/0.0020,2)),exp(-pow((point.y-1.6285)/0.0022,2)),exp(-pow((point.y-seam)/0.0007,2)))*envelope
 
 static func seat_features(root: Node3D) -> void:
 	var head: MeshInstance3D = root.get_node("Head")

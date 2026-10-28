@@ -9,6 +9,14 @@ const Face = preload("res://scripts/hunter_face.gd")
 static func loft(parent: Node3D, label: String, rings: Array, color: Color, start := 0.0, end := TAU, segments := 28, caps := true) -> MeshInstance3D:
 	var garment := label in ["Undercoat","TrouserThigh","TrouserShin"]
 	if garment or label in ["Head","NoseBridge","HairKnot"] or label.begins_with("UpperArmSurface") or label.begins_with("RainCape"): rings = Profiles.smooth_profiles(rings)
+	if label=="Head":
+		# Sample the small lip relief without increasing density over the full scalp.
+		var refined := []
+		for row in range(rings.size()-1):
+			var steps := 4 if rings[row].x>=1.62 and rings[row].x<1.65 else 1
+			for step in steps: refined.append(Vector4(rings[row]).lerp(rings[row+1],float(step)/steps))
+		refined.append(rings[-1])
+		rings = refined
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_smooth_group(0)
@@ -764,7 +772,7 @@ static func create_head(root: Node3D, skin: Color) -> void:
 		Vector4(1.535,0.046,0.055,-0.008),Vector4(1.55,0.063,0.064,-0.012),Vector4(1.57,0.079,0.073,-0.012),Vector4(1.60,0.094,0.088,-0.01),Vector4(1.62,0.106,0.097,-0.009),
 		Vector4(1.65,0.127,0.110,-0.003),Vector4(1.68,0.137,0.118,0),Vector4(1.705,0.139,0.119,0.002),Vector4(1.73,0.137,0.118,0.004),Vector4(1.76,0.135,0.119,0.008),Vector4(1.79,0.13,0.117,0.012),
 		Vector4(1.85,0.105,0.093,0.015),Vector4(1.88,0.04,0.04,0.015)
-	],skin,0,TAU,96)
+	],skin,0,TAU,160)
 	for side in [-1,1]:
 		blob(root,"Ear"+str(side),Vector3(side*0.138,1.685,0.005),Vector3(0.045,0.078,0.035),skin.darkened(0.04))
 		blob(root,"EyeWhite"+str(side),Vector3(side*0.056,1.712,-0.106),Vector3(0.042,0.014,0.008),Color("c4c1ac"))
@@ -813,6 +821,8 @@ static func detail_face(root: Node3D, skin: Color) -> void:
 				color = skin.lerp(Color("b68873"),cheek*0.35).darkened(socket*0.055)
 				var nostril := exp(-pow((absf(point.x)-0.010)/0.004,2)-pow((point.y-1.657)/0.003,2))*front
 				color = color.lerp(Color("765b50"),nostril*0.50)
+				var lips := Face.lip_weights(point)*front
+				color = color.lerp(Color("9a7262"),lips.x*0.70).lerp(Color("b28a74"),lips.y*0.65).lerp(Color("57413b"),lips.z*0.65)
 			else:
 				var nostril := exp(-pow((absf(point.x)-0.010)/0.005,2)-pow((point.y-1.660)/0.005,2))*(1-smoothstep(-0.125,-0.117,point.z))
 				color = skin.lerp(Color("765b50"),nostril*0.55)

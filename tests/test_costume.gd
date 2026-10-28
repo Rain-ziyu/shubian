@@ -170,11 +170,14 @@ func check_face(model: Node3D, context: String) -> void:
 	check(rise>0.012 and rise<0.04,"nose tip is part of the continuous facial surface: "+context)
 	var visible_head := false
 	var duplicate_nose := false
+	var duplicate_lips := false
 	for part in model.get_node("Skeleton3D").get_children():
 		if not part is MeshInstance3D: continue
 		if part.get_meta("source_part","")=="Head": visible_head = part.visible
 		if part.get_meta("source_part","")=="NoseBridge": duplicate_nose = part.visible
+		if part.get_meta("source_part","") in ["UpperLip","LowerLip"]: duplicate_lips = duplicate_lips or part.visible
 	check(visible_head and not duplicate_nose,"visible skin draws the continuous face without the old intersecting nose: "+context)
+	check(visible_head and not duplicate_lips,"continuous lips do not draw separate floating lip solids: "+context)
 	for label in ["HairCap","HairKnot"]:
 		var hair: MeshInstance3D = model.get_node("Torso/"+label)
 		var material := hair.material_override as ShaderMaterial
