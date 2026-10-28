@@ -99,6 +99,18 @@ func run() -> void:
 		for frame in 3: await process_frame
 		await RenderingServer.frame_post_draw
 		error = root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-equipment-armed-rear-detail.png" if armed else "res://../Shubian-equipment-rear-detail.png"))
+	if "--shoulder" in OS.get_cmdline_user_args():
+		layer.hide()
+		for index in [1,2]: holders[index].hide()
+		root.size = Vector2i(1024,1024)
+		root.content_scale_size = Vector2i(1024,1024)
+		camera.position = Vector3(2.20,1.50,-0.50)
+		camera.look_at(Vector3(1.70,1.42,0))
+		camera.fov = 26
+		for frame in 3: await process_frame
+		await RenderingServer.frame_post_draw
+		error = root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-shoulder-detail.png"))
+		print("CHARACTER_SHOULDER_CAPTURE: ",error)
 	if "--boots" in OS.get_cmdline_user_args():
 		layer.hide()
 		for index in [1,2]: holders[index].hide()

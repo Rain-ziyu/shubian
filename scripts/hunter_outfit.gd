@@ -460,12 +460,13 @@ static func shoulder_plate(root: Node3D, side: int) -> MeshInstance3D:
 		Vector3(0.045,0.060,0.025),Vector3(0.085,0.015,0.008),
 		Vector3(0.085,-0.065,0),Vector3(0,-0.095,-0.005)
 	],Color("626d61"))
+	shoulder_fasteners(plate)
 	var arrays: Array = plate.mesh.surface_get_arrays(0)
 	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
 	var turn := Basis(Vector3.UP,-side*PI/2)
 	for index in vertices.size():
-		vertices[index] = turn*vertices[index]+Vector3(side*0.08,0,0)
+		vertices[index] = turn*vertices[index]+Vector3(side*0.115,0,0)
 		normals[index] = turn*normals[index]
 	arrays[Mesh.ARRAY_VERTEX] = vertices
 	arrays[Mesh.ARRAY_NORMAL] = normals
@@ -476,6 +477,44 @@ static func shoulder_plate(root: Node3D, side: int) -> MeshInstance3D:
 	plate.material_override.metallic = 0.35
 	plate.material_override.roughness = 0.65
 	return plate
+
+static func shoulder_fasteners(plate: MeshInstance3D) -> void:
+	# Integrate the concept's two dark-red retention tabs into the existing
+	# shoulder attachment, keeping bone order and all saved animation paths.
+	var arrays: Array = plate.mesh.surface_get_arrays(0)
+	var tool := SurfaceTool.new()
+	tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for index in arrays[Mesh.ARRAY_VERTEX].size():
+		tool.set_color(arrays[Mesh.ARRAY_COLOR][index])
+		tool.set_normal(arrays[Mesh.ARRAY_NORMAL][index])
+		tool.add_vertex(arrays[Mesh.ARRAY_VERTEX][index])
+	var metal: Color = plate.material_override.albedo_color
+	var leather := Color("604034")
+	for side in [-1,1]:
+		var center_x: float = side*0.045
+		var outline: Array[Vector3] = [Vector3(center_x-0.012,-0.035,-0.022),Vector3(center_x+0.012,-0.035,-0.022),Vector3(center_x+0.012,-0.099,-0.022),Vector3(center_x+0.007,-0.105,-0.022),Vector3(center_x-0.007,-0.105,-0.022),Vector3(center_x-0.012,-0.099,-0.022)]
+		var center := Vector3(center_x,-0.070,-0.022)
+		tool.set_color(Color(leather.r/metal.r,leather.g/metal.g,leather.b/metal.b))
+		for index in outline.size():
+			var a := outline[index]
+			var b := outline[(index+1)%outline.size()]
+			var back := Vector3(0,0,0.004)
+			MetalMesh.bevel_triangle(tool,center,a,b,Vector3.FORWARD)
+			MetalMesh.bevel_triangle(tool,center+back,b+back,a+back,Vector3.BACK)
+			var outward := ((a+b)*0.5-center).normalized()
+			MetalMesh.bevel_triangle(tool,a,a+back,b,outward)
+			MetalMesh.bevel_triangle(tool,b,a+back,b+back,outward)
+		# A small domed metal rivet binds the strap near the lower plate edge.
+		tool.set_color(Color("d6c9a9"))
+		var rivet := Vector3(center_x,-0.048,-0.024)
+		for segment in 16:
+			var angle := TAU*float(segment)/16
+			var next := TAU*float(segment+1)/16
+			var a := rivet+Vector3(cos(angle),sin(angle),0)*0.0035
+			var b := rivet+Vector3(cos(next),sin(next),0)*0.0035
+			MetalMesh.bevel_triangle(tool,rivet+Vector3(0,0,-0.0015),a,b,Vector3.FORWARD)
+			MetalMesh.bevel_triangle(tool,rivet+Vector3(0,0,0.001),b,a,Vector3.BACK)
+	plate.mesh = tool.commit()
 
 static func boot_shape(point: Vector3) -> Vector3:
 	# A narrower heel and fuller forefoot read as footwear, rather than a tube.
