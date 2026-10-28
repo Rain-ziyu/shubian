@@ -28,6 +28,12 @@ static func seat_features(root: Node3D) -> void:
 		var lower_lid := label.begins_with("LowerLid")
 		var brow := label.begins_with("Brow")
 		if not white and not iris and not glint and not lip and not upper_lid and not lower_lid and not brow: continue
+		if upper_lid or lower_lid:
+			part.mesh = eyelid_mesh(part,surface,upper_lid)
+			part.material_override.albedo_color = Color.WHITE
+			part.material_override.vertex_color_use_as_albedo = true
+			add_blink(part,surface,true)
+			continue
 		var side := -1.0 if label.ends_with("-1") else 1.0
 		var arrays: Array = (refine_patch(part.mesh) if brow or upper_lid or lower_lid else part.mesh).surface_get_arrays(0)
 		var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
@@ -69,6 +75,65 @@ static func seat_features(root: Node3D) -> void:
 			eye_material.set_shader_parameter("iris_tint",Color("6a503b"))
 			part.material_override = eye_material
 		if white or iris or glint or upper_lid or lower_lid: add_blink(part,surface,upper_lid or lower_lid)
+
+static func create_lid(parent: Node3D, label: String, skin: Color) -> void:
+	var part := MeshInstance3D.new()
+	part.name = label
+	var material := StandardMaterial3D.new()
+	material.albedo_color = skin
+	material.roughness = 0.65
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	part.material_override = material
+	parent.add_child(part)
+
+static func eyelid_mesh(part: MeshInstance3D, head: TriangleMesh, upper: bool) -> ArrayMesh:
+	# A rounded skin roll follows the same almond boundary as the eyeball.
+	# The outside and back of the roll disappear into the orbital skin.
+	var side := -1.0 if str(part.name).ends_with("-1") else 1.0
+	var direction := 1.0 if upper else -1.0
+	var width := 0.0035 if upper else 0.0025
+	var skin := part.material_override.albedo_color as Color
+	var inverse := part.transform.affine_inverse()
+	var rows: Array[PackedVector3Array] = []
+	var shades: Array[PackedColorArray] = []
+	for row in 41:
+		var t := float(row)/40
+		var x := (t*2-1)*0.021
+		var almond := pow(maxf(0,1-pow(x/0.021,2)),0.70)
+		var boundary := 1.712+direction*0.007*almond+side*x*(0.0016/0.042)
+		var taper := 0.06+0.94*pow(sin(t*PI),0.40)
+		var ring := PackedVector3Array()
+		var colors := PackedColorArray()
+		for column in 12:
+			var angle := TAU*column/12
+			var across := (cos(angle)+1)*0.5
+			var point := Vector3(side*0.056+x,boundary+direction*width*across*taper,0)
+			var hit := head.intersect_segment(Vector3(point.x,point.y,-1),Vector3(point.x,point.y,1))
+			var offset := lerpf(-0.0028,0.001,across)-sin(angle)*0.0018*taper
+			point.z = hit.position.z+offset if not hit.is_empty() else -0.11+offset
+			ring.append(inverse*point)
+			colors.append(skin.lerp(Color("ad8372"),(1-across)*0.25))
+		rows.append(ring)
+		shades.append(colors)
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_smooth_group(0)
+	for row in 40:
+		for column in 12:
+			for corner in [Vector2i(0,0),Vector2i(1,0),Vector2i(0,1),Vector2i(0,1),Vector2i(1,0),Vector2i(1,1)]:
+				var ring_index: int = row+corner.x
+				var across_index: int = (column+corner.y)%12
+				st.set_uv(Vector2(float(ring_index)/40,float(column+corner.y)/12))
+				st.set_color(shades[ring_index][across_index])
+				st.add_vertex(rows[ring_index][across_index])
+	for end in [0,40]:
+		for column in range(1,11):
+			for index in ([0,column+1,column] if end==0 else [0,column,column+1]):
+				st.set_uv(Vector2(float(end)/40,0.5))
+				st.set_color(shades[end][index])
+				st.add_vertex(rows[end][index])
+	st.generate_normals()
+	return st.commit()
 
 static func add_blink(part: MeshInstance3D, head: TriangleMesh, lid: bool) -> void:
 	var arrays: Array = part.mesh.surface_get_arrays(0)
