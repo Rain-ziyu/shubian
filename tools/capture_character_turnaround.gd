@@ -156,8 +156,9 @@ func run() -> void:
 		await RenderingServer.frame_post_draw
 		error = root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-fabric-detail.png"))
 		print("CHARACTER_FABRIC_CAPTURE: ",error)
-	if "--head" in OS.get_cmdline_user_args() or "--blink" in OS.get_cmdline_user_args() or "--eyes" in OS.get_cmdline_user_args() or "--mouth" in OS.get_cmdline_user_args():
+	if "--head" in OS.get_cmdline_user_args() or "--blink" in OS.get_cmdline_user_args() or "--eyes" in OS.get_cmdline_user_args() or "--mouth" in OS.get_cmdline_user_args() or "--brows" in OS.get_cmdline_user_args():
 		var blink_study := "--blink" in OS.get_cmdline_user_args()
+		var brow_study := "--brows" in OS.get_cmdline_user_args()
 		var close_feature := "--eyes" in OS.get_cmdline_user_args() or "--mouth" in OS.get_cmdline_user_args()
 		layer.hide()
 		for index in [1,2]: holders[index].hide()
@@ -177,7 +178,10 @@ func run() -> void:
 			camera.fov = 18
 		var sheet := Image.create(2304,768,false,Image.FORMAT_RGB8)
 		for index in 3:
-			holders[0].get_node("HunterRig").rotation.y = 0.0 if blink_study else ([0.0,0.35,-0.35][index] if close_feature else [0.0,0.65,PI/2][index])
+			holders[0].get_node("HunterRig").rotation.y = 0.0 if blink_study or brow_study else ([0.0,0.35,-0.35][index] if close_feature else [0.0,0.65,PI/2][index])
+			if brow_study:
+				camera.position = Vector3(1.35,1.67,[-1.0,-1.8,-2.8][index])
+				camera.look_at(Vector3(1.35,1.67,0))
 			if blink_study:
 				rigs[0].blink_clock = [0.0,3.27,3.42][index]-1.0/60
 				Model.Outfit.Face.animate(rigs[0],"idle",0,1.0/60)
@@ -187,7 +191,7 @@ func run() -> void:
 			var frame := root.get_texture().get_image()
 			frame.convert(Image.FORMAT_RGB8)
 			sheet.blit_rect(frame,Rect2i(0,0,768,768),Vector2i(index*768,0))
-		var study := "blink" if blink_study else ("eyes" if "--eyes" in OS.get_cmdline_user_args() else ("mouth" if "--mouth" in OS.get_cmdline_user_args() else "head"))
+		var study := "brow-distance" if brow_study else ("blink" if blink_study else ("eyes" if "--eyes" in OS.get_cmdline_user_args() else ("mouth" if "--mouth" in OS.get_cmdline_user_args() else "head")))
 		var result := sheet.save_png(ProjectSettings.globalize_path("res://../Shubian-ranger-"+study+"-study.png"))
 		print("CHARACTER_HEAD_CAPTURE: ",result)
 		if result!=OK: error = result

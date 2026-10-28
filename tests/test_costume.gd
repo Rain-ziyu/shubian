@@ -178,6 +178,26 @@ func check_face(model: Node3D, context: String) -> void:
 		if part.get_meta("source_part","") in ["UpperLip","LowerLip"]: duplicate_lips = duplicate_lips or part.visible
 	check(visible_head and not duplicate_nose,"visible skin draws the continuous face without the old intersecting nose: "+context)
 	check(visible_head and not duplicate_lips,"continuous lips do not draw separate floating lip solids: "+context)
+	for side in [-1,1]:
+		var brow: MeshInstance3D = model.get_node("Torso/Brow"+str(side))
+		var brow_material := brow.material_override as ShaderMaterial
+		check(brow_material!=null and brow_material.shader.resource_path=="res://shaders/hunter_brow.gdshader","eyebrow cutout retains its scene-lit material: "+context)
+		var fitted := true
+		var gap_min := INF
+		var gap_max := -INF
+		var missed := 0
+		for vertex: Vector3 in brow.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+			var point := head.to_local(brow.to_global(vertex))
+			var contact := surface.intersect_segment(Vector3(point.x,point.y,-1),Vector3(point.x,point.y,1))
+			fitted = fitted and not contact.is_empty()
+			if contact.is_empty(): missed += 1
+			else:
+				var gap: float = contact.position.z-point.z
+				gap_min = minf(gap_min,gap)
+				gap_max = maxf(gap_max,gap)
+				fitted = fitted and gap>0.0002 and gap<0.001
+		print("BROW_FIT: ",context," side=",side," min=",gap_min," max=",gap_max," missing=",missed)
+		check(fitted,"curved eyebrow follows the real face within one millimetre: "+context)
 	for label in ["HairCap","HairKnot"]:
 		var hair: MeshInstance3D = model.get_node("Torso/"+label)
 		var material := hair.material_override as ShaderMaterial

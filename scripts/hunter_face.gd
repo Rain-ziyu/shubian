@@ -48,6 +48,12 @@ static func seat_features(root: Node3D) -> void:
 			part.material_override.vertex_color_use_as_albedo = true
 			add_blink(part,surface,true)
 			continue
+		if brow:
+			part.mesh = eyebrow_mesh(part,surface)
+			var eyebrow_material := ShaderMaterial.new()
+			eyebrow_material.shader = preload("res://shaders/hunter_brow.gdshader")
+			part.material_override = eyebrow_material
+			continue
 		var side := -1.0 if label.ends_with("-1") else 1.0
 		var arrays: Array = (refine_patch(part.mesh) if brow or upper_lid or lower_lid else part.mesh).surface_get_arrays(0)
 		var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
@@ -99,6 +105,35 @@ static func create_lid(parent: Node3D, label: String, skin: Color) -> void:
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	part.material_override = material
 	parent.add_child(part)
+
+static func eyebrow_mesh(part: MeshInstance3D, head: TriangleMesh) -> ArrayMesh:
+	var side := -1.0 if str(part.name).ends_with("-1") else 1.0
+	var centers := [Vector2(0.025,1.744),Vector2(0.039,1.747),Vector2(0.054,1.748),Vector2(0.069,1.745),Vector2(0.086,1.739)]
+	var rows: Array[PackedVector3Array] = []
+	for row in 33:
+		var u := float(row)/32
+		var section := mini(int(u*4),3)
+		var t := u*4-section
+		var center := Vector2(centers[section]).cubic_interpolate(centers[section+1],centers[maxi(0,section-1)],centers[mini(4,section+2)],t)
+		var width := 0.005*(0.10+0.90*pow(sin(u*PI),0.65))
+		var ring := PackedVector3Array()
+		for column in 5:
+			var v := float(column)/4
+			var point := Vector3(side*center.x,center.y+(v-0.5)*width,0)
+			var hit := head.intersect_segment(Vector3(point.x,point.y,-1),Vector3(point.x,point.y,1))
+			point.z = hit.position.z-0.00045-0.00025*sin(v*PI) if not hit.is_empty() else -0.11
+			ring.append(part.transform.affine_inverse()*point)
+		rows.append(ring)
+	var tool := SurfaceTool.new()
+	tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+	tool.set_smooth_group(0)
+	for row in 32:
+		for column in 4:
+			for corner: Vector2i in [Vector2i(0,0),Vector2i(1,0),Vector2i(0,1),Vector2i(0,1),Vector2i(1,0),Vector2i(1,1)]:
+				tool.set_uv(Vector2(float(row+corner.x)/32,float(column+corner.y)/4))
+				tool.add_vertex(rows[row+corner.x][column+corner.y])
+	tool.generate_normals()
+	return tool.commit()
 
 static func eyelid_mesh(part: MeshInstance3D, head: TriangleMesh, upper: bool) -> ArrayMesh:
 	# A rounded skin roll follows the same almond boundary as the eyeball.
