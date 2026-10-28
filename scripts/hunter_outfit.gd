@@ -781,9 +781,9 @@ static func create_head(root: Node3D, skin: Color) -> void:
 	create_hair(root)
 	# Adult ranger proportions: reduce the head assembly around the neck joint,
 	# preserving the face/hair registration and leaving the collar anchor intact.
-	var scale := 0.86
+	var scale := 0.74
 	var pivot := Vector3(0,1.535,0)
-	var proportion := Transform3D(Basis.from_scale(Vector3.ONE*scale),pivot*(1-scale))
+	var proportion := Transform3D(Basis.from_scale(Vector3(scale*0.90,scale,scale)),pivot*(1-scale))
 	for index in range(first_part,root.get_child_count()):
 		var part := root.get_child(index) as Node3D
 		part.transform = proportion*part.transform

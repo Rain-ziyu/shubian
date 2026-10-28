@@ -1660,3 +1660,11 @@ EyeRidge从单独眉脊改成同一网格内的上下眼缘：各纵向剖面的
 - 两片领布接入保护内层织物材质，canvas_weight=0；不使用披肩的防雨蜡布色泽。严格保持 254 个资源数，仅两处 StandardMaterial3D→ShaderMaterial，其他资源类型/顺序不变并归一原 ID。
 - 初次相关验证中的衣领贴合、反击衣料、装备、蒙皮共 446 项通过；材质唯一失败为旧的织物部件固定数量 11。按新范围改为 13 并增加两片领布的独立材质要求后，最终衣领/服装 75、材质 82 项通过。报告 `regressions-20261028-030820-0c43b3`（保留旧数量失败）与 `regressions-20261028-031010-352099`（最终针对检查通过）。
 - 查看实际近景 `D:/vscode/Shubian/outputs/Shubian-fabric-detail.png`；对照 `verification/wrapped-collar-before.png`。未修改骨骼、瞄准、握点或战斗时序，未重测长时间性能。整体人物仍偏程序化，最终精细化目标继续保留。
+
+
+### 2026-10-28 玩家成年头肩比例
+
+- 当前头部相对肩宽与躯干仍偏大，改为围绕原颈部锚点的 0.74 统一缩放，水平额外乘 0.90（原为 0.86 均匀缩放）。面部、眼睑、耳朵、发帽与发髻作为同一组变换，保留相互注册、颈部锚点、身体骨段与握点。默认示例外观不作为固定性别/捏脸完成承诺。
+- 全量重生成 17 个预览动画，避免新头部静止变换与旧保存骨轨道错位；动画库 17 个、模型 254 个内嵌资源 ID 均归一。
+- 七组原生回归 598 项全部通过：基础派生 109、服装 75、反击衣料 41、装备切换 80、眨眼 40、保存反击连续性 3、蒙皮/17 预览动画 250。报告 `D:/vscode/Shubian/outputs/verification/regressions-20261028-031609-d203cd/summary.json`。
+- 已查看全身三视图、头部三角度和默认战斗相机挑斩冻结姿态；当前 `D:/vscode/Shubian/outputs/Shubian-character-turnaround.png`、`Shubian-ranger-head-study.png`，原三视图 `verification/adult-head-proportions-before.png`。面部和衣料仍偏程序化，尚非最终精细模型；未重测长期性能，整体目标继续保留。
