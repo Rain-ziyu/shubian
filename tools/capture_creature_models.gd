@@ -180,6 +180,15 @@ func run() -> void:
 			result = root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-creature-mossback-rear.png"))
 			if result!=OK: error = result
 		if data.species[index].id=="stormcrest":
+			Model.animate(holder.get_node("CreatureMesh"),data.species[index],0,"idle",0,0)
+			camera.position = holder.position+Vector3(size*3.6,size*0.90,0)
+			camera.look_at(holder.position+Vector3(0,size*0.60,0))
+			camera.fov = 36
+			title.text = "SHUBIAN / STORMCREST / CHEST - WAIST - PELVIS"
+			for frame in 3: await process_frame
+			await RenderingServer.frame_post_draw
+			result = root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-stormcrest-side.png"))
+			if result!=OK: error = result
 			camera.position = holder.position+Vector3(size*1.4,size*1.3,size*0.65)
 			camera.look_at(holder.position+Vector3(0,size*0.95,0))
 			camera.fov = 40

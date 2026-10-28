@@ -111,6 +111,15 @@ func run() -> void:
 					roots[row] = minf(float(roots.get(row,INF)),gap)
 				for gap: float in roots.values(): supported = supported and gap<=0.001*float(data.size)
 				check(supported and roots.size()>10,"live and saved orbital ridge embeds its root along the skull: "+str(data.id))
+		if data.id=="stormcrest":
+			for instance in [model,saved]:
+				var geometry: TriangleMesh = instance.get_node("BodySurface").mesh.generate_triangle_mesh()
+				var chest := geometry.intersect_segment(Vector3(float(data.size),0,-0.15*float(data.size)),Vector3(0,0,-0.15*float(data.size)))
+				var waist := geometry.intersect_segment(Vector3(float(data.size),0,0.20*float(data.size)),Vector3(0,0,0.20*float(data.size)))
+				check(not chest.is_empty() and not waist.is_empty() and waist.position.x/chest.position.x<0.85,"caster has a distinct waist behind the weight-bearing chest")
+				for phase in ["idle","windup","stagger"]:
+					Model.animate(instance,data,0,phase,0.6,0,Callable(),Callable(),false,{"body_surface_rotation":Vector3(0,0,0.15) if phase=="stagger" else Vector3.ZERO})
+					check_crest_roots(instance,float(data.size),phase)
 		if data.id=="reedclaw":
 			for instance in [model,saved]:
 				var points: PackedVector3Array = instance.get_node("BodySurface").mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
@@ -223,6 +232,24 @@ func check_orbital_opening(model: Node3D, size: float) -> void:
 		var opening := geometry.intersect_segment(Vector3(side*size,pupil.position.y,pupil.position.z),Vector3(0,pupil.position.y,pupil.position.z))
 		check(opening.is_empty(),"eyelids preserve a real aperture in front of the pupil")
 		check(eye.scale.x<=size*0.021 and pupil.scale.y<=size*0.0141,"eye globe and pupil fit the compact socket instead of protruding as a large ball")
+
+func check_crest_roots(model: Node3D, size: float, phase: String) -> void:
+	var body: MeshInstance3D = model.get_node("BodySurface")
+	var geometry := body.mesh.generate_triangle_mesh()
+	for index in 5:
+		var crest: MeshInstance3D = model.get_node("Crest"+str(index))
+		var box := crest.mesh.get_aabb()
+		var embedded := true
+		var samples := 0
+		for vertex: Vector3 in crest.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+			if absf(vertex.z-box.position.z)>0.0001 and absf(vertex.z-box.end.z)>0.0001: continue
+			var point := body.to_local(crest.to_global(vertex))
+			var high := geometry.intersect_segment(Vector3(point.x,size*2,point.z),Vector3(point.x,-size*2,point.z))
+			var low := geometry.intersect_segment(Vector3(point.x,-size*2,point.z),Vector3(point.x,size*2,point.z))
+			embedded = embedded and not high.is_empty() and not low.is_empty()
+			if not high.is_empty() and not low.is_empty(): embedded = embedded and point.y<high.position.y-size*0.001 and point.y>low.position.y+size*0.001
+			samples += 1
+		check(samples>100 and embedded,"crest end roots remain within the actual body during "+phase)
 
 func check_sac_roots(model: Node3D, size: float, side: int, phase: String) -> void:
 	var skull: MeshInstance3D = model.get_node("Neck/HeadSurface")

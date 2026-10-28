@@ -44,7 +44,9 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 	elif data.id=="thornhorn":
 		body_profile = [Vector4(-0.56,0.10,0.14,0.03),Vector4(-0.42,0.32,0.27,0.035),Vector4(-0.15,0.37,0.29,0.015),Vector4(0.20,0.28,0.22,0),Vector4(0.43,0.19,0.17,-0.025),Vector4(0.56,0.08,0.11,-0.025)]
 	elif data.id=="stormcrest":
-		body_profile = [Vector4(-0.56,0.10,0.15,0.04),Vector4(-0.42,0.30,0.30,0.035),Vector4(-0.15,0.37,0.32,0.025),Vector4(0.20,0.32,0.25,0),Vector4(0.43,0.23,0.18,-0.025),Vector4(0.56,0.08,0.11,-0.025)]
+		# A high ribcage and raised abdomen separate the chest, waist and pelvis.
+		# Keep the dorsal height under the crest roots and both end attachments.
+		body_profile = [Vector4(-0.56,0.10,0.15,0.04),Vector4(-0.44,0.27,0.27,0.06),Vector4(-0.30,0.335,0.295,0.05),Vector4(-0.12,0.34,0.29,0.055),Vector4(0.08,0.285,0.225,0.04),Vector4(0.22,0.265,0.205,0.025),Vector4(0.34,0.275,0.205,0.005),Vector4(0.43,0.23,0.18,-0.025),Vector4(0.56,0.08,0.11,-0.025)]
 	elif data.id=="reedclaw":
 		# Keep the shoulder and hip attachments, but tuck the abdomen between
 		# them: this fast leaper carries its mass in the hindquarters.
@@ -271,10 +273,12 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 			sac.material_override.albedo_color = Color("8d9e79")
 			sac.set_meta("rest_scale",sac.scale)
 	elif data.id=="stormcrest":
+		var dorsal_surface := body.mesh.generate_triangle_mesh()
 		for i in 5:
 			var height: float = [0.42,0.80,1.0,0.76,0.38][i]
 			var crest := Surface.profile(root,"Crest"+str(i),[Vector4(-0.125,0.012,0.015,0),Vector4(-0.075,0.026,0.09*height,0.08*height),Vector4(-0.025,0.030,0.22*height,0.21*height),Vector4(0.015,0.020,0.24*height,0.23*height),Vector4(0.055,0.010,0.20*height,0.20*height),Vector4(0.115,0.008,0.015,0)],s,c)
 			crest.position = Vector3(0,y+s*0.22,(i-2)*s*0.19)
+			crest.set_meta("body_bind",body.transform.affine_inverse()*crest.transform)
 			var arrays: Array = crest.mesh.surface_get_arrays(0)
 			var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 			var colors := PackedColorArray()
@@ -285,6 +289,13 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 				# Taper them into the root and tip, preserving the weakpoint height.
 				var rib := pow(0.5+0.5*cos((vertex.z-vertex.y*0.10)*TAU/0.045),6)
 				vertex.x += signf(vertex.x)*0.004*rise*rib*smoothstep(0.005,0.020,absf(vertex.x))
+				var root_weight := 1-smoothstep(0.03*height,0.12*height,vertex.y)
+				if root_weight>0:
+					var point: Vector3 = body.transform.affine_inverse()*crest.transform*(vertex*s)
+					var contact := dorsal_surface.intersect_segment(Vector3(point.x,s*2,point.z),Vector3(point.x,-s*2,point.z))
+					assert(not contact.is_empty(),"Dorsal crest roots require actual back support")
+					var inside: float = (contact.position.y-s*0.008-s*0.22)/s
+					vertex.y = lerpf(vertex.y,minf(vertex.y,inside),root_weight)
 				vertices[index] = vertex*s
 				var tint := c.darkened(0.12).lerp(Color("6b8e8c"),smoothstep(0.02,0.40*height,vertex.y))
 				colors.append(tint.darkened((1-rib)*rise*0.16))
@@ -466,10 +477,10 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 		# A delayed counter-swing balances the head without moving planted feet.
 		var balance := smoothstep(0.025,0.09,impact_age)*(1-smoothstep(0.09,0.26,impact_age))
 		tail.rotation.y -= impulse.y*0.65*balance
-	if data.id=="mossback":
+	if data.id in ["mossback","stormcrest"]:
 		var trunk: MeshInstance3D = root.get_node("BodySurface")
 		for index in 5:
-			var plate: MeshInstance3D = root.get_node("ArmorPlate"+str(index))
+			var plate: MeshInstance3D = root.get_node(("ArmorPlate" if data.id=="mossback" else "Crest")+str(index))
 			var bind: Transform3D = plate.get_meta("body_bind")
 			var attached := trunk.transform*bind
 			if not plate.transform.is_equal_approx(attached): plate.transform = attached
