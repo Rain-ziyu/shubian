@@ -120,6 +120,23 @@ func run() -> void:
 			sheet.blit_rect(shot,Rect2i(0,0,800,800),Vector2i(sample*800,0))
 		error = sheet.save_png(ProjectSettings.globalize_path("res://../Shubian-hand-grip-study.png"))
 		print("CHARACTER_HAND_CAPTURE: ",error," / closed and released direct poses")
+	if "--mount" in OS.get_cmdline_user_args():
+		layer.hide()
+		for index in [1,2]: holders[index].hide()
+		root.size = Vector2i(1024,1024)
+		root.content_scale_size = Vector2i(1024,1024)
+		var sheet := Image.create(2048,1024,false,Image.FORMAT_RGB8)
+		for index in 2:
+			camera.position = [Vector3(1.70,1.65,1.05),Vector3(0.65,1.65,0.95)][index]
+			camera.look_at(Vector3(1.18,1.52,0.20))
+			camera.fov = 28
+			for frame in 3: await process_frame
+			await RenderingServer.frame_post_draw
+			var frame := root.get_texture().get_image()
+			frame.convert(Image.FORMAT_RGB8)
+			sheet.blit_rect(frame,Rect2i(0,0,1024,1024),Vector2i(index*1024,0))
+		error = sheet.save_png(ProjectSettings.globalize_path("res://../Shubian-back-mount-study.png"))
+		print("CHARACTER_MOUNT_CAPTURE: ",error)
 	if "--shoulder" in OS.get_cmdline_user_args():
 		layer.hide()
 		for index in [1,2]: holders[index].hide()

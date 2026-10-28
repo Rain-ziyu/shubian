@@ -34,6 +34,21 @@ func run() -> void:
 	world.add_child(stored)
 	for model_root: Node3D in [p.rig.root,stored]:
 		var mesh_source: MeshInstance3D = model_root.get_node("Torso/BackMountRail")
+		var edges := {}
+		var faces := mesh_source.mesh.get_faces()
+		for triangle in range(0,faces.size(),3):
+			for edge in 3:
+				var a := str(Vector3i((faces[triangle+edge]*1000000).round()))
+				var b := str(Vector3i((faces[triangle+(edge+1)%3]*1000000).round()))
+				var key := a+"|"+b if a<b else b+"|"+a
+				edges[key] = int(edges.get(key,0))+1
+		var closed := true
+		for count in edges.values(): closed = closed and count==2
+		check(closed,"beveled rail and supports retain closed solid geometry")
+		for label in ["BackMountRail","BackMountClips"]:
+			var fitting: MeshInstance3D = model_root.get_node("Torso/"+label)
+			var material := fitting.material_override as StandardMaterial3D
+			check(material!=null and material.albedo_texture!=null and material.roughness_texture!=null and material.roughness_texture.get_image().has_mipmaps(),"back fitting retains filtered metal maps: "+label)
 		for anchor in [Vector3(-0.12,1.44,0.10),Vector3(-0.16,1.60,0.15),carry*Vector3(-0.06,0.60,0),Vector3(-0.16,1.44,0.07),Vector3(-0.20,1.58,0.16),carry*Vector3(-0.08,0.48,0)]:
 			var nearest := INF
 			for vertex: Vector3 in mesh_source.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:

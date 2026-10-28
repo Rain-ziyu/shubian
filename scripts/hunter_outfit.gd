@@ -721,6 +721,8 @@ static func back_mount(root: Node3D) -> void:
 	var rail := V.piece(root,Vector3(center.x,center.y,center.z),Vector3(0.055,0.24,0.10),Color("586157"))
 	rail.name = "BackMountRail"
 	rail.rotation.z = 0.35
+	rail.mesh = preload("res://scripts/equipment_box.gd").create(Vector3(0.055,0.24,0.10),0.004)
+	rail.scale = Vector3.ONE
 	# Two short stand-offs visibly secure the raised rail through the cape to
 	# the upper-back harness; combine them into the existing rail skin part.
 	var support := SurfaceTool.new()
@@ -728,9 +730,13 @@ static func back_mount(root: Node3D) -> void:
 	support.append_from(rail.mesh,0,Transform3D.IDENTITY)
 	for pair in [[Vector3(-0.12,1.44,0.10),Vector3(-0.16,1.60,0.15)],[Vector3(-0.16,1.60,0.15),carry*Vector3(-0.06,0.60,0)],[Vector3(-0.16,1.44,0.07),Vector3(-0.20,1.58,0.16)],[Vector3(-0.20,1.58,0.16),carry*Vector3(-0.08,0.48,0)]]:
 		var axis: Vector3 = pair[1]-pair[0]
-		var strut := Transform3D(Basis(Quaternion(Vector3.UP,axis.normalized())).scaled_local(Vector3(0.018,axis.length(),0.018)),(pair[0]+pair[1])*0.5)
-		support.append_from(BoxMesh.new(),0,rail.transform.affine_inverse()*strut)
+		var strut := Transform3D(Basis(Quaternion(Vector3.UP,axis.normalized())),(pair[0]+pair[1])*0.5)
+		var fitting := preload("res://scripts/equipment_box.gd").create(Vector3(0.018,axis.length(),0.018),0.0025)
+		support.append_from(fitting,0,rail.transform.affine_inverse()*strut)
 	rail.mesh = support.commit()
+	rail.material_override.metallic = 0.35
+	rail.material_override.roughness = 0.62
+	finish_metal(rail)
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_smooth_group(0)
@@ -764,6 +770,9 @@ static func back_mount(root: Node3D) -> void:
 	clips.mesh = st.commit()
 	clips.material_override = V.mat(Color("777c70"))
 	clips.material_override.cull_mode = BaseMaterial3D.CULL_DISABLED
+	clips.material_override.metallic = 0.50
+	clips.material_override.roughness = 0.58
+	finish_metal(clips)
 	root.add_child(clips)
 
 static func create_head(root: Node3D, skin: Color) -> void:
