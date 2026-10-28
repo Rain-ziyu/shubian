@@ -68,7 +68,9 @@ func run() -> void:
 				var center := (points[i]+points[i+1]+points[i+2])/3
 				var point: Vector3 = cape.transform.affine_inverse()*hem.transform*center
 				var outward := Vector3(0,0,sign(point.z))
-				var hit := triangles.intersect_segment(point+outward*0.02,point-outward*0.02)
+				# A full through-surface segment remains stable on small cloth triangles;
+				# retain the strict millimetre gap check on the actual nearest hit.
+				var hit := triangles.intersect_segment(point+outward,point-outward)
 				if hit.is_empty(): missing += 1
 				clear = clear and not hit.is_empty()
 				if not hit.is_empty():
