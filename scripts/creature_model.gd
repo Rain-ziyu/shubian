@@ -239,7 +239,7 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 		Surface.frill(neck,s,c.lightened(0.08))
 		for side in [-1,1]:
 			var sac := Surface.profile(neck,"MistSac"+str(side),[Vector4(-0.125,0.006,0.012,0.010),Vector4(-0.09,0.038,0.062,0),Vector4(-0.045,0.065,0.095,-0.005),Vector4(0,0.070,0.100,-0.010),Vector4(0.055,0.055,0.080,-0.005),Vector4(0.095,0.030,0.045,0.005),Vector4(0.125,0.006,0.012,0.010)],s,Color.WHITE)
-			sac.position = Vector3(side*s*0.13,-s*0.015,-s*0.24)
+			sac.position = Vector3(side*s*0.21,-s*0.015,-s*0.24)
 			var arrays: Array = sac.mesh.surface_get_arrays(0)
 			var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 			var colors := PackedColorArray()
@@ -256,8 +256,8 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 				local += radial*(0.004*fold-0.001)*envelope
 				# Continuous sac ends tuck into the throat instead of ending as
 				# a separate hanging sphere. Expansion draws the roots farther in.
-				local.x -= side*0.065*root_blend
-				local.y += 0.075*root_blend
+				local.x -= side*0.12*root_blend
+				local.y += 0.10*root_blend
 				vertices[vertex_index] = local*s
 				colors.append(Color.WHITE.lerp(attachment,root_blend*0.85).darkened(0.06+0.12*fold))
 			arrays[Mesh.ARRAY_COLOR] = colors

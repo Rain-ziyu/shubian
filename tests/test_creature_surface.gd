@@ -239,3 +239,15 @@ func check_sac_roots(model: Node3D, size: float, side: int, phase: String) -> vo
 		if not top.is_empty() and not bottom.is_empty(): embedded = embedded and point.y<top.position.y-size*0.001 and point.y>bottom.position.y+size*0.001
 		samples += 1
 	check(samples>100 and embedded,"both closed sac attachment caps stay inside the actual throat during "+phase)
+	# A frontal view must retain an open central mouth, including at full pressure.
+	var sac_surface := sac.mesh.generate_triangle_mesh()
+	var into_sac := sac.transform.affine_inverse()
+	var clear := true
+	for x in [0.04,0.065,0.08]:
+		for y in [-0.03,-0.065,-0.10]:
+			var from := into_sac*(Vector3(side*x,y,-0.55)*size)
+			var to := into_sac*(Vector3(side*x,y,-0.125)*size)
+			var contact := sac_surface.intersect_segment(from,to)
+			if not contact.is_empty(): print("SAC_MOUTH_OVERLAP: ",phase," side=",side," point=",sac.transform*contact.position)
+			clear = clear and contact.is_empty()
+	check(clear,"lateral sac does not protrude into the frontal mouth opening during "+phase)

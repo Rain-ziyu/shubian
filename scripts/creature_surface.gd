@@ -158,31 +158,39 @@ static func mouth_lining(jaw: MeshInstance3D, hinge: Vector3, scale: float, head
 	# Fit a shallow inner lining to the actual jaw surface, rather than suspending
 	# a flat slab above it. No per-frame projection or new contact geometry.
 	var sections := [Vector2(-0.65,0.006),Vector2(-0.60,0.055*head_width),Vector2(-0.53,0.085*head_width),Vector2(-0.44,0.11*head_width),Vector2(-0.34,0.115*head_width),Vector2(-0.24,0.09*head_width),Vector2(-0.16,0.045*head_width),Vector2(-0.125,0.008)]
+	var sampled: Array[Vector2] = []
+	for segment in range(sections.size()-1):
+		for step in 6:
+			sampled.append(Vector2(sections[segment]).lerp(sections[segment+1],float(step)/6))
+	sampled.append(sections[-1])
 	var surface_mesh := jaw.mesh.generate_triangle_mesh()
 	var rows := []
-	for section: Vector2 in sections:
+	for section: Vector2 in sampled:
 		var row := []
-		for column in 9:
-			var across := float(column)/8*2-1
+		for column in 17:
+			var across := float(column)/16*2-1
 			var x := across*section.y*scale
 			var z := section.x*scale-hinge.z
 			var contact := surface_mesh.intersect_segment(Vector3(x,-scale*0.25 if upper else scale*0.25,z),Vector3(x,scale*0.40 if upper else -scale*0.25,z))
 			assert(not contact.is_empty(),"Mouth lining must stay on its corresponding jaw surface")
 			var central := 1-smoothstep(0.2,0.9,absf(across))
 			var tongue := central*smoothstep(-0.65,-0.53,section.x)*(1-smoothstep(-0.26,-0.125,section.x))
-			var point: Vector3 = contact.position+hinge+Vector3.UP*scale*(-0.0015 if upper else 0.0015+0.004*tongue)
-			var color := Color("302830").lerp(Color("66575f"),tongue*0.50)
+			var groove := exp(-pow(across/0.12,2))*tongue
+			var point: Vector3 = contact.position+hinge+Vector3.UP*scale*(0.0015+0.004*tongue-0.0006*groove)
+			var color := Color("51454d").lerp(Color("89757c"),tongue*0.75).darkened(groove*0.06)
 			if upper:
 				var depth := smoothstep(-0.65,-0.125,section.x)
-				var fold := 0.5+0.5*cos((section.x+0.65)*90)
-				color = Color("483a40").lerp(Color("211d24"),depth).lightened(0.045*fold*central*(1-depth))
-			row.append({"point":point,"color":color,"uv":Vector2(float(column)/8,(section.x+0.65)/0.525)})
+				var fold := pow(0.5+0.5*cos((section.x+0.65)*TAU*18+absf(across)*1.2),4)
+				var relief := fold*central*(1-depth)
+				point.y = contact.position.y+hinge.y-scale*(0.0012+0.0013*relief)
+				color = Color("6b5963").lerp(Color("302a33"),depth).lightened(0.07*relief)
+			row.append({"point":point,"color":color,"uv":Vector2(float(column)/16,(section.x+0.65)/0.525)})
 		rows.append(row)
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.set_smooth_group(0)
 	for row in range(rows.size()-1):
-		for column in 8:
+		for column in 16:
 			var quad: Array = [rows[row][column],rows[row][column+1],rows[row+1][column],rows[row][column+1],rows[row+1][column+1],rows[row+1][column]]
 			if upper: quad.reverse()
 			for item in quad:

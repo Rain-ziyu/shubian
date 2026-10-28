@@ -18,7 +18,7 @@ static func create(neck: Node3D, skull: MeshInstance3D, jaw: MeshInstance3D, siz
 	var material := StandardMaterial3D.new()
 	material.vertex_color_use_as_albedo = true
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
-	material.roughness = 0.62
+	material.roughness = 0.46
 	for side in [-1,1]:
 		var rows := []
 		for section: Vector2 in sections:
@@ -50,7 +50,7 @@ static func create(neck: Node3D, skull: MeshInstance3D, jaw: MeshInstance3D, siz
 					tool.set_weights(PackedFloat32Array([1-vertex.weight,vertex.weight,0,0]))
 					tool.set_uv(Vector2(float(cell.x)/(rows.size()-1),vertex.weight))
 					var fold := sin(PI*vertex.weight)
-					tool.set_color(Color("30292c").lerp(Color("65524f"),fold*0.40))
+					tool.set_color(Color("51464d").lerp(Color("77656a"),fold*0.55))
 					tool.add_vertex(vertex.point)
 		tool.generate_normals()
 		var cheek := MeshInstance3D.new()
