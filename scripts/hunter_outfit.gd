@@ -465,6 +465,29 @@ static func finish_metal(part: MeshInstance3D, tile := Vector2(0.20,0.20), physi
 	part.material_override.roughness_texture = preload("res://assets/textures/armor/ranger-metal-roughness.png")
 	part.material_override.roughness_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_RED
 
+static func fit_belt_fitting(part: MeshInstance3D, belt: MeshInstance3D) -> void:
+	var surface := belt.mesh.generate_triangle_mesh()
+	var reference := belt.transform.affine_inverse()*part.position
+	var center := surface.intersect_segment(Vector3(reference.x,reference.y,-1),Vector3(reference.x,reference.y,1))
+	assert(not center.is_empty(),"Buckle center requires belt support")
+	var center_z: float = (belt.transform*Vector3(center.position)).z
+	var arrays: Array = part.mesh.surface_get_arrays(0)
+	var points: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	for index in points.size():
+		var point := part.transform*points[index]
+		var probe := belt.transform.affine_inverse()*Vector3(point.x,part.position.y,0)
+		var hit := surface.intersect_segment(Vector3(probe.x,probe.y,-1),Vector3(probe.x,probe.y,1))
+		assert(not hit.is_empty(),"Buckle width must remain supported by the leather belt")
+		point.z += (belt.transform*Vector3(hit.position)).z-center_z
+		points[index] = part.transform.affine_inverse()*point
+	arrays[Mesh.ARRAY_VERTEX] = points
+	var fitted := ArrayMesh.new()
+	fitted.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+	var normals := SurfaceTool.new()
+	normals.create_from(fitted,0)
+	normals.generate_normals()
+	part.mesh = normals.commit()
+
 static func armor_plate(parent: Node3D, label: String, points: Array, color: Color) -> MeshInstance3D:
 	var center := Vector3.ZERO
 	for point: Vector3 in points: center += point
@@ -727,9 +750,27 @@ static func create(root: Node3D) -> Dictionary:
 	ribbon(root,"CrossedCollar",[Vector3(-0.07,1.47,-0.067),Vector3(0,1.40,-0.13),Vector3(0.10,1.32,-0.106)],0.030,Color("666952"))
 	ribbon(root,"InnerCollar",[Vector3(0.07,1.47,-0.075),Vector3(0.012,1.412,-0.139),Vector3(-0.012,1.392,-0.132)],0.024,Color("454e41"))
 	loft(root,"WaistSash",[Vector4(0.94,0.181,0.123,0),Vector4(1.025,0.177,0.12,0)],red)
-	loft(root,"Belt",[Vector4(0.982,0.188,0.131,0),Vector4(1.012,0.184,0.127,0)],Color("34322b"))
-	V.piece(root,Vector3(0.055,0.997,-0.133),Vector3(0.07,0.044,0.013),Color("928d74"))
-	V.piece(root,Vector3(0.055,0.997,-0.141),Vector3(0.046,0.025,0.008),dark)
+	var belt := loft(root,"Belt",[Vector4(0.982,0.186,0.129,0),Vector4(0.984,0.1877,0.1307,0),Vector4(1.010,0.1843,0.1273,0),Vector4(1.012,0.182,0.125,0)],Color("34322b"),0,TAU,64)
+	var buckle := V.piece(root,Vector3(0.055,0.997,-0.133),Vector3(0.07,0.044,0.013),Color("928d74"))
+	buckle.mesh = preload("res://scripts/equipment_box.gd").frame(Vector3(0.07,0.044,0.013),Vector2(0.046,0.025),0.0014)
+	buckle.scale = Vector3.ONE
+	buckle.set_meta("belt_fitting","frame")
+	var tongue := V.piece(root,Vector3(0.055,0.997,-0.141),Vector3(0.046,0.025,0.008),Color("928d74"))
+	tongue.mesh = preload("res://scripts/equipment_box.gd").create(Vector3(0.053,0.004,0.010),0.001)
+	var tongue_arrays: Array = tongue.mesh.surface_get_arrays(0)
+	var tongue_points: PackedVector3Array = tongue_arrays[Mesh.ARRAY_VERTEX]
+	for index in tongue_points.size(): tongue_points[index].x -= 0.0015
+	tongue_arrays[Mesh.ARRAY_VERTEX] = tongue_points
+	var tongue_mesh := ArrayMesh.new()
+	tongue_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,tongue_arrays)
+	tongue.mesh = tongue_mesh
+	tongue.scale = Vector3.ONE
+	tongue.set_meta("belt_fitting","tongue")
+	for fitting in [buckle,tongue]:
+		fit_belt_fitting(fitting,belt)
+		fitting.material_override.metallic = 0.65
+		fitting.material_override.roughness = 0.58
+		finish_metal(fitting,Vector2(0.05,0.05))
 	var shoulders := {}
 	var fasteners := {}
 	for side in [-1,1]:

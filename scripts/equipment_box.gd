@@ -50,3 +50,29 @@ static func create(size: Vector3, bevel: float) -> ArrayMesh:
 static func quad(tool: SurfaceTool, points: Array[Vector3], normal: Vector3) -> void:
 	Triangles.bevel_triangle(tool,points[0],points[1],points[2],normal)
 	Triangles.bevel_triangle(tool,points[0],points[2],points[3],normal)
+
+static func frame(size: Vector3, opening: Vector2, bevel: float) -> ArrayMesh:
+	assert(opening.x<size.x-4*bevel and opening.y<size.y-4*bevel,"Buckle opening requires solid beveled walls")
+	var outer := Vector2(size.x,size.y)*0.5
+	var inner := opening*0.5
+	var depth := size.z*0.5
+	# Eight cross-section loops form one closed ring, including its open center.
+	var profiles := [Vector3(outer.x-bevel,outer.y-bevel,-depth),Vector3(outer.x,outer.y,-depth+bevel),Vector3(outer.x,outer.y,depth-bevel),Vector3(outer.x-bevel,outer.y-bevel,depth),Vector3(inner.x+bevel,inner.y+bevel,depth),Vector3(inner.x,inner.y,depth-bevel),Vector3(inner.x,inner.y,-depth+bevel),Vector3(inner.x+bevel,inner.y+bevel,-depth)]
+	var loops: Array[PackedVector3Array] = []
+	for profile: Vector3 in profiles:
+		var radius := 0.002 if profile.x>inner.x+bevel else 0.001
+		var ring := PackedVector3Array()
+		for point: Vector2 in [Vector2(-profile.x+radius,-profile.y),Vector2(profile.x-radius,-profile.y),Vector2(profile.x,-profile.y+radius),Vector2(profile.x,profile.y-radius),Vector2(profile.x-radius,profile.y),Vector2(-profile.x+radius,profile.y),Vector2(-profile.x,profile.y-radius),Vector2(-profile.x,-profile.y+radius)]: ring.append(Vector3(point.x,point.y,profile.z))
+		loops.append(ring)
+	var tool := SurfaceTool.new()
+	tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+	tool.set_smooth_group(-1)
+	for row in loops.size():
+		var next := (row+1)%loops.size()
+		for column in 8:
+			var after := (column+1)%8
+			var points: Array[Vector3] = [loops[row][column],loops[row][after],loops[next][after],loops[next][column]]
+			var normal := (points[1]-points[0]).cross(points[3]-points[0]).normalized()
+			quad(tool,points,normal)
+	tool.generate_normals()
+	return tool.commit()
