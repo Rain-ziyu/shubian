@@ -287,6 +287,13 @@ func check_cape(model: Node3D, context: String) -> void:
 
 
 func check_collars(torso: Node3D, context: String) -> void:
+	var stand: MeshInstance3D = torso.get_node("Collar")
+	var front_height := -INF
+	var rear_height := -INF
+	for point: Vector3 in stand.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+		if absf(point.x)<0.001 and point.z< -0.05: front_height = maxf(front_height,point.y)
+		if absf(point.x)<0.001 and point.z>0.05: rear_height = maxf(rear_height,point.y)
+	check(rear_height-front_height>0.015 and rear_height-front_height<0.025,"standing collar opens at the front instead of forming a level neck band: "+context)
 	var coat: MeshInstance3D = torso.get_node("Undercoat")
 	var coat_triangles := coat.mesh.generate_triangle_mesh()
 	for collar_label in ["CrossedCollar","InnerCollar"]:
@@ -295,6 +302,16 @@ func check_collars(torso: Node3D, context: String) -> void:
 		var minimum := INF
 		var maximum := -INF
 		var positions: PackedVector3Array = collar.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+		var edges := {}
+		for triangle in range(0,positions.size(),3):
+			for edge in 3:
+				var a := str(Vector3i((positions[triangle+edge]*1000000).round()))
+				var b := str(Vector3i((positions[triangle+(edge+1)%3]*1000000).round()))
+				var key := a+"|"+b if a<b else b+"|"+a
+				edges[key] = int(edges.get(key,0))+1
+		var closed := true
+		for count in edges.values(): closed = closed and count==2
+		check(closed,"folded collar has a closed back and rim: "+context+" / "+collar_label)
 		var samples := positions.duplicate()
 		for triangle in range(0,positions.size(),3): samples.append((positions[triangle]+positions[triangle+1]+positions[triangle+2])/3)
 		for vertex: Vector3 in samples:
@@ -308,6 +325,35 @@ func check_collars(torso: Node3D, context: String) -> void:
 			maximum = maxf(maximum,gap)
 		check(supported and minimum>=0.0015 and maximum<=0.010,"continuous collar stays outside the actual undercoat surface: "+context+" / "+collar_label)
 		print("COLLAR_CLEARANCE: ",collar_label," min=",minimum," max=",maximum)
+	var outer: MeshInstance3D = torso.get_node("CrossedCollar")
+	var inner: MeshInstance3D = torso.get_node("InnerCollar")
+	var inner_surface := inner.mesh.generate_triangle_mesh()
+	var gap := INF
+	var overlaps := 0
+	var outer_points: PackedVector3Array = outer.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+	var samples := outer_points.duplicate()
+	for triangle in range(0,outer_points.size(),3):
+		samples.append((outer_points[triangle]+outer_points[triangle+1]+outer_points[triangle+2])/3)
+	for vertex in samples:
+		var point := inner.to_local(outer.to_global(vertex))
+		var hit := inner_surface.intersect_segment(Vector3(point.x,point.y,-1),Vector3(point.x,point.y,1))
+		if hit.is_empty(): continue
+		gap = minf(gap,float(hit.position.z-point.z))
+		overlaps += 1
+	check(overlaps>20 and gap>0.0001,"crossed collar remains above the inner layer without intersection: "+context)
+	print("COLLAR_LAYER_GAP: ",context," / ",gap)
+	var outer_surface := outer.mesh.generate_triangle_mesh()
+	var tucked := true
+	var end_samples := 0
+	for vertex: Vector3 in inner.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+		var distance := absf(Vector2(vertex.x-0.012,vertex.y-1.412).dot(Vector2(-1,-1).normalized()))
+		if distance>0.0015: continue
+		var point := outer.to_local(inner.to_global(vertex))
+		var hit := outer_surface.intersect_segment(Vector3(point.x,point.y,-1),Vector3(point.x,point.y,1))
+		tucked = tucked and not hit.is_empty()
+		if not hit.is_empty(): tucked = tucked and point.z-hit.position.z>0.0001
+		end_samples += 1
+	check(tucked and end_samples>10,"inner collar end is covered by the outer fold: "+context)
 
 func check_metal(model: Node3D, context: String) -> void:
 	for side in [-1,1]:

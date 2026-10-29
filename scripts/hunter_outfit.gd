@@ -149,6 +149,10 @@ static func bracer_lining(tool: SurfaceTool, ring: Vector4, segments: int) -> vo
 		MetalMesh.bevel_triangle(tool,d,f,e,inward)
 
 static func equipment_shape(point: Vector3, label: String) -> Vector3:
+	if label=="Collar":
+		var front := 1-smoothstep(-0.075,-0.020,point.z)
+		var opening := 1-smoothstep(0.0,0.060,absf(point.x))
+		point.y -= 0.020*front*opening*smoothstep(1.47,1.52,point.y)
 	if label.begins_with("BeltPouch"):
 		# Rounded rectangular leather panels, with the original circular UV and anchors.
 		var angle := atan2(point.x/0.06,point.z/0.035)
@@ -369,26 +373,26 @@ static func fitted_collar(parent: Node3D, label: String, points: Array, width: f
 			var tangent: Vector3 = (points[segment+1]-before).lerp(after-points[segment],t).normalized()
 			var across := Vector3(-tangent.y,tangent.x,0).normalized()
 			var row := PackedVector3Array()
-			for column in 5:
-				var point := center+across*width*(float(column)/4-0.5)
+			for column in 7:
+				var point := center+across*width*(float(column)/6-0.5)
 				var local := coat.transform.affine_inverse()*point
 				var hit := triangles.intersect_segment(Vector3(local.x,local.y,-1),Vector3(local.x,local.y,1))
 				if not hit.is_empty():
-					var across_t := float(column)/4
-					var rolled_edge := 0.001*pow(absf(across_t*2-1),3)
-					var layer_gap := 0.0065 if label=="CrossedCollar" else 0.0035
+					var across_t := float(column)/6
+					var rolled_edge := 0.0012*pow(absf(across_t*2-1),3)
+					var layer_gap := 0.0058 if label=="CrossedCollar" else 0.0030
 					point = coat.transform*hit.position-Vector3(0,0,layer_gap+rolled_edge)
 				row.append(point)
 			rows.append(row)
 	for row in range(rows.size()-1):
-		for column in 4:
+		for column in 6:
 			for corner in [Vector2i(0,0),Vector2i(0,1),Vector2i(1,0),Vector2i(1,0),Vector2i(0,1),Vector2i(1,1)]:
-				st.set_uv(Vector2(float(column+corner.y)/4,float(row+corner.x)/(rows.size()-1)))
+				st.set_uv(Vector2(float(column+corner.y)/6,float(row+corner.x)/(rows.size()-1)))
 				st.add_vertex(rows[row+corner.x][column+corner.y])
 	st.generate_normals()
 	var result := MeshInstance3D.new()
 	result.name = label
-	result.mesh = st.commit()
+	result.mesh = thicken_plate(st.commit(),0.0012)
 	result.material_override = V.mat(color)
 	result.material_override.cull_mode = BaseMaterial3D.CULL_DISABLED
 	parent.add_child(result)
@@ -746,9 +750,9 @@ static func create(root: Node3D) -> Dictionary:
 		Vector4(1.31,0.205,0.13,-0.006),Vector4(1.40,0.22,0.12,0),Vector4(1.46,0.185,0.09,0),Vector4(1.49,0.08,0.065,0)
 	],dark)
 	loft(root,"Neck",[Vector4(1.46,0.055,0.052,0),Vector4(1.58,0.054,0.052,0)],skin)
-	loft(root,"Collar",[Vector4(1.43,0.10,0.076,0),Vector4(1.52,0.076,0.065,0)],Color("3b463a"))
-	ribbon(root,"CrossedCollar",[Vector3(-0.07,1.47,-0.067),Vector3(0,1.40,-0.13),Vector3(0.10,1.32,-0.106)],0.030,Color("666952"))
-	ribbon(root,"InnerCollar",[Vector3(0.07,1.47,-0.075),Vector3(0.012,1.412,-0.139),Vector3(-0.012,1.392,-0.132)],0.024,Color("454e41"))
+	loft(root,"Collar",[Vector4(1.43,0.10,0.076,0),Vector4(1.47,0.089,0.071,0),Vector4(1.50,0.081,0.067,0),Vector4(1.52,0.076,0.065,0)],Color("3b463a"),0,TAU,64)
+	ribbon(root,"CrossedCollar",[Vector3(-0.07,1.47,-0.067),Vector3(0,1.422,-0.123),Vector3(0.058,1.382,-0.128)],0.038,Color("666952"))
+	ribbon(root,"InnerCollar",[Vector3(0.07,1.47,-0.075),Vector3(0.035,1.435,-0.130),Vector3(0.012,1.412,-0.139)],0.028,Color("454e41"))
 	loft(root,"WaistSash",[Vector4(0.94,0.181,0.123,0),Vector4(1.025,0.177,0.12,0)],red)
 	var belt := loft(root,"Belt",[Vector4(0.982,0.186,0.129,0),Vector4(0.984,0.1877,0.1307,0),Vector4(1.010,0.1843,0.1273,0),Vector4(1.012,0.182,0.125,0)],Color("34322b"),0,TAU,64)
 	var buckle := V.piece(root,Vector3(0.055,0.997,-0.133),Vector3(0.07,0.044,0.013),Color("928d74"))

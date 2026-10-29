@@ -24,8 +24,8 @@ func run() -> void:
 		check(valid,"cloth UV coordinates cover every vertex and remain normalized")
 		check(binding.rendered.mesh.surface_get_arrays(0)[Mesh.ARRAY_TEX_UV]==uv,"skinned cloth preserves authored UV")
 		check(binding.rendered.material_override==material,"rendered cloth uses intended fabric material")
-	check(count==13,"garments, both wrapped collars and covered knee joints receive fabric treatment")
-	for label in ["CrossedCollar","InnerCollar"]:
+	check(count==14,"garments, standing and wrapped collars and covered knee joints receive fabric treatment")
+	for label in ["CrossedCollar","InnerCollar","Collar"]:
 		var collar: ShaderMaterial = rig.torso.get_node(label).material_override
 		check(collar.shader.resource_path.ends_with("hunter_fabric.gdshader") and collar.get_shader_parameter("canvas_weight")==0,"inner collar uses protected woven cloth rather than rain canvas")
 	check(rig.root.get_node("Torso/Head").material_override is StandardMaterial3D,"face retains original skin material")
