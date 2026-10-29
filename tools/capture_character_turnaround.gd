@@ -176,6 +176,27 @@ func run() -> void:
 		await RenderingServer.frame_post_draw
 		error = root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../Shubian-boots-detail.png"))
 		print("CHARACTER_BOOTS_CAPTURE: ",error)
+	if "--panels" in OS.get_cmdline_user_args():
+		layer.hide()
+		for index in [1,2]: holders[index].hide()
+		rigs[0].weapon.hide()
+		root.size = Vector2i(640,640)
+		root.content_scale_size = root.size
+		camera.position = Vector3(1.35,0.90,-1.0)
+		camera.look_at(Vector3(1.35,0.87,-0.10))
+		camera.fov = 33
+		var sheet := Image.create(1920,640,false,Image.FORMAT_RGB8)
+		for index in 3:
+			rigs[0].root.rotation.y = [0.0,0.65,0.25][index]
+			Model.pose_legs(rigs[0],"finisher" if index==2 else "idle",0.95 if index==2 else 0.0,index==2,0,0,0)
+			Model.pose_arms(rigs[0],false,0)
+			for frame in 3: await process_frame
+			await RenderingServer.frame_post_draw
+			var shot := root.get_texture().get_image()
+			shot.convert(Image.FORMAT_RGB8)
+			sheet.blit_rect(shot,Rect2i(0,0,640,640),Vector2i(index*640,0))
+		error = sheet.save_png(ProjectSettings.globalize_path("res://../Shubian-coat-panel-study.png"))
+		print("CHARACTER_PANEL_CAPTURE: ",error," / front, oblique and raised-leg frozen poses")
 	if "--fabric" in OS.get_cmdline_user_args():
 		layer.hide()
 		for index in [1,2]: holders[index].hide()

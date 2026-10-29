@@ -295,17 +295,25 @@ static func patch(parent: Node3D, label: String, points: Array, color: Color) ->
 static func cloth_panel(parent: Node3D, label: String, points: Array, color: Color) -> MeshInstance3D:
 	var meshes: Array[Array] = []
 	for flex in [0.0,1.0]:
+		var cloth_surface: TriangleMesh
+		if label=="PanelTrim":
+			var panel: MeshInstance3D = parent.get_node("CoatPanel")
+			var panel_arrays: Array = panel.mesh.surface_get_arrays(0)
+			if flex>0: panel_arrays[Mesh.ARRAY_VERTEX] = panel.mesh.surface_get_blend_shape_arrays(0)[0][Mesh.ARRAY_VERTEX]
+			var fitted_panel := ArrayMesh.new()
+			fitted_panel.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,panel_arrays)
+			cloth_surface = fitted_panel.generate_triangle_mesh()
 		var st := SurfaceTool.new()
 		st.begin(Mesh.PRIMITIVE_TRIANGLES)
 		st.set_smooth_group(0)
 		var corners := [Vector2i(0,0),Vector2i(1,0),Vector2i(0,1),Vector2i(1,0),Vector2i(1,1),Vector2i(0,1)]
 		if (points[1]-points[0]).cross(points[3]-points[0]).z<0:
 			corners = [Vector2i(0,0),Vector2i(0,1),Vector2i(1,0),Vector2i(1,0),Vector2i(0,1),Vector2i(1,1)]
-		for row in 10:
-			for column in 8:
+		for row in 18:
+			for column in 12:
 				for corner: Vector2i in corners:
-					var u := float(column+corner.x)/8
-					var v := float(row+corner.y)/10
+					var u := float(column+corner.x)/12
+					var v := float(row+corner.y)/18
 					var top: Vector3 = points[0].lerp(points[1],u)
 					var bottom: Vector3 = points[3].lerp(points[2],u)
 					var point := top.lerp(bottom,v)
@@ -315,11 +323,20 @@ static func cloth_panel(parent: Node3D, label: String, points: Array, color: Col
 					var across := clampf((point.x+0.105)/0.225,0,1)
 					point.y += (0.018*pow(absf(across*2-1),4)-0.012*sin(across*PI))*smoothstep(0.70,1,hang)
 					point.z -= sin(hang*PI)*(0.010+0.006*sin(point.x*35+hang*2))
+					# Broad gravity folds grow below the belt and soften toward the hem.
+					# Use physical panel coordinates so the narrow red trim follows them.
+					var fold := 0.5+0.5*cos(across*TAU*1.6+hang*0.55)
+					point.z -= (0.022*fold+0.006*sin(across*PI))*smoothstep(0.02,0.35,hang)*(0.65+0.35*sin(hang*PI))
 					point += Vector3(0,0.012,-0.035)*hang*hang*flex
+					if cloth_surface!=null:
+						var hit := cloth_surface.intersect_segment(Vector3(point.x,point.y,-1),Vector3(point.x,point.y,1))
+						assert(not hit.is_empty(),"Panel trim must remain over its actual cloth surface")
+						point.z = hit.position.z-0.0025
 					st.set_uv(Vector2((point.x+0.105)/0.225,1-hang))
 					st.add_vertex(point)
 		st.generate_normals()
-		meshes.append(st.commit().surface_get_arrays(0))
+		# The back and narrow rim share the same flex target and skin binding.
+		meshes.append(thicken_plate(st.commit(),0.0014).surface_get_arrays(0))
 	var shape := []
 	shape.resize(Mesh.ARRAY_MAX)
 	shape[Mesh.ARRAY_VERTEX] = meshes[1][Mesh.ARRAY_VERTEX]
@@ -738,7 +755,7 @@ static func create(root: Node3D) -> Dictionary:
 	for side in [-1,1]:
 		var pivot := V.pivot(root,"Skirt"+str(side),Vector3(side*0.12,0.98,-0.10))
 		patch(pivot,"CoatPanel",[Vector3(-0.105,0,-0.018),Vector3(0.105,0,-0.018),Vector3(0.12,-0.25,-0.075),Vector3(-0.08,-0.29,-0.068)],Color("77725a"))
-		ribbon(pivot,"PanelTrim",[Vector3(side*0.09,-0.01,-0.021),Vector3(side*0.09,-0.23,-0.077)],0.015,red)
+		ribbon(pivot,"PanelTrim",[Vector3(side*0.09,-0.01,-0.021),Vector3(0.103 if side==1 else -0.070,-0.23,-0.077)],0.015,red)
 		skirts[side] = pivot
 		var pouch := loft(root,"BeltPouch"+str(side),[Vector4(0.865,0.043,0.025,0),Vector4(0.875,0.055,0.034,0),Vector4(0.950,0.060,0.035,0),Vector4(0.960,0.057,0.032,0),Vector4(0.970,0.061,0.037,0),Vector4(0.992,0.061,0.037,0),Vector4(1.00,0.055,0.030,0)],Color("67644d"),0,TAU,48)
 		pouch.position = Vector3(side*0.215,0,0.04)
