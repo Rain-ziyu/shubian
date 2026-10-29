@@ -29,7 +29,7 @@ func run() -> void:
 	p.combat.elapsed = 0.18
 	p.animate(0,0)
 	m.rotation.y = PI
-	m.phase = "windup"
+	m.phase = "idle" if "--idle" in OS.get_cmdline_user_args() else "windup"
 	m.clock = m.data.windup*0.8
 	m.rear_attack = false
 	m.CreatureModel.animate(m.mesh,m.data,0,m.phase,m.clock,0)
@@ -68,8 +68,12 @@ func run() -> void:
 	for argument in OS.get_cmdline_user_args():
 		if argument.begins_with("--species="): destination = "res://../Shubian-camera-"+str(m.data.id)+".png"
 	if "--flank" in OS.get_cmdline_user_args(): destination = "res://../Shubian-camera-flank-"+str(m.data.id)+".png"
+	if "--camera-detail-before" in OS.get_cmdline_user_args(): destination = "res://../verification/camera-projection/native_before.png"
+	if "--camera-detail-after" in OS.get_cmdline_user_args(): destination = "res://../verification/camera-projection/native_after.png"
 	var saved := root.get_texture().get_image().save_png(ProjectSettings.globalize_path(destination))
-	print("COMBAT_READABILITY_CAPTURE: ",saved," locked_nameplate_hidden=",not m.label.visible," player_camera=",root.get_camera_3d()==p.camera," msaa_3d=",root.msaa_3d," / frozen windup versus ","sweep" if sweep else "guard","; not live input")
+	var hero_head=p.camera.unproject_position(p.global_position+Vector3.UP*1.8)
+	var hero_feet=p.camera.unproject_position(p.global_position)
+	print("COMBAT_READABILITY_CAPTURE: ",saved," locked_nameplate_hidden=",not m.label.visible," player_camera=",root.get_camera_3d()==p.camera," msaa_3d=",root.msaa_3d," hunter_projection_px=",absf(hero_head.y-hero_feet.y)," / frozen ",m.phase," versus ","sweep" if sweep else "guard","; not live input")
 	world.queue_free()
 	await process_frame
 	await RenderingServer.frame_post_draw

@@ -77,6 +77,32 @@ func run() -> void:
 	p.lock_target = null
 	for frame in 120: p.update_camera_framing(1.0/60)
 	check(absf(arm.spring_length-p.CAMERA_DISTANCE)<0.001,"unlocking smoothly restores original distance")
+	# Isolated geometry fixture across all species: the previous test only used
+	# the first monster and missed the largest species shrinking the hunter.
+	p.global_position=Vector3(100,.05,100)
+	p.pitch=-.25
+	p.yaw=0
+	var viewport_rect=Rect2(Vector2.ZERO,root.get_visible_rect().size)
+	for monster in get_nodes_in_group("monsters"):
+		for distance in [3.,6.,10.]:
+			monster.global_position=p.global_position+Vector3(0,0,-distance)
+			monster.rotation.y=PI
+			monster.CreatureModel.animate(monster.mesh,monster.data,0,"idle",0,0)
+			p.lock_target=monster
+			for frame in range(180):p.update_camera_framing(1./60)
+			await physics_frame
+			await physics_frame
+			var visible:=true
+			var head_mesh: MeshInstance3D=monster.mesh.get_node("Neck/HeadSurface")
+			for corner in range(8):
+				var point=head_mesh.to_global(head_mesh.mesh.get_aabb().get_endpoint(corner))
+				visible=visible and not p.camera.is_position_behind(point) and viewport_rect.has_point(p.camera.unproject_position(point))
+			check(visible,"default lock view retains head bounds for "+str(monster.data.id)+" at "+str(distance))
+			if distance<=6:
+				var top=p.camera.unproject_position(p.global_position+Vector3.UP*1.8)
+				var bottom=p.camera.unproject_position(p.global_position)
+				check(absf(bottom.y-top.y)>=160,"near encounter retains readable hunter scale for "+str(monster.data.id))
+		monster.global_position=Vector3(-100,0,-100)
 	print("CAMERA_FRAMING_CHECKS: ",checks," FAILURES: ",failures)
 	world.queue_free()
 	await process_frame

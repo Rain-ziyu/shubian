@@ -34,6 +34,7 @@ var walk_clock := 0.0
 var locomotion_motion := Vector3.ZERO
 const CAMERA_DISTANCE := 4.4
 const CAMERA_FOV := 62.0
+const MAX_CAMERA_PULLBACK := 1.3
 const ARRIVAL_POSE_DURATION := 0.24
 var arrival_pose_left := 0.0
 var heavy_held := -1.0
@@ -205,7 +206,9 @@ func update_camera_framing(delta: float) -> void:
 	if combat.health>0 and is_instance_valid(lock_target) and lock_target.health>0:
 		var offset: Vector3 = lock_target.global_position-global_position
 		var distance := Vector2(offset.x,offset.z).length()
-		desired = clampf((float(lock_target.data.size)-2.0)*0.8,0,1.8)*(1-smoothstep(5,12,distance))
+		# Cap the largest encounter at the same readable hunter scale as the
+		# armored quadruped; additional distance made limb poses too small.
+		desired = clampf((float(lock_target.data.size)-2.0)*0.8,0,MAX_CAMERA_PULLBACK)*(1-smoothstep(5,12,distance))
 	camera_pullback = lerpf(camera_pullback,desired,1-exp(-5.0*maxf(0,delta)))
 	var arm: SpringArm3D = camera.get_parent()
 	arm.spring_length = CAMERA_DISTANCE+camera_pullback
