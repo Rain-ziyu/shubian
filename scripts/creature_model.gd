@@ -315,6 +315,7 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 			crest.material_override.roughness = 0.72
 	preload("res://scripts/creature_skin_material.gd").apply(root,data)
 	if data.id=="stormcrest": NeckSkin.bind(body,neck,s)
+	elif data.id=="reedclaw": NeckSkin.bind(body,neck,s,-0.29,0.12)
 	TailSkin.bind(tail)
 	for side in [-1,1]:
 		for label in ["Front","Hind"]:
@@ -479,7 +480,7 @@ static func animate(root: Node3D, data: Dictionary, gait: float, phase: String, 
 		# A delayed counter-swing balances the head without moving planted feet.
 		var balance := smoothstep(0.025,0.09,impact_age)*(1-smoothstep(0.09,0.26,impact_age))
 		tail.rotation.y -= impulse.y*0.65*balance
-	if data.id=="stormcrest": NeckSkin.animate(root)
+	if data.id in ["stormcrest","reedclaw"]: NeckSkin.animate(root)
 	if data.id in ["mossback","stormcrest"]:
 		var trunk: MeshInstance3D = root.get_node("BodySurface")
 		for index in 5:

@@ -4,6 +4,7 @@ var checks := 0
 var failures := 0
 var maximum_gap := 0.0
 var maximum_stretch := 1.0
+var species_id := "stormcrest"
 func check(ok: bool, label: String) -> void:
 	checks += 1
 	if not ok:
@@ -16,9 +17,11 @@ func run() -> void:
 	var database: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://resources/monsters.json"))
 	var data: Dictionary
 	for species in database.species:
-		if species.id=="stormcrest": data = species
+		if species.id==species_id: data = species
+	var cut := -0.29 if species_id=="reedclaw" else -0.28
+	var center_height := 0.12 if species_id=="reedclaw" else 0.14
 	var live := Model.create(holder,data)
-	var saved: Node3D = load("res://assets/models/stormcrest-v1.tscn").instantiate()
+	var saved: Node3D = load("res://assets/models/"+species_id+"-v1.tscn").instantiate()
 	holder.add_child(saved)
 	for model in [live,saved]:
 		var body: MeshInstance3D = model.get_node("BodySurface")
@@ -40,18 +43,19 @@ func run() -> void:
 		check(valid,"every visible torso vertex has normalized nonnegative skin weights")
 		var end := -INF
 		for point: Vector3 in skull.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]: end = maxf(end,point.z)
-		check(absf(end+float(data.size)*0.28)<0.00002,"visible skull ends at the shared neck ring")
+		check(absf(end-float(data.size)*cut)<0.00002,"visible skull ends at the shared neck ring")
 		check(torso.get_instance_shader_parameter("neck_transition")==1.0 and arrays[Mesh.ARRAY_TEX_UV2].size()==points.size(),"material transition is saved on the actual rendered torso")
 		var poses := [["idle",0.0,{}],["windup",0.1,{}],["windup",float(data.windup),{}],["active",0.15,{}],["recover",0.2,{}],["stagger",0.12,{"neck_rotation":Vector3(-0.22,0.45,0),"body_surface_rotation":Vector3(0,0,0.1)}]]
+		if species_id=="reedclaw": poses.append_array([["active",0.45,{}],["active",0.60,{}]])
 		for pose in poses:
 			Model.animate(model,data,0,pose[0],pose[1],0,Callable(),Callable(),false,pose[2])
 			var front := INF
 			for point in points: front = minf(front,point.z)
 			var unique := {}
 			for point: Vector3 in head.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
-				if absf(point.z+float(data.size)*0.28)<0.00001: unique[point.snapped(Vector3.ONE*0.00001)] = point
+				if absf(point.z-float(data.size)*cut)<0.00001: unique[point.snapped(Vector3.ONE*0.00001)] = point
 			var ring: Array = unique.values()
-			var center_y := float(data.size)*0.14
+			var center_y := float(data.size)*center_height
 			ring.sort_custom(func(a: Vector3,b: Vector3) -> bool: return atan2(a.x,a.y-center_y)<atan2(b.x,b.y-center_y))
 			var gap := 0.0
 			var samples := 0
@@ -92,7 +96,7 @@ func run() -> void:
 			var posed_mesh := ArrayMesh.new()
 			posed_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,posed_arrays)
 			var posed_surface := posed_mesh.generate_triangle_mesh()
-			for index in 5:
+			for index in (5 if species_id=="stormcrest" else 0):
 				var crest: MeshInstance3D = model.get_node("Crest"+str(index))
 				var box := crest.mesh.get_aabb()
 				var supported := true

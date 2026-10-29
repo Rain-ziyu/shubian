@@ -1,8 +1,19 @@
 extends RefCounted
 ## A torso-to-neck transition on the existing body surface, not an extra collar.
-static func bind(body: MeshInstance3D, neck: Node3D, size: float) -> void:
+static func bind(body: MeshInstance3D, neck: Node3D, size: float, cut := -0.28, center_height := 0.14) -> void:
 	var arrays: Array = body.mesh.surface_get_arrays(0)
 	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	# Bake the authored narrow torso scale before skinning. Otherwise a rotating
+	# neck relative to a nonuniformly scaled torso introduces a sheared bone frame.
+	if not body.scale.is_equal_approx(Vector3.ONE):
+		var scale_basis := Basis.from_scale(body.scale)
+		var source_normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+		for index in vertices.size():
+			vertices[index] = scale_basis*vertices[index]
+			source_normals[index] = (scale_basis.inverse().transposed()*source_normals[index]).normalized()
+		arrays[Mesh.ARRAY_VERTEX] = vertices
+		arrays[Mesh.ARRAY_NORMAL] = source_normals
+		body.scale = Vector3.ONE
 	var colors: PackedColorArray = arrays[Mesh.ARRAY_COLOR]
 	var uv: PackedVector2Array = arrays[Mesh.ARRAY_TEX_UV]
 	var original_uv := uv.duplicate()
@@ -22,12 +33,13 @@ static func bind(body: MeshInstance3D, neck: Node3D, size: float) -> void:
 	var boundary := {}
 	for index in head_arrays[Mesh.ARRAY_VERTEX].size():
 		var point: Vector3 = head_arrays[Mesh.ARRAY_VERTEX][index]
-		if absf(point.z+size*0.28)>0.00001: continue
+		if absf(point.z-size*cut)>0.00001: continue
 		boundary[point.snapped(Vector3.ONE*0.00001)] = {"point":point,"normal":head_arrays[Mesh.ARRAY_NORMAL][index],"color":head_arrays[Mesh.ARRAY_COLOR][index]}
 	assert(not boundary.is_empty(),"Neck seam must coincide with an authored skull ring")
 	var seam_normals := {}
-	var head_center := Vector3(0,size*0.14,-size*0.28)
+	var head_center := Vector3(0,size*center_height,size*cut)
 	var head_to_body := body.transform.affine_inverse()*neck.transform*head.transform
+	var seam_z := (head_to_body*head_center).z
 	for index in vertices.size():
 		var point := vertices[index]
 		if point.z>=-size*0.44: continue
@@ -68,7 +80,7 @@ static func bind(body: MeshInstance3D, neck: Node3D, size: float) -> void:
 	# of folding UV.y backward into the old torso chart at the neck.
 	for index in vertices.size():
 		transition[index].y = 1-smoothstep(0.90,0.98,uv[index].y)
-		uv[index].y = (vertices[index].z/size+0.40+0.715)/0.835
+		uv[index].y = ((head_to_body.affine_inverse()*vertices[index]).z/size+0.715)/0.835
 	arrays[Mesh.ARRAY_VERTEX] = vertices
 	arrays[Mesh.ARRAY_COLOR] = colors
 	arrays[Mesh.ARRAY_TEX_UV] = uv
@@ -94,14 +106,14 @@ static func bind(body: MeshInstance3D, neck: Node3D, size: float) -> void:
 	body.mesh = fitted_body
 	# Keep source geometry available to anatomical queries; render an open seam
 	# at the exact skull ring instead of two intersecting capped surfaces.
-	arrays = selected_triangles(arrays,func(points: Array) -> bool: return not (absf(points[0].z+size*0.68)<0.00001 and absf(points[1].z-points[0].z)<0.00001 and absf(points[2].z-points[0].z)<0.00001))
+	arrays = selected_triangles(arrays,func(points: Array) -> bool: return not (absf(points[0].z-seam_z)<0.00001 and absf(points[1].z-points[0].z)<0.00001 and absf(points[2].z-points[0].z)<0.00001))
 	vertices = arrays[Mesh.ARRAY_VERTEX]
 	var bones := PackedInt32Array()
 	var weights := PackedFloat32Array()
 	for point in vertices:
 		# Concentrate rotation in the neck and taper its influence before the
 		# broad shoulder. A linear falloff shears the wide chest during recoil.
-		var weight := pow(clampf((-size*0.27-point.z)/(size*0.41),0,1),1.2)
+		var weight := pow(clampf((-size*0.27-point.z)/(-size*0.27-seam_z),0,1),1.2)
 		bones.append_array(PackedInt32Array([0,1,0,0]))
 		weights.append_array(PackedFloat32Array([1-weight,weight,0,0]))
 	arrays[Mesh.ARRAY_BONES] = bones
@@ -119,6 +131,7 @@ static func bind(body: MeshInstance3D, neck: Node3D, size: float) -> void:
 		skeleton.set_bone_rest(index,rest)
 		skeleton.set_bone_pose_position(index,rest.origin)
 		skeleton.set_bone_pose_rotation(index,rest.basis.get_rotation_quaternion())
+		skeleton.set_bone_pose_scale(index,rest.basis.get_scale())
 		skin.add_bind(index,rest.affine_inverse())
 	var torso := MeshInstance3D.new()
 	torso.name = "Skin_BodySurface"
@@ -132,7 +145,7 @@ static func bind(body: MeshInstance3D, neck: Node3D, size: float) -> void:
 	var skull := MeshInstance3D.new()
 	skull.name = "Skin_HeadSurface"
 	skull.mesh = ArrayMesh.new()
-	skull.mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,selected_triangles(head.mesh.surface_get_arrays(0),func(points: Array) -> bool: return maxf(points[0].z,maxf(points[1].z,points[2].z))<=-size*0.28+0.00001))
+	skull.mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,selected_triangles(head.mesh.surface_get_arrays(0),func(points: Array) -> bool: return maxf(points[0].z,maxf(points[1].z,points[2].z))<=size*cut+0.00001))
 	head.add_child(skull)
 	copy_material(head,skull)
 	head.layers = 0
@@ -170,4 +183,5 @@ static func animate(root: Node3D) -> void:
 	var pose := body.transform.affine_inverse()*neck.transform
 	skeleton.set_bone_pose_position(1,pose.origin)
 	skeleton.set_bone_pose_rotation(1,pose.basis.get_rotation_quaternion())
+	skeleton.set_bone_pose_scale(1,pose.basis.get_scale())
 	skeleton.force_update_all_bone_transforms()

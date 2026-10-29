@@ -20,8 +20,11 @@ func run() -> void:
 	stage.add_child(light)
 	var database: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://resources/monsters.json"))
 	var data: Dictionary
+	var requested := "stormcrest"
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--species="): requested = argument.trim_prefix("--species=")
 	for species in database.species:
-		if species.id=="stormcrest": data = species
+		if species.id==requested: data = species
 	var model := preload("res://scripts/creature_model.gd").create(stage,data)
 	var camera := Camera3D.new()
 	stage.add_child(camera)
@@ -43,13 +46,13 @@ func run() -> void:
 		for column in 2:
 			camera.position = model.position+Vector3(float(data.size)*(1.8 if column==0 else -1.8),float(data.size)*0.95,-float(data.size)*1.5)
 			camera.look_at(model.position+Vector3(0,float(data.size)*0.65,-float(data.size)*0.45))
-			label.text = "STORMCREST / "+phase.to_upper()+" / "+("RIGHT" if column==0 else "LEFT")
+			label.text = requested.to_upper()+" / "+phase.to_upper()+" / "+("RIGHT" if column==0 else "LEFT")
 			for frame in 3: await process_frame
 			await RenderingServer.frame_post_draw
 			var shot := root.get_texture().get_image()
 			shot.convert(Image.FORMAT_RGB8)
 			result.blit_rect(shot,Rect2i(0,0,640,360),Vector2i(column*640,row*360))
-	var destination := ProjectSettings.globalize_path("res://../Shubian-stormcrest-neck-poses.png")
+	var destination := ProjectSettings.globalize_path("res://../Shubian-"+requested+"-neck-poses.png")
 	var error := result.save_png(destination)
 	print("CREATURE_NECK_CAPTURE: ",error," ",destination," / six frozen views, no AI or input")
 	stage.queue_free()
