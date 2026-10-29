@@ -82,6 +82,16 @@ func run() -> void:
 			for side in [-1,1]:
 				var eye: MeshInstance3D = instance.get_node("Neck/Eye"+str(side))
 				var pupil: MeshInstance3D = instance.get_node("Neck/Pupil"+str(side))
+				if data.id=="stormcrest":
+					check(not pupil.visible and bool(eye.material_override.get_shader_parameter("integrated_pupil")),"stormcrest uses one surface pupil instead of an additional floating bead")
+					check(float(eye.material_override.get_shader_parameter("eye_side"))==float(side) and float(eye.material_override.get_shader_parameter("gaze_forward_angle"))>0,"live and saved eye pattern faces forward with mirrored sides")
+					var points:PackedVector3Array=skull.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+					var muzzle:=0.0
+					var orbit:=0.0
+					for point in points:
+						if absf(point.z+float(data.size)*.57)<.001:muzzle=maxf(muzzle,absf(point.x))
+						if absf(point.z+float(data.size)*.43)<.001:orbit=maxf(orbit,absf(point.x))
+					check(muzzle<orbit*.85,"stormcrest has a distinct narrower muzzle ahead of its orbital skull")
 				var eye_point := eye.position
 				var seat := skull_triangles.intersect_segment(Vector3(side*float(data.size)*2,eye_point.y,eye_point.z),Vector3(0,eye_point.y,eye_point.z))
 				check(not seat.is_empty() and absf(eye_point.x)>absf(seat.get("position",Vector3.ZERO).x),"live and saved eye is not buried inside skull: "+str(data.id))

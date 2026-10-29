@@ -212,7 +212,7 @@ static func mouth_lining(jaw: MeshInstance3D, hinge: Vector3, scale: float, head
 	jaw.add_child(result)
 	return result
 
-static func nostril_relief(part: MeshInstance3D, skull: TriangleMesh, size: float, side: int, skin: Color) -> void:
+static func nostril_relief(part: MeshInstance3D, skull: TriangleMesh, size: float, side: int, skin: Color, aperture_scale := 1.0) -> void:
 	var contact := skull.intersect_segment(Vector3(side*size*2,part.position.y,part.position.z),Vector3(0,part.position.y,part.position.z))
 	assert(not contact.is_empty(),"Nostril must remain on the real skull")
 	var normal: Vector3 = contact.normal
@@ -227,7 +227,7 @@ static func nostril_relief(part: MeshInstance3D, skull: TriangleMesh, size: floa
 		var points := PackedVector3Array()
 		for column in 25:
 			var angle := TAU*float(column)/24
-			var plane: Vector3 = contact.position+(along*cos(angle)*0.022+across*sin(angle)*0.009)*size*float(radii[row])
+			var plane: Vector3 = contact.position+(along*cos(angle)*0.022+across*sin(angle)*0.009)*size*float(radii[row])*aperture_scale
 			var hit := skull.intersect_segment(plane+normal*size*0.1,plane-normal*size*0.1)
 			assert(not hit.is_empty(),"Nasal rim must follow the curved skull surface")
 			var up: Vector3 = hit.normal
@@ -257,7 +257,7 @@ static func nostril_relief(part: MeshInstance3D, skull: TriangleMesh, size: floa
 	part.material_override.roughness = 0.82
 	part.material_override.metallic_specular = 0.15
 
-static func seat_orbital_ridge(ridge: MeshInstance3D, skull: TriangleMesh, side: int, scale: float, eye: MeshInstance3D, skin: Color) -> void:
+static func seat_orbital_ridge(ridge: MeshInstance3D, skull: TriangleMesh, side: int, scale: float, eye: MeshInstance3D, skin: Color, opening_scale := 1.0) -> void:
 	# Upper and lower eyelids share the same longitudinal sections and embed
 	# both outer roots in the skull. The middle remains an actual eye opening.
 	var rows: Array[PackedVector3Array] = []
@@ -267,7 +267,7 @@ static func seat_orbital_ridge(ridge: MeshInstance3D, skull: TriangleMesh, side:
 		var outside := sqrt(maxf(0,1-u*u))
 		var aperture := sqrt(maxf(0,1-pow(u*0.035/0.020,2)))
 		var y := eye.position.y+u*scale*0.002
-		var ys := [y+scale*0.018*outside,y+scale*(0.010*outside+0.0035*aperture),y+scale*0.0075*aperture,y-scale*0.0075*aperture,y-scale*(0.007*outside+0.0035*aperture),y-scale*0.013*outside]
+		var ys := [y+scale*0.018*outside,y+scale*(0.010*outside+0.0035*aperture),y+scale*0.0075*aperture*opening_scale,y-scale*0.0075*aperture*opening_scale,y-scale*(0.007*outside+0.0035*aperture),y-scale*0.013*outside]
 		var points := PackedVector3Array()
 		for index in 6:
 			var hit := skull.intersect_segment(Vector3(side*scale*2,ys[index],z),Vector3(0,ys[index],z))

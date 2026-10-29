@@ -1,6 +1,9 @@
 shader_type spatial;
 render_mode diffuse_burley, specular_schlick_ggx;
 uniform vec4 iris_tint : source_color = vec4(0.72,0.45,0.16,1.0);
+uniform bool integrated_pupil = false;
+uniform float gaze_forward_angle = 0.0;
+uniform float eye_side = 1.0;
 varying vec3 eye_point;
 void vertex() {
     eye_point = VERTEX * 2.0;
@@ -8,7 +11,9 @@ void vertex() {
 void fragment() {
     // Both eyes face the lateral X axis. The pattern stays on the eyeball
     // when the head turns; it has no screen-space or time-driven animation.
-    vec2 disc = eye_point.yz;
+    float tangent = eye_point.z*cos(gaze_forward_angle)
+        + eye_point.x*eye_side*sin(gaze_forward_angle);
+    vec2 disc = vec2(eye_point.y,tangent);
     float radius = length(disc);
     float angle = atan(disc.y,disc.x);
     float fiber = sin(angle*47.0 + sin(angle*13.0)*1.8 + radius*11.0);
@@ -18,6 +23,11 @@ void fragment() {
     vec3 iris = iris_tint.rgb * (0.52 + strands*0.42 + pupil_rim*0.15);
     float limbus = smoothstep(0.70,0.94,radius);
     ALBEDO = mix(iris,iris_tint.rgb*0.13,limbus);
+    if (integrated_pupil) {
+        float slit = length(vec2(disc.x/0.60,disc.y/0.16));
+        float pupil = 1.0-smoothstep(0.87,1.0,slit);
+        ALBEDO = mix(ALBEDO,vec3(0.008,0.012,0.010),pupil);
+    }
     ROUGHNESS = mix(0.22,0.36,limbus);
     SPECULAR = 0.60;
 }

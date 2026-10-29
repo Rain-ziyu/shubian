@@ -88,7 +88,7 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 	elif data.id=="stormcrest":
 		# Broad cropped muzzle and tall orbital vault distinguish the heavy caster
 		# from the low armored grazer without lengthening its forward reach.
-		head_profile = [Vector4(-0.715,0.010,0.010,0.060),Vector4(-0.70,0.055,0.035,0.060),Vector4(-0.675,0.10,0.060,0.065),Vector4(-0.64,0.145,0.085,0.075),Vector4(-0.57,0.17,0.10,0.085),Vector4(-0.43,0.205,0.18,0.15),Vector4(-0.28,0.19,0.19,0.14),Vector4(-0.09,0.14,0.18,0.08),Vector4(0.12,0.10,0.15,0)]
+		head_profile = [Vector4(-0.715,0.010,0.010,0.060),Vector4(-0.70,0.050,0.030,0.060),Vector4(-0.675,0.090,0.050,0.060),Vector4(-0.64,0.125,0.065,0.055),Vector4(-0.57,0.145,0.075,0.065),Vector4(-0.43,0.18,0.16,0.15),Vector4(-0.28,0.18,0.17,0.14),Vector4(-0.09,0.14,0.18,0.08),Vector4(0.12,0.10,0.15,0)]
 	var head_surface := Surface.profile(neck,"HeadSurface",head_profile,s,c.lightened(0.03))
 	Surface.sculpt_anatomy(head_surface,s,"head",str(data.id))
 	if data.id=="mossback":
@@ -136,7 +136,7 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 			if not eye_contact.is_empty(): eye_x = absf(eye_contact.position.x)/s+0.004
 		var nostril := V.piece(neck,Vector3(side*s*nose_x,s*0.109,-s*0.64),Vector3(s*0.028,s*0.006,s*0.035),Color("26372b"),true)
 		nostril.name = "Nostril"+str(side)
-		Surface.nostril_relief(nostril,facial_surface,s,side,c)
+		Surface.nostril_relief(nostril,facial_surface,s,side,c,0.75 if data.id=="stormcrest" else 1.0)
 		var eye := V.piece(neck,Vector3(side*s*eye_x,s*0.20,-s*0.43),Vector3(s*0.020,s*0.02,s*0.045),Color("dba75d"),true)
 		eye.name = "Eye"+str(side)
 		eye.mesh.radial_segments = 24
@@ -144,12 +144,20 @@ static func create(parent: Node3D, data: Dictionary) -> Node3D:
 		var iris := ShaderMaterial.new()
 		iris.shader = EYE_SHADER
 		iris.set_shader_parameter("iris_tint",Color(IRIS_COLORS[data.pattern]))
+		if data.id=="stormcrest":
+			iris.set_shader_parameter("iris_tint",Color("caa45c"))
+			iris.set_shader_parameter("integrated_pupil",true)
+			iris.set_shader_parameter("gaze_forward_angle",0.72)
+			iris.set_shader_parameter("eye_side",float(side))
 		eye.material_override = iris
 		var pupil := V.piece(neck,Vector3(side*s*(eye_x+0.009),s*0.20,-s*0.436),Vector3(s*0.006,s*0.014,s*0.012),Color("1c2721"),true)
 		pupil.name = "Pupil"+str(side)
+		# Keep the named legacy node for authored scene compatibility, but the
+		# stormcrest pupil now lies on the corneal shader rather than hovering.
+		if data.id=="stormcrest":pupil.hide()
 		# The orbital roof meets the top of the eye instead of forming a detached eyebrow.
 		var brow := Surface.profile(neck,"EyeRidge"+str(side),[Vector4(-0.485,0.001,0.001,0.202),Vector4(-0.46,0.026,0.009,0.211),Vector4(-0.43,0.040,0.012,0.218),Vector4(-0.40,0.030,0.010,0.214),Vector4(-0.375,0.001,0.001,0.202)],s,c.darkened(0.08))
-		Surface.seat_orbital_ridge(brow,facial_surface,side,s,eye,c)
+		Surface.seat_orbital_ridge(brow,facial_surface,side,s,eye,c,1.18 if data.id=="stormcrest" else 1.0)
 		for tooth in 5:
 			var upper_root := Surface.tooth_root(facial_surface,side*s*0.10*head_width,s*(-0.56+tooth*0.045),s*0.014,s,true)
 			var lower_root := Surface.tooth_root(dental_jaw,side*s*0.095*head_width,s*(-0.5375+tooth*0.045)-hinge.z,s*0.010,s,false)
